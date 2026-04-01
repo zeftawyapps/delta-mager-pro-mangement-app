@@ -13,6 +13,7 @@ class Users extends UserModel implements BaseViewDataModel {
     super.isEmailVerified,
     super.meta,
     super.organizationId,
+    super.permissions,
     super.otherData,
   });
 
@@ -28,6 +29,7 @@ class Users extends UserModel implements BaseViewDataModel {
       meta: model.meta,
       token: model.token,
       organizationId: model.organizationId,
+      permissions: model.permissions,
       otherData: model.otherData,
     );
   }

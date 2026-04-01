@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../consts/constants/theme/app_colors.dart';
 
 class AppShellConfigs {
+  // 🆕 تم إضافة Flag للتبديل بين تشغيل وضع الإدمن أو وضع المنظمة (Dashboard)
+  static bool get isAdminMode => false;
   static String get titleApp => 'Domancy';
 
   static Duration get animationDuration => const Duration(milliseconds: 1000);
@@ -23,7 +25,8 @@ class AppShellConfigs {
 
   static bool get isDarkMode => false;
 
-  static String get initRouter => AppRoutes.login;
+  static String get initRouter =>
+      isAdminMode ? AppRoutes.loginAdmin : AppRoutes.splash;
 
   // Sidebar Colors
   static Color get sidebarBackgroundColor => AppColors.darkBackground;

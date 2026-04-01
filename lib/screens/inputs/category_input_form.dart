@@ -51,16 +51,35 @@ class CategoryInputFormState extends State<CategoryInputForm> {
   }
 
   void saveCategory() {
-    if (!form.form.currentState!.validate()) return;
-
+    // 1️⃣ إظهار التنبيهات قبل الفحص
     if (ProductInputConfig.isCategoryImageRequired &&
         _selectedImage == null &&
         widget.category?.image == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرجاء اختيار صورة الفئة')));
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text(
+            'تنبيه',
+            style: TextStyle(
+              color: Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text('⚠️ صورة الفئة مطلوبة بناءً على إعدادات الفرع.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('حسناً'),
+            ),
+          ],
+        ),
+      );
       return;
     }
+
+    // 2️⃣ التحقق من صحة النموذج
+    if (!form.form.currentState!.validate()) return;
+    form.form.currentState!.save();
 
     final bloc = context.read<CategoriesBloc>();
     final nameAr = nameArController.text.trim();
@@ -91,18 +110,28 @@ class CategoryInputFormState extends State<CategoryInputForm> {
         state.itemState.maybeWhen(
           orElse: () {},
           success: (data) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('تم الحفظ بنجاح')));
             if (Navigator.canPop(context)) {
               Navigator.of(context).maybePop(data);
             }
           },
           failure: (error, reload) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text('حدث خطأ أثناء الحفظ'),
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('خطأ في الإدخال'),
+                  ],
+                ),
+                content: Text(error.message ?? 'حدث خطأ غير متوقع، راجع الدعم الفني'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('حسناً'),
+                  ),
+                ],
               ),
             );
           },

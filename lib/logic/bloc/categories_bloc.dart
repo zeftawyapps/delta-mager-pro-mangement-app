@@ -34,13 +34,22 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
   }
 
   Future<void> deleteCategory(String id, {required String shopId}) async {
-    // Optionally track item status for deletion
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.deleteCategory(id);
     if (result.status == StatusModel.success) {
-      // success
+      emit(
+        state.copyWith(itemState: const DataSourceBaseState.init()),
+      ); // Reset itemState
       loadCategories(shopId: shopId);
     } else {
-      // In a more complex scenario, emit a failure in feadState
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(message: result.message ?? "Error"),
+            () => deleteCategory(id, shopId: shopId),
+          ),
+        ),
+      );
     }
   }
 

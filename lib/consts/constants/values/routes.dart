@@ -1,6 +1,15 @@
 class AppRoutes {
-  static const String login = '/login';
+  static String activeOrgName = 'deltaeNewOrg1';
+
+  static const String splash = '/splash';
+  static String loginWithOrgName(String orgName) {
+    return '/$orgName/login';
+  }
+
+  static String logIn = '/:orgName/login';
   static const String welcome = '/welcom';
+  static const String loginAdmin = '/delta/matgerpro/loginAdmin';
+  static const String adminOperations = '/delta/matgerpro/adminOperations';
   static const String customAnalyses = '/analyses/custem/:id/new';
   static const String customAnalyses2 = '/analyses/custem2/:id/new';
   static const String analyses = '/analyses';
@@ -15,21 +24,5 @@ class AppRoutes {
   static const String cpBlogs = '/blogs';
   static const String cpUsers = '/users';
   static const String standalone = '/standalone';
-}
-
-class RouteIds {
-  static const String cpCategory = 'category_screen';
-  static const String cpProducts = 'ContrlBanalproducts_screen';
-  static const String cpOffers = 'offers_screen';
-  static const String cpOrders = 'cp_orders_screen';
-  static const String cpBlogs = 'cp_blogs_screen';
-  static const String cpAboutUsPrivacy = 'about_us_privacy_screen';
-  static const String cpUsers = 'users_screen';
-  static const String cpLogin = 'login_screen';
-  static const String cpWelcome = 'welcom_screen';
-  static const String cpAnalyses = 'analyses_screen';
-  static const String cpSettings = 'settings_screen';
-  static const String cpSystemSettings = 'system_settings_screen';
-  static const String cpCustomAnalyses = 'custem_analyses_screen';
-  static const String cpCustomAnalyses2 = 'custem_analyses_screen2';
+  static const String testMasterGrid = '/test-master-grid';
 }

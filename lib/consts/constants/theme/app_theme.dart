@@ -12,21 +12,21 @@ class AppTheme {
 
       // نظام الألوان
       colorScheme: ColorScheme.light(
-        primary: LightColors.primary,
-        secondary: LightColors.secondary,
-        surface: LightColors.surface,
-        error: LightColors.error,
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: AppColors.surface,
+        error: AppColors.error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: LightColors.textPrimary,
+        onSurface: AppColors.darkText,
         onError: Colors.white,
       ),
 
-      scaffoldBackgroundColor: LightColors.background,
+      scaffoldBackgroundColor: AppColors.background,
 
       // شريط التطبيق
       appBarTheme: AppBarTheme(
-        backgroundColor: LightColors.primary,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: AppDimensions.elevationRegular,
         centerTitle: true,
@@ -42,55 +42,55 @@ class AppTheme {
         displayLarge: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeHuge,
           fontWeight: FontWeight.bold,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         displayMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeXXLarge,
           fontWeight: FontWeight.bold,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         displaySmall: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeXLarge,
           fontWeight: FontWeight.w600,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         headlineMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeLarge,
           fontWeight: FontWeight.w600,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         titleLarge: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeMedium,
           fontWeight: FontWeight.w600,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         titleMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeRegular,
           fontWeight: FontWeight.w500,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         bodyLarge: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeMedium,
           fontWeight: FontWeight.normal,
-          color: LightColors.textPrimary,
+          color: AppColors.darkText,
         ),
         bodyMedium: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeRegular,
           fontWeight: FontWeight.normal,
-          color: LightColors.textSecondary,
+          color: AppColors.lightText,
         ),
         bodySmall: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeSmall,
           fontWeight: FontWeight.normal,
-          color: LightColors.textHint,
+          color: AppColors.textHint,
         ),
       ),
 
       // الأزرار
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: LightColors.buttonPrimary,
-          foregroundColor: LightColors.buttonText,
+          backgroundColor: AppColors.buttonPrimary,
+          foregroundColor: AppColors.buttonText,
           elevation: AppDimensions.elevationRegular,
           padding: EdgeInsets.symmetric(
             horizontal: AppDimensions.paddingLarge,
@@ -108,9 +108,9 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: LightColors.primary,
+          foregroundColor: AppColors.primary,
           side: BorderSide(
-            color: LightColors.primary,
+            color: AppColors.primary,
             width: AppDimensions.borderWidthRegular,
           ),
           padding: EdgeInsets.symmetric(
@@ -190,28 +190,28 @@ class AppTheme {
 
       // نظام الألوان
       colorScheme: ColorScheme.dark(
-        primary: DarkColors.primary,
-        secondary: DarkColors.secondary,
-        surface: DarkColors.surface,
-        error: DarkColors.error,
-        onPrimary: DarkColors.textPrimary,
-        onSecondary: DarkColors.textPrimary,
-        onSurface: DarkColors.textPrimary,
+        primary: AppColors.darkPrimary,
+        secondary: AppColors.darkSecondary,
+        surface: AppColors.darkSurface,
+        error: AppColors.darkError,
+        onPrimary: AppColors.darkTextPrimary,
+        onSecondary: AppColors.darkTextPrimary,
+        onSurface: AppColors.darkTextPrimary,
         onError: Colors.white,
       ),
 
-      scaffoldBackgroundColor: DarkColors.background,
+      scaffoldBackgroundColor: AppColors.darkBackground,
 
       // شريط التطبيق
       appBarTheme: AppBarTheme(
-        backgroundColor: DarkColors.primary,
-        foregroundColor: DarkColors.textPrimary,
+        backgroundColor: AppColors.darkPrimary,
+        foregroundColor: AppColors.darkTextPrimary,
         elevation: AppDimensions.elevationRegular,
         centerTitle: true,
         titleTextStyle: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeLarge,
           fontWeight: FontWeight.w600,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
       ),
 
@@ -220,55 +220,55 @@ class AppTheme {
         displayLarge: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeHuge,
           fontWeight: FontWeight.bold,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         displayMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeXXLarge,
           fontWeight: FontWeight.bold,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         displaySmall: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeXLarge,
           fontWeight: FontWeight.w600,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         headlineMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeLarge,
           fontWeight: FontWeight.w600,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         titleLarge: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeMedium,
           fontWeight: FontWeight.w600,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         titleMedium: GoogleFonts.cairo(
           fontSize: AppDimensions.fontSizeRegular,
           fontWeight: FontWeight.w500,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         bodyLarge: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeMedium,
           fontWeight: FontWeight.normal,
-          color: DarkColors.textPrimary,
+          color: AppColors.darkTextPrimary,
         ),
         bodyMedium: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeRegular,
           fontWeight: FontWeight.normal,
-          color: DarkColors.textSecondary,
+          color: AppColors.darkTextSecondary,
         ),
         bodySmall: GoogleFonts.tajawal(
           fontSize: AppDimensions.fontSizeSmall,
           fontWeight: FontWeight.normal,
-          color: DarkColors.textHint,
+          color: AppColors.textHint,
         ),
       ),
 
       // الأزرار
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: DarkColors.buttonPrimary,
-          foregroundColor: DarkColors.buttonText,
+          backgroundColor: AppColors.darkButtonPrimary,
+          foregroundColor: AppColors.buttonText,
           elevation: AppDimensions.elevationRegular,
           padding: EdgeInsets.symmetric(
             horizontal: AppDimensions.paddingLarge,
@@ -286,9 +286,9 @@ class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: DarkColors.primary,
+          foregroundColor: AppColors.darkPrimary,
           side: BorderSide(
-            color: DarkColors.primary,
+            color: AppColors.darkPrimary,
             width: AppDimensions.borderWidthRegular,
           ),
           padding: EdgeInsets.symmetric(

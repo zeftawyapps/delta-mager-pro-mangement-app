@@ -27,7 +27,11 @@ class AppChangesValues extends ChangeNotifier {
 
     if (user == null) {
       Future.delayed(Duration.zero, () {
-        router.goRoute(context, AppRoutes.login);
+        router.goRoute(
+          context,
+          AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
+          replace: true,
+        );
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

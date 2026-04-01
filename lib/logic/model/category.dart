@@ -11,6 +11,7 @@ class CategoryModel extends CategoryData implements BaseViewDataModel {
     super.isActive = true,
     super.meta,
     super.displayOrder,
+    super.productCount,
   });
 
   factory CategoryModel.fromData(CategoryData data) {
@@ -23,6 +24,7 @@ class CategoryModel extends CategoryData implements BaseViewDataModel {
       isActive: data.isActive,
       meta: data.meta,
       displayOrder: data.displayOrder,
+      productCount: data.productCount,
     );
   }
 

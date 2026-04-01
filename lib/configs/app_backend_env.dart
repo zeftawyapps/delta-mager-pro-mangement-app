@@ -5,5 +5,6 @@ class AppBackendEnv {
   final String imageUrl = 'http://localhost:3000';
   initConfigration() {
     projectConfig(myBaseUrl: baseUrl, myImageUrl: imageUrl);
+    ProjectAPIHeader.setLanguage("ar");
   }
 }
