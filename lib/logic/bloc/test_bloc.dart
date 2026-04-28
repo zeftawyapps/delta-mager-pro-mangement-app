@@ -3,7 +3,7 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/test_data.dart';
-import 'package:matger_core_logic/core/auth/repos/test_repo.dart';
+import 'package:matger_pro_core_logic/core/auth/repos/test_repo.dart';
 
 class TestBloc extends Cubit<FeaturDataSourceState<TestData>> {
   TestRepo testRep;

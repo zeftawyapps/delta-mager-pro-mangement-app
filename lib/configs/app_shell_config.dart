@@ -6,44 +6,36 @@ import 'package:flutter/material.dart';
 import '../consts/constants/theme/app_colors.dart';
 
 class AppShellConfigs {
-  // 🆕 تم إضافة Flag للتبديل بين تشغيل وضع الإدمن أو وضع المنظمة (Dashboard)
-  static bool get isAdminMode => false;
-  static String get titleApp => 'Domancy';
+  // 🆕 الإعدادات الأساسية - يمكن تعديلها من main.dart
+  static bool isAdminMode = true;
+  static String titleApp = 'Domancy';
+  static String defaultOrgName = 'domansy';
+  static Duration animationDuration = const Duration(milliseconds: 1000);
+  static String languageCode = 'ar';
+  static SidBarAnimationType animationType = SidBarAnimationType.slideAndFade;
+  static bool showAppBarOnSmallScreen = false;
+  static bool showAppBarOnLargeScreen = false;
+  static bool debugShowCheckedModeBanner = false;
+  static bool isDarkMode = false;
+  static bool isProduction = false;
 
-  static Duration get animationDuration => const Duration(milliseconds: 1000);
-
-  static String get languageCode => 'ar';
-
-  static SidBarAnimationType get animationType =>
-      SidBarAnimationType.slideAndFade;
-
-  static bool get showAppBarOnSmallScreen => false;
-
-  static bool get showAppBarOnLargeScreen => false;
-
-  static bool get debugShowCheckedModeBanner => false;
-
-  static bool get isDarkMode => false;
-
+  // 🚀 المسار الابتدائي - يعتمد ديناميكياً على وضع الإدمن
   static String get initRouter =>
       isAdminMode ? AppRoutes.loginAdmin : AppRoutes.splash;
 
-  // Sidebar Colors
-  static Color get sidebarBackgroundColor => AppColors.darkBackground;
-  static Color get sidebarTextColor => AppColors.textOnDark;
-  static Color get sidebarHoverColor => AppColors.darkSurface;
-  static Color get sidebarHoverTextColor => AppColors.decorativeLight;
-  static Color get sidebarSelectedColor => AppColors.primary;
-  static Color get sidebarSelectedIconColor => AppColors.secondary;
-  static Color get sidebarSelectedTextColor => AppColors.secondary;
-  static Color get sidebarIconColor => AppColors.primary;
+  // 🎨 ألوان الـ Sidebar
+  static Color sidebarBackgroundColor = AppColors.darkBackground;
+  static Color sidebarTextColor = AppColors.textOnDark;
+  static Color sidebarHoverColor = AppColors.darkSurface;
+  static Color sidebarHoverTextColor = AppColors.decorativeLight;
+  static Color sidebarSelectedColor = AppColors.primary;
+  static Color sidebarSelectedIconColor = AppColors.secondary;
+  static Color sidebarSelectedTextColor = AppColors.secondary;
+  static Color sidebarIconColor = AppColors.primary;
 
-  // Sidebar Expanded Colors
-  static Color get sidebarExpandedArrowColor => AppColors.decorativeLight;
-  static Color get sidebarExpandedBackgroundColor => AppColors.darkSurface;
-  static Color get sidebarExpandedIconColor => AppColors.decorativeLight;
-  static Color get sidebarExpandedTextColor => AppColors.decorativeLight;
-
-  // Development Settings
-  static bool get isProduction => false;
+  // 📂 ألوان القوائم المنسدلة (Expanded Sidebar)
+  static Color sidebarExpandedArrowColor = AppColors.decorativeLight;
+  static Color sidebarExpandedBackgroundColor = AppColors.darkSurface;
+  static Color sidebarExpandedIconColor = AppColors.decorativeLight;
+  static Color sidebarExpandedTextColor = AppColors.decorativeLight;
 }

@@ -113,7 +113,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   width: 80,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                    border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -205,7 +205,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              product.description,
+              product.description.ar,
               style: TextStyle(
                 height: 1.5,
                 color: isDark
@@ -330,8 +330,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 border: TableBorder(
                   horizontalInside: BorderSide(
                     color: isDark
-                        ? DarkColors.divider.withOpacity(0.5)
-                        : LightColors.divider.withOpacity(0.5),
+                        ? DarkColors.divider.withValues(alpha: 0.5)
+                        : LightColors.divider.withValues(alpha: 0.5),
                   ),
                 ),
                 children: [
@@ -380,8 +380,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       decoration: BoxDecoration(
         color: opt.isDefault
             ? (isDark
-                  ? Colors.blue.withOpacity(0.05)
-                  : Colors.blue.withOpacity(0.02))
+                  ? Colors.blue.withValues(alpha: 0.05)
+                  : Colors.blue.withValues(alpha: 0.02))
             : null,
       ),
       children: [
@@ -578,9 +578,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         label,
@@ -597,7 +597,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+        color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

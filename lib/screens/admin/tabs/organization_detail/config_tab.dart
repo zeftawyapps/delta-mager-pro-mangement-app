@@ -2,9 +2,53 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:matger_core_logic/core/orgnization/data/organization_config.dart';
+import 'package:matger_pro_core_logic/core/orgnization/data/organization_config.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
+import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/sidebar_provider.dart';
+import 'package:provider/provider.dart';
+
+// 🟢 Helper class to manage grid state dynamically
+class FeatureGridState {
+  final TextEditingController aspectRatio;
+  final TextEditingController spacing;
+  final TextEditingController countSmall;
+  final TextEditingController countMedium;
+  final TextEditingController countLarge;
+  bool showAddInGrid;
+
+  FeatureGridState({
+    required String? initialAspectRatio,
+    required String? initialSpacing,
+    required String? initialCountSmall,
+    required String? initialCountMedium,
+    required String? initialCountLarge,
+    required this.showAddInGrid,
+  })  : aspectRatio = TextEditingController(text: initialAspectRatio ?? "1.0"),
+        spacing = TextEditingController(text: initialSpacing ?? "16.0"),
+        countSmall = TextEditingController(text: initialCountSmall ?? "2"),
+        countMedium = TextEditingController(text: initialCountMedium ?? "3"),
+        countLarge = TextEditingController(text: initialCountLarge ?? "4");
+
+  void dispose() {
+    aspectRatio.dispose();
+    spacing.dispose();
+    countSmall.dispose();
+    countMedium.dispose();
+    countLarge.dispose();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "childAspectRatio": double.tryParse(aspectRatio.text) ?? 1.0,
+      "crossAxisSpacing": double.tryParse(spacing.text) ?? 16.0,
+      "crossAxisCountSmall": int.tryParse(countSmall.text) ?? 2,
+      "crossAxisCountMedium": int.tryParse(countMedium.text) ?? 3,
+      "crossAxisCountLarge": int.tryParse(countLarge.text) ?? 4,
+      "showAddInGrid": showAddInGrid,
+    };
+  }
+}
 
 class ConfigSectionTab extends StatefulWidget {
   final OrganizationConfig config;
@@ -33,23 +77,15 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
   late TextEditingController _appTitleController;
   late TextEditingController _jsonImportController;
   
-  late TextEditingController _catAspectRatioController;
-  late TextEditingController _catSpacingController;
-  late TextEditingController _catCountSmallController;
-  late TextEditingController _catCountMediumController;
-  late TextEditingController _catCountLargeController;
-
-  late TextEditingController _prodAspectRatioController;
-  late TextEditingController _prodSpacingController;
-  late TextEditingController _prodCountSmallController;
-  late TextEditingController _prodCountMediumController;
-  late TextEditingController _prodCountLargeController;
-
-  late TextEditingController _userAspectRatioController;
-  late TextEditingController _userSpacingController;
-  late TextEditingController _userCountSmallController;
-  late TextEditingController _userCountMediumController;
-  late TextEditingController _userCountLargeController;
+  // 🟢 Dynamic management of feature sections
+  final Map<String, FeatureGridState> _gridStates = {};
+  
+  final List<Map<String, String>> _sectionsDefinition = [
+    {'key': 'categories', 'label': 'شبكة الأصناف (Categories)'},
+    {'key': 'products', 'label': 'شبكة المنتجات (Products)'},
+    {'key': 'users', 'label': 'شبكة المستخدمين (Users)'},
+    {'key': 'offers', 'label': 'شبكة العروض (Offers)'},
+  ];
 
   bool _showCartLocal = false;
   bool _showSearchLocal = false;
@@ -58,6 +94,32 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
   Map<String, dynamic>? _darkThemeMap;
   Map<String, dynamic>? _websiteThemeMap;
   Map<String, dynamic>? _fixedThemeMap;
+
+  static const Map<String, String> _colorLabels = {
+    "primary": "اللون الأساسي",
+    "secondary": "اللون الثانوي",
+    "accent": "اللون التمييزي",
+    "background": "لون الخلفية",
+    "surface": "لون الأسطح (البطاقات)",
+    "surfaceVariant": "لون الأسطح البديل (خلفيات الشبكة)",
+    "textPrimary": "النص الأساسي",
+    "textSecondary": "النص الفرعي",
+    "textHint": "نص التلميح (Hint)",
+    "textOnPrimary": "النص فوق اللون الأساسي",
+    "buttonPrimary": "اللون الأساسي للأزرار",
+    "buttonSecondary": "اللون الثانوي للأزرار",
+    "buttonText": "لون نص الأزرار",
+    "divider": "لون الفواصل",
+    "icon": "لون الأيقونات",
+    "inputBackground": "خلفية حقول الإدخال",
+    "inputBorder": "حدود حقول الإدخال",
+    "inputFocus": "لون التركيز في الحقول",
+    "herbGreen": "لون سير العمل (أخضر عشبي)",
+    "success": "لون النجاح",
+    "error": "لون الخطأ",
+    "warning": "لون التحذير",
+    "info": "لون المعلومات"
+  };
 
   @override
   void initState() {
@@ -74,23 +136,21 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     _jsonImportController = TextEditingController();
     
     final featureConfig = widget.config.feature;
-    _catAspectRatioController = TextEditingController(text: featureConfig?.categories?.childAspectRatio?.toString() ?? "");
-    _catSpacingController = TextEditingController(text: featureConfig?.categories?.crossAxisSpacing?.toString() ?? "");
-    _catCountSmallController = TextEditingController(text: featureConfig?.categories?.crossAxisCountSmall?.toString() ?? "");
-    _catCountMediumController = TextEditingController(text: featureConfig?.categories?.crossAxisCountMedium?.toString() ?? "");
-    _catCountLargeController = TextEditingController(text: featureConfig?.categories?.crossAxisCountLarge?.toString() ?? "");
-
-    _prodAspectRatioController = TextEditingController(text: featureConfig?.products?.childAspectRatio?.toString() ?? "");
-    _prodSpacingController = TextEditingController(text: featureConfig?.products?.crossAxisSpacing?.toString() ?? "");
-    _prodCountSmallController = TextEditingController(text: featureConfig?.products?.crossAxisCountSmall?.toString() ?? "");
-    _prodCountMediumController = TextEditingController(text: featureConfig?.products?.crossAxisCountMedium?.toString() ?? "");
-    _prodCountLargeController = TextEditingController(text: featureConfig?.products?.crossAxisCountLarge?.toString() ?? "");
-
-    _userAspectRatioController = TextEditingController(text: featureConfig?.users?.childAspectRatio?.toString() ?? "");
-    _userSpacingController = TextEditingController(text: featureConfig?.users?.crossAxisSpacing?.toString() ?? "");
-    _userCountSmallController = TextEditingController(text: featureConfig?.users?.crossAxisCountSmall?.toString() ?? "");
-    _userCountMediumController = TextEditingController(text: featureConfig?.users?.crossAxisCountMedium?.toString() ?? "");
-    _userCountLargeController = TextEditingController(text: featureConfig?.users?.crossAxisCountLarge?.toString() ?? "");
+    
+    // Initialize grid states dynamically
+    for (var section in _sectionsDefinition) {
+      final key = section['key']!;
+      final config = featureConfig?.configs[key];
+      
+      _gridStates[key] = FeatureGridState(
+        initialAspectRatio: config?.childAspectRatio?.toString(),
+        initialSpacing: config?.crossAxisSpacing?.toString(),
+        initialCountSmall: config?.crossAxisCountSmall?.toString(),
+        initialCountMedium: config?.crossAxisCountMedium?.toString(),
+        initialCountLarge: config?.crossAxisCountLarge?.toString(),
+        showAddInGrid: config?.showAddInGrid ?? false,
+      );
+    }
 
     _showCartLocal = widget.config.layout?.showCart ?? false;
     _showSearchLocal = widget.config.layout?.showSearch ?? false;
@@ -112,21 +172,9 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     _logoUrlController.dispose();
     _appTitleController.dispose();
     _jsonImportController.dispose();
-    _catAspectRatioController.dispose();
-    _catSpacingController.dispose();
-    _catCountSmallController.dispose();
-    _catCountMediumController.dispose();
-    _catCountLargeController.dispose();
-    _prodAspectRatioController.dispose();
-    _prodSpacingController.dispose();
-    _prodCountSmallController.dispose();
-    _prodCountMediumController.dispose();
-    _prodCountLargeController.dispose();
-    _userAspectRatioController.dispose();
-    _userSpacingController.dispose();
-    _userCountSmallController.dispose();
-    _userCountMediumController.dispose();
-    _userCountLargeController.dispose();
+    for (var state in _gridStates.values) {
+      state.dispose();
+    }
     super.dispose();
   }
 
@@ -269,30 +317,13 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
             onEditPressed: () => setState(() => _isEditingFeature = true),
             onSavePressed: () async {
               final currentFeatures = Map<String, dynamic>.from(widget.config.features ?? {});
+              final Map<String, dynamic> featureMap = {};
               
-              currentFeatures['feature'] = {
-                "categories": {
-                  if (_catAspectRatioController.text.isNotEmpty) "childAspectRatio": double.tryParse(_catAspectRatioController.text),
-                  if (_catSpacingController.text.isNotEmpty) "crossAxisSpacing": double.tryParse(_catSpacingController.text),
-                  if (_catCountSmallController.text.isNotEmpty) "crossAxisCountSmall": int.tryParse(_catCountSmallController.text),
-                  if (_catCountMediumController.text.isNotEmpty) "crossAxisCountMedium": int.tryParse(_catCountMediumController.text),
-                  if (_catCountLargeController.text.isNotEmpty) "crossAxisCountLarge": int.tryParse(_catCountLargeController.text),
-                },
-                "products": {
-                  if (_prodAspectRatioController.text.isNotEmpty) "childAspectRatio": double.tryParse(_prodAspectRatioController.text),
-                  if (_prodSpacingController.text.isNotEmpty) "crossAxisSpacing": double.tryParse(_prodSpacingController.text),
-                  if (_prodCountSmallController.text.isNotEmpty) "crossAxisCountSmall": int.tryParse(_prodCountSmallController.text),
-                  if (_prodCountMediumController.text.isNotEmpty) "crossAxisCountMedium": int.tryParse(_prodCountMediumController.text),
-                  if (_prodCountLargeController.text.isNotEmpty) "crossAxisCountLarge": int.tryParse(_prodCountLargeController.text),
-                },
-                "users": {
-                  if (_userAspectRatioController.text.isNotEmpty) "childAspectRatio": double.tryParse(_userAspectRatioController.text),
-                  if (_userSpacingController.text.isNotEmpty) "crossAxisSpacing": double.tryParse(_userSpacingController.text),
-                  if (_userCountSmallController.text.isNotEmpty) "crossAxisCountSmall": int.tryParse(_userCountSmallController.text),
-                  if (_userCountMediumController.text.isNotEmpty) "crossAxisCountMedium": int.tryParse(_userCountMediumController.text),
-                  if (_userCountLargeController.text.isNotEmpty) "crossAxisCountLarge": int.tryParse(_userCountLargeController.text),
-                }
-              };
+              for (var entry in _gridStates.entries) {
+                featureMap[entry.key] = entry.value.toJson();
+              }
+              
+              currentFeatures['feature'] = featureMap;
 
               context.read<AdminOrganizationConfigBloc>().updateConfigSection(
                 organizationId: widget.organizationId,
@@ -302,32 +333,37 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
               setState(() => _isEditingFeature = false);
             },
             children: [
-              _buildSectionTitle("شبكة الأصناف (Categories)"),
-              _buildEditableTile("نسبة العرض للارتفاع", _catAspectRatioController, Icons.aspect_ratio, _isEditingFeature),
-              _buildEditableTile("المسافة العرضية (Spacing)", _catSpacingController, Icons.space_bar, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة صغيرة)", _catCountSmallController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة متوسطة)", _catCountMediumController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة كبيرة)", _catCountLargeController, Icons.grid_view, _isEditingFeature),
-              
-              const Divider(),
-              _buildSectionTitle("شبكة المنتجات (Products)"),
-              _buildEditableTile("نسبة العرض للارتفاع", _prodAspectRatioController, Icons.aspect_ratio, _isEditingFeature),
-              _buildEditableTile("المسافة العرضية (Spacing)", _prodSpacingController, Icons.space_bar, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة صغيرة)", _prodCountSmallController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة متوسطة)", _prodCountMediumController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة كبيرة)", _prodCountLargeController, Icons.grid_view, _isEditingFeature),
-              
-              const Divider(),
-              _buildSectionTitle("شبكة المستخدمين (Users)"),
-              _buildEditableTile("نسبة العرض للارتفاع", _userAspectRatioController, Icons.aspect_ratio, _isEditingFeature),
-              _buildEditableTile("المسافة العرضية (Spacing)", _userSpacingController, Icons.space_bar, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة صغيرة)", _userCountSmallController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة متوسطة)", _userCountMediumController, Icons.grid_view, _isEditingFeature),
-              _buildEditableTile("عدد العمدة (شاشة كبيرة)", _userCountLargeController, Icons.grid_view, _isEditingFeature),
+              for (int i = 0; i < _sectionsDefinition.length; i++) ...[
+                _buildFeatureSection(
+                  _sectionsDefinition[i]['label']!,
+                  _gridStates[_sectionsDefinition[i]['key']]!,
+                ),
+                if (i < _sectionsDefinition.length - 1) const Divider(),
+              ],
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeatureSection(String title, FeatureGridState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(title),
+        _buildEditableTile("نسبة العرض للارتفاع", state.aspectRatio, Icons.aspect_ratio, _isEditingFeature, defaultValue: "1.0"),
+        _buildEditableTile("المسافة العرضية (Spacing)", state.spacing, Icons.space_bar, _isEditingFeature, defaultValue: "16.0"),
+        _buildEditableTile("عدد العمدة (شاشة صغيرة)", state.countSmall, Icons.grid_view, _isEditingFeature, defaultValue: "2"),
+        _buildEditableTile("عدد العمدة (شاشة متوسطة)", state.countMedium, Icons.grid_view, _isEditingFeature, defaultValue: "3"),
+        _buildEditableTile("عدد العمدة (شاشة كبيرة)", state.countLarge, Icons.grid_view, _isEditingFeature, defaultValue: "4"),
+        _buildToggleTile(
+          "إظهار زر الإضافة داخل الشبكة",
+          state.showAddInGrid,
+          _isEditingFeature,
+          (val) => setState(() => state.showAddInGrid = val),
+        ),
+      ],
     );
   }
 
@@ -393,8 +429,9 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     String label,
     TextEditingController controller,
     IconData icon,
-    bool isEditing,
-  ) {
+    bool isEditing, {
+    String? defaultValue,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: isEditing
@@ -402,6 +439,7 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
               controller: controller,
               decoration: InputDecoration(
                 labelText: label,
+                hintText: defaultValue != null ? "الافتراضي: $defaultValue" : null,
                 prefixIcon: Icon(icon, size: 20),
                 border: const OutlineInputBorder(),
                 isDense: true,
@@ -415,7 +453,9 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
                 style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
               subtitle: Text(
-                controller.text.isEmpty ? "لا يوجد" : controller.text,
+                controller.text.isEmpty
+                    ? (defaultValue != null ? "$defaultValue (افتراضي)" : "لا يوجد")
+                    : controller.text,
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
@@ -578,14 +618,27 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     );
   }
 
+  Color _parseSafeColor(String value) {
+    try {
+      String hexColor = value.replaceAll('#', '').replaceAll('0x', '');
+      if (hexColor.length == 6) {
+        hexColor = 'FF$hexColor';
+      }
+      return Color(int.parse(hexColor, radix: 16));
+    } catch (_) {
+      return Colors.transparent;
+    }
+  }
+
   Widget _buildColorPickerTile(String label, String value, bool isEditing, Function(String) onColorChanged) {
+     final displayLabel = _colorLabels[label] ?? label;
      return ListTile(
-       title: Text(label, style: const TextStyle(fontSize: 12)),
+       title: Text(displayLabel, style: const TextStyle(fontSize: 12)),
        trailing: Container(
          width: 40,
          height: 30,
          decoration: BoxDecoration(
-           color: Color(int.parse(value)),
+           color: _parseSafeColor(value),
            border: Border.all(color: Colors.grey),
            borderRadius: BorderRadius.circular(4),
          ),
@@ -595,14 +648,13 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
   }
 
   void _showColorPicker(String label, String initialValue, Function(String) onColorChanged) {
-     int colorInt = int.parse(initialValue);
-     Color selectedColor = Color(colorInt);
+     Color selectedColor = _parseSafeColor(initialValue);
 
      showDialog(
        context: context,
        builder: (context) {
          return AlertDialog(
-           title: Text("اختيار لون $label"),
+           title: Text("اختيار لون ${(_colorLabels[label] ?? label)}"),
            content: SingleChildScrollView(
              child: ColorPicker(
                pickerColor: selectedColor,

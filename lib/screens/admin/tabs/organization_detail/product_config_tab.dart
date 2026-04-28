@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:matger_core_logic/core/orgnization/data/organization_config.dart';
+import 'package:matger_pro_core_logic/core/orgnization/data/organization_config.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_unit.dart';

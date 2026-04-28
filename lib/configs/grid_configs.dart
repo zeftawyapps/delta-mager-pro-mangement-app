@@ -4,7 +4,8 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_blo
 import 'package:delta_mager_pro_mangement_app/logic/model/category.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
-import 'package:matger_core_logic/core/orgnization/data/organization_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/offer.dart';
+import 'package:matger_pro_core_logic/core/orgnization/data/organization_config.dart';
 
 class CategoryGridConfigs {
   static const double childAspectRatio = 1.1;
@@ -13,7 +14,7 @@ class CategoryGridConfigs {
   static const int crossAxisCountLarge = 4;
   static const double crossAxisSpacing = 16.0;
   static const double mainAxisSpacing = 16.0;
-  static const EdgeInsets padding = EdgeInsets.all(16.0);
+  static const EdgeInsets padding = EdgeInsets.all(24.0);
   static const String? noDataMessage = null;
   static const int debounceMs = 500;
   static const String? searchHint = "بحث في الأصناف...";
@@ -38,7 +39,7 @@ class ProductGridConfigs {
   static const int crossAxisCountLarge = 4;
   static const double crossAxisSpacing = 16.0;
   static const double mainAxisSpacing = 16.0;
-  static const EdgeInsets padding = EdgeInsets.all(16.0);
+  static const EdgeInsets padding = EdgeInsets.all(24.0);
   static const String? noDataMessage = null;
   static const int debounceMs = 500;
   static const String? searchHint = "بحث في المنتجات...";
@@ -63,10 +64,35 @@ class UserGridConfigs {
   static const int crossAxisCountLarge = 4;
   static const double crossAxisSpacing = 16.0;
   static const double mainAxisSpacing = 16.0;
-  static const EdgeInsets padding = EdgeInsets.all(16.0);
+  static const EdgeInsets padding = EdgeInsets.all(24.0);
   static const String? noDataMessage = null;
   static const int debounceMs = 500;
   static const String? searchHint = "بحث في المستخدمين...";
+  static const ScrollPhysics? physics = null;
+  static const bool shrinkWrap = false;
+  static const bool canAdd = true;
+  static const bool addAutomaticKeepAlives = true;
+  static const bool addRepaintBoundaries = true;
+  static const bool addSemanticIndexes = true;
+  static const double? cacheExtent = null;
+  static const String? restorationId = null;
+  static const Clip clipBehavior = Clip.hardEdge;
+  static const Axis scrollDirection = Axis.vertical;
+  static const bool reverse = false;
+  static const bool? primary = null;
+}
+
+class OfferGridConfigs {
+  static const double childAspectRatio = 1.0;
+  static const int crossAxisCountSmall = 2;
+  static const int crossAxisCountMedium = 3;
+  static const int crossAxisCountLarge = 4;
+  static const double crossAxisSpacing = 16.0;
+  static const double mainAxisSpacing = 16.0;
+  static const EdgeInsets padding = EdgeInsets.all(24.0);
+  static const String? noDataMessage = "لا توجد عروض حالياً";
+  static const int debounceMs = 500;
+  static const String? searchHint = "بحث في العروض...";
   static const ScrollPhysics? physics = null;
   static const bool shrinkWrap = false;
   static const bool canAdd = true;
@@ -94,6 +120,7 @@ class GridFeatureResolver {
     if (T == CategoryModel) return features.categories;
     if (T == ProductModel) return features.products;
     if (T == UserViewProfileModel) return features.users;
+    if (T == OfferModel) return features.offers;
     
     return null;
   }

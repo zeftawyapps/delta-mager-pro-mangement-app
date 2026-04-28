@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/offer.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 
 class AppChangesValues extends ChangeNotifier {
   String? laseRoute;
@@ -27,9 +28,13 @@ class AppChangesValues extends ChangeNotifier {
 
     if (user == null) {
       Future.delayed(Duration.zero, () {
+        final targetRoute = AppShellConfigs.isAdminMode 
+            ? AppRoutes.loginAdmin 
+            : AppRoutes.loginWithOrgName(AppRoutes.activeOrgName);
+            
         router.goRoute(
           context,
-          AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
+          targetRoute,
           replace: true,
         );
       });

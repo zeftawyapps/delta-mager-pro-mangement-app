@@ -2,7 +2,7 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 import 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
-import 'package:matger_core_logic/features/commrec/repo/category_repo.dart';
+import 'package:matger_pro_core_logic/features/commrec/repo/category_repo.dart';
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
 import '../model/category.dart';
 import 'dart:typed_data';
@@ -12,6 +12,34 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
 
   CategoriesBloc({required this.repo})
     : super(FeaturDataSourceState<CategoryModel>.defaultState());
+
+  Future<void> searchCategories(String query, {required String shopId}) async {
+    if (query.isEmpty) {
+      return loadCategories(shopId: shopId);
+    }
+    emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    final result = await repo.getCategoriesByOrganization(shopId);
+    if (result.status == StatusModel.success) {
+      final categories = result.data
+              ?.map((e) => CategoryModel.fromData(e))
+              .where((c) =>
+                  c.name.ar.contains(query) ||
+                  (c.name.en?.toLowerCase().contains(query.toLowerCase()) ??
+                      false))
+              .toList() ??
+          [];
+      emit(state.copyWith(listState: DataSourceBaseState.success(categories)));
+    } else {
+      emit(
+        state.copyWith(
+          listState: DataSourceBaseState.failure(
+            ErrorStateModel(message: result.message ?? "Error"),
+            () => searchCategories(query, shopId: shopId),
+          ),
+        ),
+      );
+    }
+  }
 
   Future<void> loadCategories({required String shopId}) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
@@ -82,13 +110,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createCategory(
-              name: name,
-              shopId: shopId,
-              description: description,
-              imageBytes: imageBytes,
-              imageName: imageName,
-            ),
+            () {},
           ),
         ),
       );

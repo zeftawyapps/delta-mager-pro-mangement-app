@@ -1,4 +1,4 @@
-import 'package:matger_core_logic/config/paoject_config.dart';
+import 'package:matger_pro_core_logic/config/paoject_config.dart';
 
 class AppBackendEnv {
   final String baseUrl = 'http://localhost:3000/api/v1';

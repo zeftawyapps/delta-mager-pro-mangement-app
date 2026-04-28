@@ -1,7 +1,7 @@
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
-import 'package:matger_core_logic/utls/test_widgets/utils/image_picker_widget.dart';
+import 'package:JoDija_tamplites/util/widgits/images_widgets/image_picker_widget.dart';
 import '../../logic/model/category.dart';
 import '../../logic/bloc/categories_bloc.dart';
 import '../../configs/product_input_config.dart';
@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../../consts/constants/views/assets.dart';
 import 'package:JoDija_tamplites/util/validators/required_validator.dart';
 import 'package:JoDija_tamplites/util/widgits/input_form_validation/form_validations.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:JoDija_tamplites/util/widgits/input_form_validation/widgets/text_form_vlidation.dart';
 
 class CategoryInputForm extends StatefulWidget {
@@ -25,6 +26,7 @@ class CategoryInputFormState extends State<CategoryInputForm> {
   late TextEditingController descriptionController;
   ImageFileModel? _selectedImage;
   ValidationsForm form = ValidationsForm();
+  bool _isDialogShowing = false;
 
   @override
   void initState() {
@@ -33,12 +35,10 @@ class CategoryInputFormState extends State<CategoryInputForm> {
       text: widget.category?.nameAr ?? '',
     );
     nameEnController = TextEditingController(
-      text:
-          widget.category?.name ??
-          '', // Using name as placeholder for English if not separate
+      text: widget.category?.name.en ?? '',
     );
     descriptionController = TextEditingController(
-      text: widget.category?.description ?? '',
+      text: widget.category?.descriptionAr ?? '',
     );
   }
 
@@ -60,10 +60,7 @@ class CategoryInputFormState extends State<CategoryInputForm> {
         builder: (ctx) => AlertDialog(
           title: const Text(
             'تنبيه',
-            style: TextStyle(
-              color: Colors.orange,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
           ),
           content: const Text('⚠️ صورة الفئة مطلوبة بناءً على إعدادات الفرع.'),
           actions: [
@@ -115,6 +112,9 @@ class CategoryInputFormState extends State<CategoryInputForm> {
             }
           },
           failure: (error, reload) {
+            if (_isDialogShowing) return;
+            _isDialogShowing = true;
+
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -125,7 +125,9 @@ class CategoryInputFormState extends State<CategoryInputForm> {
                     Text('خطأ في الإدخال'),
                   ],
                 ),
-                content: Text(error.message ?? 'حدث خطأ غير متوقع، راجع الدعم الفني'),
+                content: Text(
+                  error.message ?? 'حدث خطأ غير متوقع، راجع الدعم الفني',
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -133,7 +135,7 @@ class CategoryInputFormState extends State<CategoryInputForm> {
                   ),
                 ],
               ),
-            );
+            ).then((_) => _isDialogShowing = false);
           },
         );
       },
@@ -292,8 +294,8 @@ class CategoryInputFormState extends State<CategoryInputForm> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
                       ),
                     ),
                   ),

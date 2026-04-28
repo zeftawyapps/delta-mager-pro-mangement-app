@@ -27,12 +27,8 @@ class LoginAdminScreen extends StatefulWidget with AppShellRouterMixin {
 
 class _LoginAdminScreenState extends State<LoginAdminScreen> {
   final _formKey = GlobalKey<FormState>();
-  final emailContrall = TextEditingController(
-    text: !AppShellConfigs.isProduction ? 'testuser8955' : '',
-  );
-  final passContrall = TextEditingController(
-    text: !AppShellConfigs.isProduction ? 'Password@123' : '',
-  );
+  final emailContrall = TextEditingController();
+  final passContrall = TextEditingController();
   bool isPass = true;
   ValidationsForm form = ValidationsForm();
 
@@ -307,8 +303,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor:
                                                       AppColors.primary,
-                                                  foregroundColor:
-                                                      AppColors.buttonText,
+                                                  foregroundColor: AppColors.textOnPrimary,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -322,8 +317,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                                                         width: 24,
                                                         child:
                                                             CircularProgressIndicator(
-                                                              color: AppColors
-                                                                  .buttonText,
+                                                              color: AppColors.textOnPrimary,
                                                               strokeWidth: 2.5,
                                                             ),
                                                       )

@@ -2,6 +2,7 @@ class AppRouteIds {
   static const String analytics = 'dashboard';
   static const String categories = 'categories';
   static const String products = 'products';
+  static const String offers = 'offers';
   static const String users = 'users';
   static const String profile = 'profile';
   static const String settings = 'settings';
@@ -15,4 +16,5 @@ class AppRouteIds {
   static const String customAnalyses = 'custem_analyses_screen';
   static const String customAnalyses2 = 'custem_analyses_screen2';
   static const String testMasterGrid = 'test_master_grid';
+  static const String policies = 'policies';
 }

@@ -7,7 +7,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/role.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/role_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
-import 'package:matger_core_logic/core/auth/data/permission_model.dart';
+import 'package:matger_pro_core_logic/core/auth/data/permission_model.dart';
 
 class GlobalRolesTab extends StatefulWidget {
   final bool isDark;
@@ -60,6 +60,22 @@ class _GlobalRolesTabState extends State<GlobalRolesTab> {
       width: 600,
       onResult: (result) {
         context.read<RolesBloc>().loadRoles(organizationId: null);
+      },
+    );
+  }
+
+  void _copyRole(RoleModel role) {
+    showCustomInputDialog(
+      context: context,
+      content: RoleInputForm(
+        organizationId: null,
+        role: role,
+        isCopy: true,
+      ),
+      height: 700,
+      width: 900,
+      onResult: (result) {
+        // We might want to reload roles or show success
       },
     );
   }
@@ -136,24 +152,29 @@ class _GlobalRolesTabState extends State<GlobalRolesTab> {
                     ? 3
                     : 4;
 
-                return GridViewModel<RoleModel>(
-                  data: roles ?? [],
-                  canAdd: true,
-                  onAdd: _addRole,
-                  listItem: (index, role) {
-                    return RoleCardItem(
-                      role: role,
-                      allPermissions: _allPermissions,
-                      isDark: widget.isDark,
-                      onTap: () => _editRole(role),
-                      onDelete: () => _deleteRole(role),
-                    );
-                  },
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.3,
+                return Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: GridViewModel<RoleModel>(
+                    data: roles ?? [],
+                    canAdd: false,
+                    listItem: (index, role) {
+                      final isMainRole = ['admin', 'org_owner', 'customer', 'organization_owner', 'super_admin'].contains(role.name.toLowerCase());
+                      return RoleCardItem(
+                        role: role,
+                        allPermissions: _allPermissions,
+                        isDark: widget.isDark,
+                        onTap: () => _editRole(role),
+                        onDelete: isMainRole ? null : () => _deleteRole(role),
+                        onCopy: isMainRole ? null : () => _copyRole(role),
+                        isReadOnly: isMainRole,
+                      );
+                    },
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.3,
+                    ),
                   ),
                 );
               },
@@ -196,6 +217,8 @@ class RoleCardItem extends StatefulWidget {
   final bool isDark;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
+  final VoidCallback? onCopy;
+  final bool isReadOnly;
 
   const RoleCardItem({
     super.key,
@@ -204,6 +227,8 @@ class RoleCardItem extends StatefulWidget {
     required this.isDark,
     this.onTap,
     this.onDelete,
+    this.onCopy,
+    this.isReadOnly = false,
   });
 
   @override
@@ -255,7 +280,10 @@ class _RoleCardItemState extends State<RoleCardItem> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.security, color: primaryColor),
+                    Icon(
+                      widget.isReadOnly ? Icons.lock_outline : Icons.security,
+                      color: widget.isReadOnly ? Colors.orange : primaryColor,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -270,6 +298,19 @@ class _RoleCardItemState extends State<RoleCardItem> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (widget.onCopy != null)
+                      IconButton(
+                        onPressed: widget.onCopy,
+                        icon: const Icon(
+                          Icons.copy_rounded,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: 'نسخ الدور لمنظمة',
+                      ),
+                    const SizedBox(width: 8),
                     if (widget.onDelete != null)
                       IconButton(
                         onPressed: widget.onDelete,

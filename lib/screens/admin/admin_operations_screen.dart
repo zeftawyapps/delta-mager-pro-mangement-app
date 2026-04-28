@@ -9,6 +9,7 @@ import 'tabs/general/organizations_tab.dart';
 import 'tabs/general/global_roles_tab.dart';
 import 'tabs/general/permissions_tab.dart';
 import 'tabs/general/users_tab.dart';
+import 'tabs/general/system_management_tab.dart';
 
 class AdminOperationsScreen extends StatefulWidget with AppShellRouterMixin {
   AdminOperationsScreen({super.key});
@@ -17,13 +18,14 @@ class AdminOperationsScreen extends StatefulWidget with AppShellRouterMixin {
   State<AdminOperationsScreen> createState() => _AdminOperationsScreenState();
 }
 
-class _AdminOperationsScreenState extends State<AdminOperationsScreen> with SingleTickerProviderStateMixin {
+class _AdminOperationsScreenState extends State<AdminOperationsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminOrganizationsBloc>().loadActiveOrganizations();
     });
@@ -38,8 +40,9 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> with Sing
   @override
   Widget build(BuildContext context) {
     if (widget.getMainPath() != null) {
-      var changvalue = context.read<AppChangesValues>();
-      changvalue.setLastRoute(widget.getMainPath()!);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<AppChangesValues>().setLastRoute(widget.getMainPath()!);
+      });
     }
     final authWidget = AppChangesValues.checkAuth(context, widget);
     if (authWidget != null) return authWidget;
@@ -61,13 +64,16 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> with Sing
             child: TabBar(
               controller: _tabController,
               tabs: const [
+                Tab(text: "إدارة النظام", icon: Icon(Icons.settings)),
                 Tab(text: "المنظمات المتاجر", icon: Icon(Icons.store)),
                 Tab(text: "الأدوار العامة", icon: Icon(Icons.security)),
                 Tab(text: "المستخدمين", icon: Icon(Icons.people)),
                 Tab(text: "الصلاحيات", icon: Icon(Icons.key)),
               ],
               labelColor: isDark ? DarkColors.primary : LightColors.primary,
-              unselectedLabelColor: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              unselectedLabelColor: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
               indicatorColor: isDark ? DarkColors.primary : LightColors.primary,
             ),
           ),
@@ -77,6 +83,7 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> with Sing
               child: TabBarView(
                 controller: _tabController,
                 children: [
+                  SystemManagementTab(isDark: isDark),
                   OrganizationsTab(isDark: isDark),
                   GlobalRolesTab(isDark: isDark),
                   UsersTab(isDark: isDark),

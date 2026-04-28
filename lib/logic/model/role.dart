@@ -1,5 +1,5 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
-import 'package:matger_core_logic/features/roles/data/role_data_model.dart';
+import 'package:matger_pro_core_logic/features/roles/data/role_data_model.dart';
 
 class RoleModel extends RoleDataModel implements BaseViewDataModel {
   RoleModel({

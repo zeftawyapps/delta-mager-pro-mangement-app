@@ -2,7 +2,7 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 import 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
-import 'package:matger_core_logic/features/users/repo/user_repo.dart';
+import 'package:matger_pro_core_logic/features/users/repo/user_repo.dart';
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
 import '../model/user_profile.dart';
 
@@ -124,6 +124,49 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
               phone: phone,
               address: address,
               isActive: isActive,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> updateMyProfile({
+    String? username,
+    String? email,
+    String? phone,
+    String? address,
+    String? organizationId,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.updateMyProfile(
+      username: username,
+      phone: phone,
+      address: address,
+    );
+
+    if (result.status == StatusModel.success && result.data != null) {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.success(
+            UserViewProfileModel.fromData(result.data!),
+          ),
+        ),
+      );
+      loadUsers(organizationId: organizationId);
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "Error updating your profile",
+            ),
+            () => updateMyProfile(
+              username: username,
+              email: email,
+              phone: phone,
+              address: address,
+              organizationId: organizationId,
             ),
           ),
         ),

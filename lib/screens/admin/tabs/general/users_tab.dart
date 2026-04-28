@@ -1,4 +1,3 @@
-import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,11 +11,12 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
-import 'package:matger_core_logic/core/auth/utils/permission_manager.dart';
-import 'package:matger_core_logic/core/auth/utils/permission_constants.dart';
+import 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart';
+import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
 
 class UsersTab extends StatefulWidget {
   final bool isDark;
+  final String? organizationIdFromRoute;
   final double childAspectRatio;
   final int crossAxisCountSmall;
   final int crossAxisCountMedium;
@@ -44,6 +44,7 @@ class UsersTab extends StatefulWidget {
   const UsersTab({
     super.key,
     required this.isDark,
+    this.organizationIdFromRoute,
     this.childAspectRatio = UserGridConfigs.childAspectRatio,
     this.crossAxisCountSmall = UserGridConfigs.crossAxisCountSmall,
     this.crossAxisCountMedium = UserGridConfigs.crossAxisCountMedium,
@@ -74,12 +75,13 @@ class UsersTab extends StatefulWidget {
 }
 
 class _UsersTabState extends State<UsersTab> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   String? _getOrgId() {
+    if (widget.organizationIdFromRoute != null &&
+        widget.organizationIdFromRoute != "" &&
+        widget.organizationIdFromRoute != ":orgName") {
+      return widget.organizationIdFromRoute;
+    }
+
     final isAdmin = AppShellConfigs.isAdminMode;
     if (isAdmin) return null;
 
@@ -135,7 +137,8 @@ class _UsersTabState extends State<UsersTab> {
   Widget build(BuildContext context) {
     final appConfig = context.watch<AppChangesValues>();
     final user = appConfig.user;
-    final canAdd = user?.can(SystemFeatures.user, SystemJobs.add) ?? widget.canAdd;
+    final canAdd =
+        user?.can(SystemFeatures.user, SystemJobs.add) ?? widget.canAdd;
     final canUpdate = user?.can(SystemFeatures.user, SystemJobs.update) ?? true;
 
     final configBloc = context.watch<OrganizationConfigBloc>();
@@ -146,21 +149,54 @@ class _UsersTabState extends State<UsersTab> {
 
     return MasterGrid<UserViewProfileModel, UsersBloc>(
       title: "المستخدمين",
+      viewMode: ViewMode.list,
+      childAspectRatio: 4.5,
       searchHint: widget.searchHint,
-      itemBuilder: (context, userItem) => UserCardItem(
+      onItemTap: _editUser,
+      itemBuilder: (context, userItem, isSelected) => UserCardItem(
         user: userItem,
         isDark: widget.isDark,
         onEdit: () => _editUser(userItem),
         onToggleStatus: () => _toggleUserStatus(userItem),
         canUpdate: canUpdate,
       ),
+      canMultiSelect: true,
+      multiSelectActions: (selectedItems) => [
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("حذف جماعي"),
+                content: Text(
+                  "هل أنت متأكد من حذف ${selectedItems.length} مستخدم؟",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("إلغاء"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "حذف",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          tooltip: "حذف العناصر المختارة",
+        ),
+      ],
       onAdd: _addUser,
       onLoad: (bloc) => bloc.loadUsers(organizationId: _getOrgId()),
       onSearch: (bloc, query) =>
           bloc.searchUsers(query, organizationId: _getOrgId()),
       canAdd: canAdd,
-      childAspectRatio:
-          featureConfig?.childAspectRatio ?? widget.childAspectRatio,
+      showAddInGrid: featureConfig?.showAddInGrid ?? false,
       crossAxisCountSmall:
           featureConfig?.crossAxisCountSmall ?? widget.crossAxisCountSmall,
       crossAxisCountMedium:
@@ -209,7 +245,7 @@ class UserCardItem extends StatefulWidget {
     required this.isDark,
     required this.onEdit,
     required this.onToggleStatus,
-    this.canUpdate = true,
+    required this.canUpdate,
   });
 
   @override
@@ -228,150 +264,114 @@ class _UserCardItemState extends State<UserCardItem> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: widget.canUpdate ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      child: GestureDetector(
-        onTap: widget.canUpdate ? widget.onEdit : null,
-        child: AnimatedScale(
-          scale: _isHovered ? 1.03 : 1.0,
-          duration: const Duration(milliseconds: 200),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: widget.isDark ? DarkColors.surface : LightColors.surface,
-              border: Border.all(
-                color: _isHovered
-                    ? primaryColor
-                    : (widget.isDark
-                          ? DarkColors.divider.withOpacity(0.1)
-                          : LightColors.divider.withOpacity(0.1)),
-              ),
-              boxShadow: [
-                if (_isHovered)
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-              ],
+      cursor: widget.canUpdate
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      child: AnimatedScale(
+        scale: _isHovered ? 1.02 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: widget.isDark ? DarkColors.surface : LightColors.surface,
+            border: Border.all(
+              color: _isHovered
+                  ? primaryColor.withOpacity(0.5)
+                  : (widget.isDark
+                        ? DarkColors.divider.withOpacity(0.1)
+                        : LightColors.divider.withOpacity(0.1)),
+              width: 1,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: primaryColor.withOpacity(0.1),
-                      child: Icon(Icons.person, color: primaryColor),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.user.username,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: widget.isDark
-                                  ? DarkColors.textPrimary
-                                  : LightColors.textPrimary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            widget.user.email,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: widget.isDark
-                                  ? DarkColors.textSecondary
-                                  : LightColors.textSecondary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (widget.canUpdate)
-                      IconButton(
-                        icon: Icon(
-                          widget.user.isActiveProfile
-                              ? Icons.check_circle
-                              : Icons.do_not_disturb_on,
-                          color: widget.user.isActiveProfile
-                              ? Colors.green
-                              : Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: widget.onToggleStatus,
-                        tooltip: widget.user.isActiveProfile
-                            ? 'تعطيل المستخدم'
-                            : 'تفعيل المستخدم',
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (widget.user.phone.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(Icons.phone, size: 14, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.user.phone,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: widget.user.roles.map((role) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          role,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: primaryColor.withOpacity(0.1),
+                child: Icon(Icons.person, color: primaryColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      widget.user.isActiveProfile ? "نشط" : "غير نشط",
+                      widget.user.username ?? 'بدون اسم',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      widget.user.email ?? 'بدون بريد',
                       style: TextStyle(
-                        fontSize: 10,
+                        color:
+                            (widget.isDark
+                                    ? DarkColors.textSecondary
+                                    : LightColors.textSecondary)
+                                .withOpacity(0.7),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: widget.user.isActiveProfile
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      widget.user.isActiveProfile ? 'نشط' : 'معطل',
+                      style: TextStyle(
                         color: widget.user.isActiveProfile
                             ? Colors.green
                             : Colors.red,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  if (widget.canUpdate)
+                    SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(
+                          widget.user.isActiveProfile
+                              ? Icons.pause_circle_outline
+                              : Icons.play_circle_outline,
+                          color: widget.user.isActiveProfile
+                              ? Colors.orange
+                              : Colors.green,
+                          size: 18,
+                        ),
+                        onPressed: widget.onToggleStatus,
+                        tooltip: widget.user.isActiveProfile
+                            ? 'تعطيل'
+                            : 'تفعيل',
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

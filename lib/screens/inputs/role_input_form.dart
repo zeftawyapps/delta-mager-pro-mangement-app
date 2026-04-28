@@ -5,15 +5,25 @@ import 'package:JoDija_tamplites/util/widgits/input_form_validation/widgets/text
 import 'package:JoDija_tamplites/util/validators/required_validator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
-import 'package:matger_core_logic/core/auth/data/permission_model.dart';
-import 'package:matger_core_logic/core/auth/utils/permission_constants.dart';
-import '../../logic/model/role.dart';
+import 'package:matger_pro_core_logic/core/auth/data/permission_model.dart';
+import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/workflow_management_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/workflow_config_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/role.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organizations_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/organization_model.dart';
 
 class RoleInputForm extends StatefulWidget {
   final String? organizationId;
   final RoleModel? role;
+  final bool isCopy;
 
-  const RoleInputForm({super.key, this.organizationId, this.role});
+  const RoleInputForm({
+    super.key,
+    this.organizationId,
+    this.role,
+    this.isCopy = false,
+  });
 
   @override
   State<RoleInputForm> createState() => _RoleInputFormState();
@@ -32,6 +42,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
   bool isLoadingPermissions = true;
   String searchQuery = '';
   final TextEditingController searchController = TextEditingController();
+  String? selectedOrganizationId;
 
   @override
   void initState() {
@@ -45,6 +56,18 @@ class _RoleInputFormState extends State<RoleInputForm> {
     );
     selectedPermissions = List<String>.from(widget.role?.permissions ?? []);
     _loadPermissions();
+
+    // Load workflow configs if organization context exists
+    if (widget.organizationId != null) {
+      context.read<WorkflowManagementBloc>().loadSpecificConfig(
+        widget.organizationId!,
+        entityType: 'orders',
+      );
+    }
+
+    if (widget.isCopy) {
+      context.read<AdminOrganizationsBloc>().loadActiveOrganizations();
+    }
   }
 
   Future<void> _loadPermissions() async {
@@ -106,7 +129,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenProducts,
           SystemFeatures.screenProfile,
           SystemFeatures.screenCategories,
-        ]
+          SystemFeatures.screenOffers,
+          SystemFeatures.screenPolicies,
+        ],
       },
       'management': {
         'title': 'إدارة البيانات والعمليات',
@@ -117,7 +142,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.category,
           SystemFeatures.order,
           SystemFeatures.offer,
-        ]
+        ],
       },
       'security': {
         'title': 'الأمن والمستخدمين',
@@ -128,7 +153,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.role,
           SystemFeatures.permission,
           SystemFeatures.orgnizationownerData,
-        ]
+        ],
       },
       'system': {
         'title': 'إعدادات النظام والمنظمات',
@@ -139,7 +164,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.system,
           SystemFeatures.controlPanel,
           SystemFeatures.superAdmin,
-        ]
+        ],
       },
     };
   }
@@ -207,9 +232,29 @@ class _RoleInputFormState extends State<RoleInputForm> {
   void saveRole() {
     if (!form.form.currentState!.validate()) return;
 
-    final finalPermissions = selectedPermissions.where((p) => p.isNotEmpty).toList();
+    final finalPermissions = selectedPermissions
+        .where((p) => p.isNotEmpty)
+        .toList();
 
-    if (widget.role != null && widget.role!.id != null) {
+    final targetOrgId = widget.isCopy
+        ? selectedOrganizationId
+        : widget.organizationId;
+
+    if (widget.isCopy) {
+      if (targetOrgId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('يرجى اختيار المنظمة أولاً')),
+        );
+        return;
+      }
+      context.read<RolesBloc>().createRole(
+        name: nameController.text.trim(),
+        displayName: displayNameController.text.trim(),
+        description: descriptionController.text.trim(),
+        permissions: finalPermissions,
+        organizationId: targetOrgId,
+      );
+    } else if (widget.role != null && widget.role!.id != null) {
       context.read<RolesBloc>().updateRole(
         roleId: widget.role!.id!,
         name: nameController.text.trim(),
@@ -239,8 +284,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(const SnackBar(content: Text('تم حفظ الدور بنجاح')));
-            if (Navigator.canPop(context)) {
-              Navigator.of(context).maybePop(data);
+
+            // Close ONLY the dialog using rootNavigator to be safe
+            if (context.mounted) {
+              Navigator.of(context, rootNavigator: true).pop(data);
             }
           },
           failure: (error, reload) {
@@ -267,9 +314,20 @@ class _RoleInputFormState extends State<RoleInputForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const CloseButton(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      if (context.mounted) {
+                        Navigator.of(context, rootNavigator: true).pop();
+                      }
+                    },
+                  ),
                   Text(
-                    widget.role != null ? "تعديل الدور" : "إنشاء دور جديد",
+                    widget.isCopy
+                        ? "نسخ الدور للمنظمة"
+                        : (widget.role != null
+                              ? "تعديل الدور"
+                              : "إنشاء دور جديد"),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -289,6 +347,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
               form.buildChildrenWithColumn(
                 context: context,
                 children: [
+                  if (widget.isCopy) ...[
+                    _buildOrganizationDropdown(),
+                    const SizedBox(height: 16),
+                  ],
                   TextFomrFildValidtion(
                     controller: nameController,
                     form: form,
@@ -381,11 +443,15 @@ class _RoleInputFormState extends State<RoleInputForm> {
                     },
                   ),
                   const SizedBox(height: 12),
-                    if (isLoadingPermissions)
+                  if (isLoadingPermissions)
                     const Center(child: CircularProgressIndicator())
                   else ...[
                     if (widget.organizationId == null) ...[
                       _buildSuperAdminToggle(),
+                      const SizedBox(height: 16),
+                    ],
+                    if (widget.organizationId != null) ...[
+                      _buildWorkflowPermissionsSection(),
                       const SizedBox(height: 16),
                     ],
                     _buildCategorizedPermissions(),
@@ -417,6 +483,55 @@ class _RoleInputFormState extends State<RoleInputForm> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOrganizationDropdown() {
+    return BlocBuilder<
+      AdminOrganizationsBloc,
+      FeaturDataSourceState<OrganizationModel>
+    >(
+      builder: (context, state) {
+        final organizations = state.listState.maybeWhen(
+          success: (data) => data,
+          orElse: () => <OrganizationModel>[],
+        );
+
+        final isLoading = state.listState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
+
+        return DropdownButtonFormField<String>(
+          value: selectedOrganizationId,
+          decoration: InputDecoration(
+            labelText: 'اختر المنظمة',
+            hintText: isLoading
+                ? 'جاري التحميل...'
+                : 'اختر المنظمة المراد النسخ إليها',
+            prefixIcon: const Icon(Icons.business),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          items: organizations?.map((org) {
+            return DropdownMenuItem<String>(
+              value: org.id,
+              child: Text(org.orgName ?? org.id ?? ''),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              selectedOrganizationId = val;
+            });
+            if (val != null) {
+              context.read<WorkflowManagementBloc>().loadSpecificConfig(
+                val,
+                entityType: 'orders',
+              );
+            }
+          },
+          validator: (val) => val == null ? 'يرجى اختيار المنظمة' : null,
         );
       },
     );
@@ -498,6 +613,178 @@ class _RoleInputFormState extends State<RoleInputForm> {
     return Column(children: categoryWidgets);
   }
 
+  Widget _buildWorkflowPermissionsSection() {
+    return BlocBuilder<
+      WorkflowManagementBloc,
+      FeaturDataSourceState<WorkflowConfigModel>
+    >(
+      builder: (context, state) {
+        return state.listState.maybeWhen(
+          success: (configs) {
+            if (configs == null || configs.isEmpty) return const SizedBox();
+
+            // Store unique actions per resource
+            final Map<String, List<Map<String, dynamic>>> resourceActions = {};
+
+            return Column(
+              children: configs.map((config) {
+                final resource = config.entityType == 'orders'
+                    ? 'order'
+                    : config.entityType;
+                final workflowName = config.workflow.workflowName.ar;
+                final executor = config.roleExecutor;
+
+                // Extract steps for this specific workflow
+                final List<Map<String, dynamic>> steps = [];
+                for (var step in config.workflow.steps) {
+                  final String technicalKey = step.stepRole.isNotEmpty
+                      ? step.stepRole
+                      : step.stepKey;
+                  final String displayName = step.stepName.ar;
+
+                  // Keep them unique within this list if necessary
+                  if (!steps.any((s) => s['key'] == technicalKey)) {
+                    steps.add({'key': technicalKey, 'name': displayName});
+                  }
+                }
+
+                if (steps.isEmpty) return const SizedBox();
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.teal.withOpacity(0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.teal.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ExpansionTile(
+                    initiallyExpanded: true,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.account_tree_outlined,
+                        color: Colors.teal,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      workflowName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "المنفذ: $executor | عدد الخطوات: ${steps.length}",
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                    children: [
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 12,
+                          children: [
+                            // 1. General Action Permission for this resource
+                            _buildWorkflowChip(
+                              label: "كافة الإجراءات (عام)",
+                              permissionKey: "$resource:workflowAction",
+                              color: Colors.teal,
+                            ),
+                            // 2. Assigned Workflow Chip
+                            _buildWorkflowChip(
+                              label: "تحويل المهام (Assigner)",
+                              permissionKey: "$resource:workflowAssigner",
+                              color: Colors.orange,
+                            ),
+                            const Divider(),
+                            const Text(
+                              "الخطوات المتاحة للتفويض:",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: double.infinity),
+                            // 3. Dynamic Steps
+                            ...steps.map((step) {
+                              final String technicalKey = step['key'];
+                              // Check if the key already contains the full path to avoid duplication
+                              final String finalPermissionKey =
+                                  technicalKey.contains(':')
+                                  ? technicalKey
+                                  : "$resource:workflowAction.$technicalKey";
+
+                              return _buildWorkflowChip(
+                                label: step['name'],
+                                permissionKey: finalPermissionKey,
+                                color: Colors.blue,
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          orElse: () => const SizedBox(),
+        );
+      },
+    );
+  }
+
+  Widget _buildWorkflowChip({
+    required String label,
+    required String permissionKey,
+    required Color color,
+    bool isGeneral = false,
+  }) {
+    final isSelected = selectedPermissions.contains(permissionKey);
+
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      selectedColor: color.withOpacity(0.2),
+      checkmarkColor: color,
+      labelStyle: TextStyle(
+        color: isSelected ? color : Colors.black87,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      onSelected: (val) {
+        setState(() {
+          if (val) {
+            selectedPermissions.add(permissionKey);
+          } else {
+            selectedPermissions.remove(permissionKey);
+          }
+        });
+      },
+      backgroundColor: color.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: isSelected ? color : color.withOpacity(0.2)),
+      ),
+    );
+  }
+
   Widget? _buildCategorySection({
     required String title,
     required IconData icon,
@@ -515,6 +802,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenProducts,
           SystemFeatures.screenUsers,
           SystemFeatures.screenOrders,
+          SystemFeatures.screenOffers,
           SystemFeatures.order,
           SystemFeatures.offer,
         ];
@@ -524,7 +812,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
       // 2. Search filtering
       final nameAr = SystemFeatures.translations[r]?['ar'] ?? '';
       final nameEn = SystemFeatures.translations[r]?['en'] ?? '';
-      
+
       // Filter out streams as requested
       if (r.toLowerCase().contains('stream')) return false;
 
@@ -538,19 +826,23 @@ class _RoleInputFormState extends State<RoleInputForm> {
     final allJobs = SystemJobs.translations.keys.toList();
     final isScreensCategory = title.contains('شاشات') || title == 'screens';
 
-    // Filter jobs: 
+    // Filter jobs:
     // - Screens: only show View/Access (exclude Read)
     // - Resources: show only essential CRUD (Read, Add, Update, Delete) + Admin/All
-    final categoryJobs = isScreensCategory 
-        ? [SystemJobs.view] 
-        : allJobs.where((j) => [
-            SystemJobs.read,
-            SystemJobs.add,
-            SystemJobs.update,
-            SystemJobs.delete,
-            SystemJobs.all,
-            SystemJobs.admin,
-          ].contains(j)).toList();
+    final categoryJobs = isScreensCategory
+        ? [SystemJobs.view]
+        : allJobs
+              .where(
+                (j) => [
+                  SystemJobs.read,
+                  SystemJobs.add,
+                  SystemJobs.update,
+                  SystemJobs.delete,
+                  SystemJobs.all,
+                  SystemJobs.admin,
+                ].contains(j),
+              )
+              .toList();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -598,7 +890,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(bottom: 12),
                 child: DataTable(
-                  columnSpacing: isScreensCategory ? 40 : 20,
+                  columnSpacing: isScreensCategory ? 60 : 30,
                   horizontalMargin: 16,
                   headingRowHeight: 45,
                   dataRowHeight: 48,
@@ -645,7 +937,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
                             'المورد / الشاشة',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -658,16 +950,17 @@ class _RoleInputFormState extends State<RoleInputForm> {
                           jobName,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                            color: (j == SystemJobs.all || j == SystemJobs.admin)
+                            fontSize: 12,
+                            color:
+                                (j == SystemJobs.all || j == SystemJobs.admin)
                                 ? Colors.orange.shade800
                                 : (j == SystemJobs.view || j == SystemJobs.read)
-                                    ? Colors.blue.shade700
-                                    : (j == SystemJobs.add ||
-                                            j == SystemJobs.update ||
-                                            j == SystemJobs.delete)
-                                        ? Colors.green.shade700
-                                        : Colors.black87,
+                                ? Colors.blue.shade700
+                                : (j == SystemJobs.add ||
+                                      j == SystemJobs.update ||
+                                      j == SystemJobs.delete)
+                                ? Colors.green.shade700
+                                : Colors.black87,
                           ),
                         ),
                       );
@@ -686,7 +979,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
                       cells: [
                         DataCell(
                           SizedBox(
-                            width: 160,
+                            width: 280,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -698,7 +991,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                         for (var job in categoryJobs) {
                                           final key =
                                               "$resKey:${job == SystemJobs.all ? '*' : job}";
-                                          if (!selectedPermissions.contains(key))
+                                          if (!selectedPermissions.contains(
+                                            key,
+                                          ))
                                             selectedPermissions.add(key);
                                         }
                                       } else {
@@ -720,7 +1015,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                 Expanded(
                                   child: Text(
                                     resName,
-                                    style: const TextStyle(fontSize: 11),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -729,8 +1027,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
                           ),
                         ),
                         ...categoryJobs.map((jobKey) {
-                          String technicalJobKey =
-                              jobKey == SystemJobs.all ? '*' : jobKey;
+                          String technicalJobKey = jobKey == SystemJobs.all
+                              ? '*'
+                              : jobKey;
                           final permKey = "$resKey:$technicalJobKey";
                           final isSelected = selectedPermissions.contains(
                             permKey,
@@ -743,7 +1042,8 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                activeColor: (jobKey == SystemJobs.all ||
+                                activeColor:
+                                    (jobKey == SystemJobs.all ||
                                         jobKey == SystemJobs.admin)
                                     ? Colors.orange
                                     : color,

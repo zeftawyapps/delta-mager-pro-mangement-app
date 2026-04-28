@@ -2,9 +2,9 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
-import 'package:matger_core_logic/config/paoject_config.dart';
-import 'package:matger_core_logic/core/auth/repos/auth_repo.dart';
-import 'package:matger_core_logic/core/auth/data/user_model.dart';
+import 'package:matger_pro_core_logic/config/paoject_config.dart';
+import 'package:matger_pro_core_logic/core/auth/repos/auth_repo.dart';
+import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
 import 'package:JoDija_reposatory/utilis/models/remote_base_model.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:JoDija_tamplites/util/shardeprefrance/shard_check.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'dart:convert';
 
 class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   final AuthRepo authRepo;
@@ -39,7 +41,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         // 💾 حفظ لبيانات تسجيل الدخول
         SharedPrefranceChecking().setDataInShardRefrace(
           email: email,
-          pass: password,
+          pass: base64Encode(utf8.encode(password)), // Hashed (Encoded)
           token: user.token!,
         );
 
@@ -93,7 +95,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         // 💾 حفظ لبيانات تسجيل الدخول
         SharedPrefranceChecking().setDataInShardRefrace(
           email: username,
-          pass: password,
+          pass: base64Encode(utf8.encode(password)), // Hashed (Encoded)
           token: user.token!,
         );
 
@@ -135,6 +137,27 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   }) async {
     final email = map['email']?.toString() ?? '';
     final password = map['pass']?.toString() ?? '';
+
+    // If it's an admin login (based on flag or route), use global login
+    if (AppShellConfigs.isAdminMode) {
+      final res = await authRepo.login(username: email, password: password);
+      if (res.status == StatusModel.success && res.data != null) {
+        final user = Users.fromUserModel(res.data!);
+        appChangesValues?.setUser(user);
+        ProjectAPIHeader.setToken(user.token!);
+
+        // 💾 حفظ لبيانات تسجيل الدخول للادمن
+        SharedPrefranceChecking().setDataInShardRefrace(
+          email: email,
+          pass: base64Encode(utf8.encode(password)), // Hashed (Encoded)
+          token: user.token!,
+        );
+
+        emit(state.copyWith(itemState: DataSourceBaseState.success(user)));
+      }
+      return res;
+    }
+
     final orgName = map['orgName']?.toString() ?? AppRoutes.activeOrgName;
     return loginOrg(orgName: orgName, username: email, password: password);
   }
@@ -147,25 +170,25 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
     SharedPrefranceChecking sharedPrefranceChecking = SharedPrefranceChecking();
 
     sharedPrefranceChecking.IsUserRejised(
-      isRegistAction: (shardUserModel) {
+      isRegistAction: (shardUserModel) async {
         // المستخدم مسجل - قم بتسجيل الدخول تلقائياً
         if (shardUserModel.email != null && shardUserModel.pass != null) {
-          signeIn(
+          AppRoutes.defaultOrgName = AppRoutes.activeOrgName;
+
+          final result = await signeIn(
             map: {
+              "orgName": AppRoutes.activeOrgName,
               "email": shardUserModel.email!,
-              "pass": shardUserModel.pass!,
+              "pass": utf8.decode(base64Decode(shardUserModel.pass!)), // Decode
             },
           );
-          // إنشاء كائن Users من البيانات المخزنة للتوجيه السريع
-          Users user = Users(
-            username: shardUserModel.uid ?? '', // في هذا النظام الـ id هو الـ username
-            email: shardUserModel.email ?? '',
-            name: shardUserModel.email?.split('@').first ?? '', 
-            phone: '', 
-            token: shardUserModel.token,
-            roles: [shardUserModel.token != null ? 'user' : 'customer'],
-          );
-          onUserFound(user);
+
+          if (result.status == StatusModel.success && result.data != null) {
+            final user = Users.fromUserModel(result.data!);
+            onUserFound(user);
+          } else {
+            onUserNotFound();
+          }
         } else {
           onUserNotFound();
         }
@@ -176,9 +199,40 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
     );
   }
 
-  // إضافة signOut مع مسح البيانات المخزنة
+  // إضافة signOut مع مسح البيانات المخزنة وتصفير التوكن
   void signOut() {
     SharedPrefranceChecking().clearDataInShardRefrace();
+    ProjectAPIHeader.setToken(''); // تصفير التوكن في الهيدر
+    appChangesValues?.setUser(null); // تصفير بيانات المستخدم المشتركة
     emit(FeaturDataSourceState<Users>.defaultState());
+  }
+
+  // دالة تغيير كلمة المرور
+  Future<void> changePassword({
+    required String identifier,
+    required String newPassword,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+
+    final result = await authRepo.changePassword(
+      identifier: identifier,
+      newPassword: newPassword,
+    );
+
+    if (result.status == StatusModel.success) {
+      emit(state.copyWith(itemState: const DataSourceBaseState.success(null)));
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(message: result.message ?? "فشل تغيير كلمة المرور"),
+            () => changePassword(
+              identifier: identifier,
+              newPassword: newPassword,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

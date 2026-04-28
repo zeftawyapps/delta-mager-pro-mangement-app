@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
   JoDija_tamplites:
     path: /Users/moaz/Desktop/delta/tools/jodija_tamplites
-  matger_core_logic:
+  matger_pro_core_logic:
     path: ../matger_core_logic _front
   bloc: ^8.1.4
   flutter_bloc: ^8.1.6

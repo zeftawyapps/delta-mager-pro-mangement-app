@@ -1,13 +1,14 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
-import 'package:matger_core_logic/features/commrec/data/product_model.dart';
+import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart';
+import 'package:matger_pro_core_logic/models/localized_string.dart';
 
 // Re-exporting core data structures for application-wide use
-export 'package:matger_core_logic/features/commrec/data/product_model.dart'
+export 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
     show LocalizedString, PriceOption, ProductUnit, ProductData;
 
 class ProductModel extends ProductData implements BaseViewDataModel {
   ProductModel({
-    required super.productId,
+    required super.id,
     required super.name,
     required super.categoryId,
     required super.organizationId,
@@ -33,7 +34,7 @@ class ProductModel extends ProductData implements BaseViewDataModel {
 
   factory ProductModel.fromData(ProductData data) {
     return ProductModel(
-      productId: data.productId,
+      id: data.id,
       name: data.name,
       categoryId: data.categoryId,
       organizationId: data.organizationId,
@@ -58,12 +59,24 @@ class ProductModel extends ProductData implements BaseViewDataModel {
     );
   }
 
+  // Convenience getters for UI
+  String get nameAr => name.ar;
+  String get descriptionAr => description.ar;
+
+  /// Localized summary from additionalData (compatible with previous UI usage)
+  LocalizedString get summary {
+    if (additionalData['summary'] != null) {
+      return LocalizedString.fromJson(additionalData['summary']);
+    }
+    return description;
+  }
+
   @override
-  String? get id => productId;
+  String get id => super.id;
 
   @override
   set id(String? value) {
-    // id is final in ProductData (productId)
+    // id is final in ProductData
   }
 
   @override

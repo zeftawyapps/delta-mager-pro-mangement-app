@@ -209,9 +209,15 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
                       labelText: 'الوحدة',
                       border: OutlineInputBorder(),
                     ),
-                    items: ProductUnit.values.where((u) => u.isVisible).map(
-                      (u) => DropdownMenuItem(value: u, child: Text(u.nameAr)),
-                    ).toList(),
+                    items: ProductUnit.values
+                        .where((u) => u.isVisible || u == widget.option.unit)
+                        .map(
+                          (u) => DropdownMenuItem(
+                            value: u,
+                            child: Text(u.nameAr),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (val) {
                       if (val != null)
                         widget.onChanged(widget.option.copyWith(unit: val));

@@ -10,10 +10,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/category.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/views/assets.dart';
-import 'package:matger_core_logic/utls/test_widgets/utils/image_picker_widget.dart';
+import 'package:JoDija_tamplites/util/widgits/images_widgets/image_picker_widget.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart'
     hide ProductUnit, PriceOption;
-import 'package:matger_core_logic/features/commrec/data/product_model.dart'
+import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
     as core_m
     show PriceOption;
 import 'package:delta_mager_pro_mangement_app/logic/bloc/products_bloc.dart';
@@ -53,12 +53,13 @@ class _ProductInputFormState extends State<ProductInputForm> {
   bool isJoker = false;
   bool isSuperJoker = false;
   bool isAvailable = true; // متاح
-  bool isMultiSize = !ProductInputConfig.defaultToSinglePrice;
+  bool isMultiSize = false;
   ProductUnit singlePriceUnit = ProductUnit.piece;
   late TextEditingController singlePriceQuantityController;
 
   // ============ نظام التسعير المتعدد ============
   List<PriceOption> priceOptions = [];
+  bool _isDialogShowing = false;
 
   @override
   void initState() {
@@ -77,7 +78,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
       text: widget.product?.name.en ?? '',
     );
     descriptionController = TextEditingController(
-      text: widget.product?.description ?? '',
+      text: widget.product?.descriptionAr ?? '',
     );
     detailedDescriptionController = TextEditingController(
       text: widget.product?.additionalData['detailedDescription'] ?? '',
@@ -141,12 +142,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
           )
           .toList();
 
-      isMultiSize =
-          priceOptions.length > 1 ||
-          (priceOptions.isNotEmpty && !priceOptions.first.isDefault);
-      if (priceOptions.isNotEmpty) {
-        isMultiSize = true;
-      }
+      // تفعيل التسعير المتعدد تلقائياً إذا كان المنتج يحتوي على أكثر من سعر
+      isMultiSize = widget.product!.priceOptions.length > 1;
     } else if (widget.initialCategoryId != null) {
       selectedCategoryId = widget.initialCategoryId;
     }
@@ -244,25 +241,41 @@ class _ProductInputFormState extends State<ProductInputForm> {
       return;
     }
 
+    // 1️⃣ مراجعة نظام الأسعار عند التفعيل
+    if (isMultiSize && priceOptions.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text(
+            'تنبيه',
+            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            '⚠️ يجب إضافة سعر واحد على الأقل عند تفعيل التسعير المتعدد.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('حسناً'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     // 2️⃣ التحقق من صحة النموذج
-    if (!form.form.currentState!.validate()) return;
-    form.form.currentState!.save();
-    var data = form.getInputData();
 
     // 3️⃣ جمع القوائم الإضافية
-    List<String> benefitsList =
-        data['benefits'] != null && data['benefits'].toString().isNotEmpty
-        ? data['benefits']
-              .toString()
+    List<String> benefitsList = benefitsController.text.isNotEmpty
+        ? benefitsController.text
               .split(',')
               .map((e) => e.trim())
               .where((e) => e.isNotEmpty)
               .toList()
         : [];
-    List<String> ingredientsList =
-        data['ingredients'] != null && data['ingredients'].toString().isNotEmpty
-        ? data['ingredients']
-              .toString()
+    List<String> ingredientsList = ingredientsController.text.isNotEmpty
+        ? ingredientsController.text
               .split(',')
               .map((e) => e.trim())
               .where((e) => e.isNotEmpty)
@@ -273,18 +286,14 @@ class _ProductInputFormState extends State<ProductInputForm> {
     final organizationId = changesValue.user?.organizationId ?? '';
 
     final localizedName = {
-      'ar': data['nameAr'] ?? '',
-      'en': data['nameEn'] ?? nameEnController.text,
+      'ar': nameArController.text.trim(),
+      'en': nameEnController.text.trim(),
     };
 
     final additionalData = {
-      'description': data['description'] ?? descriptionController.text,
-      'detailedDescription': detailedDescriptionController.text.isNotEmpty
-          ? detailedDescriptionController.text
-          : (data['detailedDescription'] ?? ''),
-      'usage': usageController.text.isNotEmpty
-          ? usageController.text
-          : (data['usage'] ?? ''),
+      'description': descriptionController.text.trim(),
+      'detailedDescription': detailedDescriptionController.text.trim(),
+      'usage': usageController.text.trim(),
       'benefits': benefitsList,
       'ingredients': ingredientsList,
     };
@@ -314,16 +323,15 @@ class _ProductInputFormState extends State<ProductInputForm> {
 
     final double currentPrice = isMultiSize && priceOptions.isNotEmpty
         ? priceOptions.first.price
-        : (double.tryParse(data['price']?.toString() ?? '0') ?? 0);
+        : (double.tryParse(priceController.text) ?? 0.0);
     final double? currentOldPrice =
         isMultiSize &&
             priceOptions.isNotEmpty &&
             priceOptions.first.oldPrice != null
         ? priceOptions.first.oldPrice
-        : double.tryParse(data['oldPrice']?.toString() ?? '0');
-    final double? currentDiscount =
-        data['discount'] != null && data['discount'].toString().isNotEmpty
-        ? double.tryParse(data['discount'].toString())
+        : double.tryParse(oldPriceController.text);
+    final double? currentDiscount = discountController.text.isNotEmpty
+        ? double.tryParse(discountController.text)
         : null;
 
     final bloc = context.read<ProductsBloc>();
@@ -387,6 +395,9 @@ class _ProductInputFormState extends State<ProductInputForm> {
             }
           },
           failure: (error, callback) {
+            if (_isDialogShowing) return;
+            _isDialogShowing = true;
+
             showDialog(
               context: context,
               builder: (ctx) => AlertDialog(
@@ -397,7 +408,9 @@ class _ProductInputFormState extends State<ProductInputForm> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                content: Text('❌ خطأ في الإدخال راجع الدعم الفني'),
+                content: Text(
+                  error.message ?? '❌ خطأ في الإدخال راجع الدعم الفني',
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
@@ -405,7 +418,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
                   ),
                 ],
               ),
-            );
+            ).then((_) => _isDialogShowing = false);
           },
           orElse: () {},
         );
@@ -509,12 +522,12 @@ class _ProductInputFormState extends State<ProductInputForm> {
                           );
                           final itemsNames = [
                             'اختر الفئة',
-                            ...categories.map((c) => c.name),
+                            ...categories.map((c) => c.nameAr),
                           ];
                           int currentIndex = 0;
                           if (selectedCategoryId != null) {
                             final idx = categories.indexWhere(
-                              (c) => c.categoryId == selectedCategoryId,
+                              (c) => c.id == selectedCategoryId,
                             );
                             if (idx >= 0) currentIndex = idx + 1;
                           }
@@ -544,12 +557,10 @@ class _ProductInputFormState extends State<ProductInputForm> {
                                 return;
                               }
                               final category = categories.firstWhere(
-                                (c) => c.name == value,
+                                (c) => c.nameAr == value,
                                 orElse: () => categories.first,
                               );
-                              setState(
-                                () => selectedCategoryId = category.categoryId,
-                              );
+                              setState(() => selectedCategoryId = category.id);
                             },
                           );
                         },
@@ -602,7 +613,10 @@ class _ProductInputFormState extends State<ProductInputForm> {
                                   border: OutlineInputBorder(),
                                 ),
                                 items: ProductUnit.values
-                                    .where((u) => u.isVisible)
+                                    .where(
+                                      (u) =>
+                                          u.isVisible || u == singlePriceUnit,
+                                    )
                                     .map(
                                       (u) => DropdownMenuItem(
                                         value: u,
@@ -865,8 +879,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textOnPrimary,
                           ),
                         ),
                       ),

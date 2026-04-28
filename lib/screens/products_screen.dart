@@ -3,22 +3,28 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
 import 'package:delta_mager_pro_mangement_app/configs/grid_configs.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
+
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart' hide ProductUnit, PriceOption;
+import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart' as core_m show PriceOption;
+import 'package:delta_mager_pro_mangement_app/logic/model/product_unit.dart';
+import 'inputs/price_options_widget.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/category.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/products_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/categories_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
-import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
-import 'package:matger_core_logic/core/auth/utils/permission_manager.dart';
-import 'package:matger_core_logic/core/auth/utils/permission_constants.dart';
+
+import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
+
+import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
 import 'package:delta_mager_pro_mangement_app/configs/product_input_config.dart';
 import 'inputs/product_input_form.dart';
+import 'inputs/shared_data_product_form.dart';
 
 // ignore: must_be_immutable
 class ProductsScreen extends StatefulWidget with AppShellRouterMixin {
@@ -77,10 +83,16 @@ class ProductsScreen extends StatefulWidget with AppShellRouterMixin {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
   String? selectedCategoryId;
 
   String get organizationId {
+    final params = widget.getPrams();
+    final orgName = params?['orgName'];
+    if (orgName != null && orgName != "" && orgName != ":orgName") {
+      AppRoutes.activeOrgName = orgName;
+      return orgName;
+    }
     final user = context.read<AppChangesValues>().user;
     return user?.organizationId ?? 'shop1';
   }
@@ -91,9 +103,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final changesValue = context.read<AppChangesValues>();
     selectedCategoryId = changesValue.selectedCategoryId;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CategoriesBloc>().loadCategories(shopId: organizationId);
-    });
+    final categoriesBloc = context.read<CategoriesBloc>();
+
+    // التحقق من وجود بيانات مسبقاً لمنع إعادة التحميل غير الضروري
+    final hasData = categoriesBloc.state.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
+    );
+
+    if (!hasData) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        categoriesBloc.loadCategories(shopId: organizationId);
+      });
+    }
   }
 
   void _addProduct() {
@@ -105,6 +127,130 @@ class _ProductsScreenState extends State<ProductsScreen> {
       onResult: (result) {
         context.read<ProductsBloc>().loadProducts();
       },
+    );
+  }
+
+  void _addSharedDataProducts() {
+    showCustomInputDialog(
+      context: context,
+      content: SharedDataProductForm(organizationId: organizationId),
+      height: 700,
+      width: 500,
+      onResult: (result) {
+        context.read<ProductsBloc>().loadProducts();
+      },
+    );
+  }
+
+  void _unifyPrice(List<ProductModel> products) {
+    List<PriceOption> priceOptions = [];
+    final controller = TextEditingController(); // For single base price fallback or simple entry if needed, but we'll use PriceOptionsWidget
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AlertDialog(
+            title: const Text("توحيد السعر"),
+            content: SizedBox(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("سيتم تطبيق الأسعار الجديدة على ${products.length} منتج", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    PriceOptionsWidget(
+                      initialPriceOptions: priceOptions,
+                      onPriceOptionsChanged: (newOptions) {
+                        setState(() {
+                          priceOptions = newOptions;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+                child: const Text(AppStrings.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (priceOptions.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('يجب إضافة سعر واحد على الأقل')),
+                    );
+                    return;
+                  }
+
+                  // Find default base price
+                  double basePrice = priceOptions.firstWhere((o) => o.isDefault, orElse: () => priceOptions.first).price;
+
+                  // Map to core_m.PriceOption
+                  final List<core_m.PriceOption> priceOptionsList = priceOptions.map((e) => core_m.PriceOption(
+                    quantity: e.quantity,
+                    unit: e.unit.name,
+                    price: e.price,
+                    oldPrice: e.oldPrice,
+                    isDefault: e.isDefault,
+                  )).toList();
+
+                  Navigator.pop(context);
+                  context.read<ProductsBloc>().unifyProductsPrice(
+                    productIds: products.map((e) => e.productId).toList(),
+                    organizationId: organizationId,
+                    basePrice: basePrice,
+                    priceOptions: priceOptionsList,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? DarkColors.primary : LightColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text("تطبيق"),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  void _deleteBulkProducts(List<ProductModel> products) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.confirmDelete),
+        content: Text("هل أنت متأكد من حذف ${products.length} منتج؟"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<ProductsBloc>().bulkDeleteProducts(
+                productIds: products.map((e) => e.productId).toList(),
+                organizationId: organizationId,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(AppStrings.delete),
+          ),
+        ],
+      ),
     );
   }
 
@@ -184,7 +330,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   productId: product.productId,
                   data: {
                     'price': newPrice,
-                    'oldPrice': product.price, // Move current price to old price
+                    'oldPrice':
+                        product.price, // Move current price to old price
                   },
                 );
               }
@@ -198,30 +345,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appConfig = context.watch<AppChangesValues>();
-    final user = appConfig.user;
-    final canAdd =
-        (user?.can(SystemFeatures.product, SystemJobs.add) ?? widget.canAdd) &&
-        ProductInputConfig.enableAddProduct;
-    final canUpdate =
-        user?.can(SystemFeatures.product, SystemJobs.update) ?? true;
-    final canDelete =
-        user?.can(SystemFeatures.product, SystemJobs.delete) ?? true;
-
-    final configBloc = context.watch<OrganizationConfigBloc>();
-    final featureConfig = configBloc.state.itemState.maybeWhen(
-      success: (data) => data?.feature?.products,
-      orElse: () => null,
+    final sys = getSystemConfig(
+      context,
+      feature: SystemFeatures.product,
+      mainPath: widget.getMainPath(),
+      widgetCanAdd: widget.canAdd,
     );
 
-    if (widget.getMainPath() != null) {
-      context.read<AppChangesValues>().setLastRoute(widget.getMainPath()!);
-    }
-    final authWidget = AppChangesValues.checkAuth(context, widget);
-    if (authWidget != null) return authWidget;
+    if (sys.authWidget != null) return sys.authWidget!;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final appBarConfig = AppBarConfigs.buildLargeScreenAppBar(context);
+    final canAdd = sys.canAdd;
+    final canUpdate = sys.canUpdate;
+    final canDelete = sys.canDelete;
+    final featureConfig = sys.featureConfig;
+    final isDark = sys.isDark;
+    final appBarConfig = sys.appBarConfig;
 
     return Scaffold(
       appBar: appBarConfig.buildAppBar(
@@ -271,27 +409,144 @@ class _ProductsScreenState extends State<ProductsScreen> {
           },
           child: MasterGrid<ProductModel, ProductsBloc>(
             title: AppStrings.products,
+            canMultiSelect: true,
             filterToolbar: _buildCategoryFilterSection(isDark),
             where: (product) {
               if (selectedCategoryId == null) return true;
               return product.categoryId == selectedCategoryId;
             },
-            itemBuilder: (context, product) {
-              return _buildProductCard(product, isDark, canUpdate, canDelete);
-            },
             onAdd: _addProduct,
             onLoad: (bloc) => bloc.loadProducts(),
+            onItemTap: _editProduct,
             canAdd: canAdd,
-            showAddInGrid: ProductInputConfig.showAddProductInGrid,
+            itemBuilder: (context, product, isSelected) =>
+                _buildProductCard(product, isDark, canUpdate, canDelete),
+            multiSelectActions: (selectedItems) => [
+              PopupMenuButton<int>(
+                offset: const Offset(0, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                icon: Icon(
+                  Icons.more_vert,
+                  color: isDark ? DarkColors.primary : LightColors.primary,
+                ),
+                onSelected: (value) {
+                  // سنقوم ببرمجة هذه العمليات لاحقاً
+                  if (value == 1) {
+                    _unifyPrice(selectedItems.toList());
+                  } else if (value == 2) {
+                    print("تعديل ${selectedItems.length} منتج");
+                  } else if (value == 3) {
+                    _deleteBulkProducts(selectedItems.toList());
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 1,
+                    child: ListTile(
+                      leading: Icon(Icons.price_change, color: Colors.green),
+                      title: Text("توحيد السعر"),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 2,
+                    child: ListTile(
+                      leading: Icon(Icons.edit_note, color: Colors.blue),
+                      title: Text("تعديل منتجات"),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 3,
+                    child: ListTile(
+                      leading: Icon(Icons.delete_sweep, color: Colors.red),
+                      title: Text("حذف منتجات"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            extraActions: [
+              PopupMenuButton<int>(
+                offset: const Offset(0, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? DarkColors.primary.withOpacity(0.1)
+                        : LightColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? DarkColors.primary : LightColors.primary,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "الإضافة المتعددة",
+                        style: TextStyle(
+                          color: isDark
+                              ? DarkColors.primary
+                              : LightColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: isDark
+                            ? DarkColors.primary
+                            : LightColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+                onSelected: (value) {
+                  if (value == 1) {
+                    print("إضافة مصفوفة منتجات");
+                  } else if (value == 2) {
+                    _addSharedDataProducts();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 1,
+                    child: ListTile(
+                      leading: Icon(Icons.grid_on),
+                      title: Text("إضافة مصفوفة منتجات"),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 2,
+                    child: ListTile(
+                      leading: Icon(Icons.copy_all),
+                      title: Text("إضافة منتجات ببيانات مشتركة"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            showAddInGrid:
+                featureConfig?.showAddInGrid ??
+                ProductInputConfig.showAddProductInGrid,
             childAspectRatio:
                 featureConfig?.childAspectRatio ?? widget.childAspectRatio,
             crossAxisCountSmall:
-                featureConfig?.crossAxisCountSmall ?? widget.crossAxisCountSmall,
+                featureConfig?.crossAxisCountSmall ??
+                widget.crossAxisCountSmall,
             crossAxisCountMedium:
                 featureConfig?.crossAxisCountMedium ??
                 widget.crossAxisCountMedium,
             crossAxisCountLarge:
-                featureConfig?.crossAxisCountLarge ?? widget.crossAxisCountLarge,
+                featureConfig?.crossAxisCountLarge ??
+                widget.crossAxisCountLarge,
             crossAxisSpacing:
                 featureConfig?.crossAxisSpacing ?? widget.crossAxisSpacing,
             mainAxisSpacing:
@@ -343,11 +598,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       .map(
                         (c) => Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: _buildCategoryChip(
-                            c.name,
-                            c.categoryId,
-                            isDark,
-                          ),
+                          child: _buildCategoryChip(c.nameAr, c.id, isDark),
                         ),
                       )
                       .toList(),
@@ -394,111 +645,126 @@ class _ProductsScreenState extends State<ProductsScreen> {
       color: isDark ? DarkColors.surface : LightColors.surface,
       child: Stack(
         children: [
-          InkWell(
-            onTap: () => _editProduct(product),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      product.images.isNotEmpty
-                          ? Image.network(
-                              product.mainImage,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.broken_image, size: 50),
-                              ),
-                            )
-                          : Container(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Product Image
+              Expanded(
+                flex: 3,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    product.images.isNotEmpty
+                        ? Image.network(
+                            product.mainImage,
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) => Container(
                               color: Colors.grey[300],
-                              child: const Icon(Icons.image, size: 50),
+                              child: const Icon(Icons.broken_image, size: 40),
                             ),
-                      if (!product.isAvailable)
-                        Container(
-                          color: Colors.black.withOpacity(0.4),
-                          child: const Center(
-                            child: Icon(
-                              Icons.block,
-                              color: Colors.white70,
-                              size: 40,
-                            ),
+                          )
+                        : Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image, size: 50),
+                          ),
+                    if (!product.isAvailable)
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        child: const Center(
+                          child: Icon(
+                            Icons.block,
+                            color: Colors.white70,
+                            size: 40,
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
+              ),
+              // Product Details
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        product.name.ar,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${product.price} ج.م',
-                        style: TextStyle(
-                          color: isDark
-                              ? DarkColors.primary
-                              : LightColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (product.stockQuantity < 10 && product.isAvailable)
-                        Text(
-                          '${AppStrings.remaining}${product.stockQuantity} فقط!',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 10,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.name.ar,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                      if (!product.isAvailable)
-                        const Text(
-                          AppStrings.notAvailable,
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 2),
+                          Text(
+                            '${product.price} ج.م',
+                            style: TextStyle(
+                              color: isDark
+                                  ? DarkColors.primary
+                                  : LightColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (product.stockQuantity < 10 && product.isAvailable)
+                            Text(
+                              '${AppStrings.remaining}${product.stockQuantity} فقط!',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          if (!product.isAvailable)
+                            const Text(
+                              AppStrings.notAvailable,
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+
+          // Action Menu Button
           if (canUpdate || canDelete)
             Positioned(
               top: 4,
               right: 4,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? DarkColors.surface.withOpacity(0.5)
-                      : LightColors.surface.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20),
+                  color: (isDark ? DarkColors.surface : LightColors.surface)
+                      .withValues(alpha: 0.7),
+                  shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    Icons.more_vert,
-                    size: 20,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                  ),
+                  icon: const Icon(Icons.more_vert, size: 18),
                   onPressed: () =>
                       _showProductActions(product, canUpdate, canDelete),
                 ),
               ),
             ),
 
-          // Badges
+          // Badges (New, Joker, etc.)
           Positioned(
             top: 8,
             left: 8,
@@ -518,20 +784,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
           ),
 
-          // ⚠️ تحذير نقص الصور
-          if (product.images.isEmpty)
+          // Missing Image Warning
+          if (ProductInputConfig.showImages && product.images.isEmpty)
             Positioned(
               bottom: 60,
-              left: 4,
               right: 4,
               child: GestureDetector(
                 onTap: () => _editProduct(product),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: (product.isNew || product.isJoker || product.isOnSale || product.isBestSeller)
-                        ? Colors.red.withOpacity(0.9)
-                        : Colors.orange.withOpacity(0.9),
+                    color:
+                        (product.isNew ||
+                            product.isJoker ||
+                            product.isOnSale ||
+                            product.isBestSeller)
+                        ? Colors.red.withValues(alpha: 0.9)
+                        : Colors.orange.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
@@ -545,11 +817,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 14),
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          (product.isNew || product.isJoker || product.isOnSale || product.isBestSeller)
+                          (product.isNew ||
+                                  product.isJoker ||
+                                  product.isOnSale ||
+                                  product.isBestSeller)
                               ? 'إضافة صورة (مطلوب فوراً)'
                               : 'يرجى إضافة صورة',
                           style: const TextStyle(
@@ -581,12 +860,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildProductActionsSheet(
-        product,
-        isDark,
-        canUpdate,
-        canDelete,
-      ),
+      builder: (context) =>
+          _buildProductActionsSheet(product, isDark, canUpdate, canDelete),
     );
   }
 
@@ -610,7 +885,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -651,8 +926,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       Text(
                         '${product.price} ج.م',
                         style: TextStyle(
-                          color:
-                              isDark ? DarkColors.primary : LightColors.primary,
+                          color: isDark
+                              ? DarkColors.primary
+                              : LightColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -812,7 +1088,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 24),
@@ -820,10 +1096,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -863,7 +1136,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),

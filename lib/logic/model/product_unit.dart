@@ -1,5 +1,5 @@
 import '../../configs/product_input_config.dart';
-import 'package:matger_core_logic/utls/type_parser.dart';
+import 'package:matger_pro_core_logic/utls/type_parser.dart';
 
 /// وحدات القياس المتاحة
 enum ProductUnit {

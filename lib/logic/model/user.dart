@@ -1,5 +1,5 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
-import 'package:matger_core_logic/core/auth/data/user_model.dart';
+import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
 
 class Users extends UserModel implements BaseViewDataModel {
   Users({

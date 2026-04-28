@@ -14,6 +14,8 @@ import 'tabs/organization_detail/config_tab.dart';
 import 'tabs/organization_detail/product_config_tab.dart';
 import 'tabs/organization_detail/policies_tab.dart';
 import 'tabs/organization_detail/license_tab.dart';
+import 'tabs/organization_detail/workflow_tab.dart';
+import 'tabs/organization_detail/roles_tab.dart';
 
 class OrganizationDetailScreen extends StatefulWidget {
   final OrganizationModel organization;
@@ -39,7 +41,7 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 5,
+      length: 7,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.organization.name),
@@ -53,8 +55,16 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
             tabs: [
               Tab(icon: Icon(Icons.info), text: "البيانات الأساسية"),
               Tab(icon: Icon(Icons.settings), text: "الإعدادات Config"),
-              Tab(icon: Icon(Icons.inventory_2_outlined), text: "إعدادات المنتجات"),
+              Tab(
+                icon: Icon(Icons.inventory_2_outlined),
+                text: "إعدادات المنتجات",
+              ),
               Tab(icon: Icon(Icons.gavel), text: "السياسات Policies"),
+              Tab(icon: Icon(Icons.security), text: "الأدوار Roles"),
+              Tab(
+                icon: Icon(Icons.account_tree_outlined),
+                text: "مسارات العمل Workflow",
+              ),
               Tab(icon: Icon(Icons.verified), text: "الترخيص License"),
             ],
           ),
@@ -88,7 +98,8 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                           children: [
                             ConfigSectionTab(
                               config: prevData,
-                              organizationId: widget.organization.organizationId,
+                              organizationId:
+                                  widget.organization.organizationId,
                               isDark: isDark,
                             ),
                             const Center(child: CircularProgressIndicator()),
@@ -98,7 +109,10 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                       return const Center(child: CircularProgressIndicator());
                     },
                     failure: (error, reload) => Center(
-                      child: _buildErrorCard(error.message ?? 'خطأ في التحميل', reload),
+                      child: _buildErrorCard(
+                        error.message ?? 'خطأ في التحميل',
+                        reload,
+                      ),
                     ),
                     orElse: () => const SizedBox(),
                   );
@@ -127,7 +141,8 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                           children: [
                             ProductConfigSectionTab(
                               config: prevData,
-                              organizationId: widget.organization.organizationId,
+                              organizationId:
+                                  widget.organization.organizationId,
                               isDark: isDark,
                             ),
                             const Center(child: CircularProgressIndicator()),
@@ -137,7 +152,10 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                       return const Center(child: CircularProgressIndicator());
                     },
                     failure: (error, reload) => Center(
-                      child: _buildErrorCard(error.message ?? 'خطأ في التحميل', reload),
+                      child: _buildErrorCard(
+                        error.message ?? 'خطأ في التحميل',
+                        reload,
+                      ),
                     ),
                     orElse: () => const SizedBox(),
                   );
@@ -160,7 +178,12 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                       if (prevData != null) {
                         return Stack(
                           children: [
-                            PoliciesSectionTab(policy: prevData, isDark: isDark),
+                            PoliciesSectionTab(
+                              policy: prevData,
+                              organizationId:
+                                  widget.organization.organizationId,
+                              isDark: isDark,
+                            ),
                             const Center(child: CircularProgressIndicator()),
                           ],
                         );
@@ -168,8 +191,9 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                       return const Center(child: CircularProgressIndicator());
                     },
                     success: (policy) => PoliciesSectionTab(
-                      policy: policy!, 
-                      isDark: isDark
+                      policy: policy!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
                     ),
                     failure: (error, reload) => Center(
                       child: _buildErrorCard(
@@ -181,7 +205,19 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 },
               ),
 
-              // --- Tab 5: License ---
+              // --- Tab 5: Roles ---
+              RolesSectionTab(
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+
+              // --- Tab 6: Workflow ---
+              WorkflowSectionTab(
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+
+              // --- Tab 7: License ---
               BlocBuilder<
                 AdminOrganizationConfigBloc,
                 FeaturDataSourceState<OrganizationConfigModel>
@@ -211,7 +247,10 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                       return const Center(child: CircularProgressIndicator());
                     },
                     failure: (error, reload) => Center(
-                      child: _buildErrorCard(error.message ?? 'خطأ في التحميل', reload),
+                      child: _buildErrorCard(
+                        error.message ?? 'خطأ في التحميل',
+                        reload,
+                      ),
                     ),
                     orElse: () => const SizedBox(),
                   );

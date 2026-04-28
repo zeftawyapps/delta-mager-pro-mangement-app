@@ -2,29 +2,36 @@ import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/laaunser
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/models/sidebar_header_config.dart';
 import 'package:delta_mager_pro_mangement_app/configs/sidbarItmes.dart'
     show SidebarItemsConfig;
+import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/test_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:matger_core_logic/features/users/repo/user_repo.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
-import 'package:matger_core_logic/core/auth/repos/test_repo.dart';
-import 'package:matger_core_logic/core/di/injection_container.dart';
 
 import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
-import 'package:matger_core_logic/core/auth/repos/auth_repo.dart';
 
 import 'package:delta_mager_pro_mangement_app/logic/bloc/categories_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/products_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/offers_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/locations_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organizations_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/views/assets.dart';
-import 'package:matger_core_logic/core/orgnization/repo/organization_repo.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
-import 'package:matger_core_logic/features/commrec/repo/category_repo.dart';
-import 'package:matger_core_logic/features/commrec/repo/product_repo.dart';
-import 'package:matger_core_logic/features/roles/repo/role_repo.dart';
+import 'package:matger_pro_core_logic/core/auth/repos/auth_repo.dart';
+import 'package:matger_pro_core_logic/core/auth/repos/test_repo.dart';
+import 'package:matger_pro_core_logic/core/di/injection_container.dart';
+import 'package:matger_pro_core_logic/core/orgnization/repo/organization_repo.dart';
+import 'package:matger_pro_core_logic/core/system/repo/system_repo.dart';
+import 'package:matger_pro_core_logic/features/commrec/repo/category_repo.dart';
+import 'package:matger_pro_core_logic/features/commrec/repo/offer_repo.dart';
+import 'package:matger_pro_core_logic/features/commrec/repo/product_repo.dart';
+import 'package:matger_pro_core_logic/features/locations/repo/location_repo.dart';
+import 'package:matger_pro_core_logic/features/roles/repo/role_repo.dart';
+import 'package:matger_pro_core_logic/features/users/repo/user_repo.dart';
 import 'package:provider/provider.dart';
 
 import 'configs/app_shell_config.dart';
@@ -51,45 +58,111 @@ class _AppLouncherState extends State<AppLouncher> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => AppChangesValues()),
         BlocProvider(
           create: (context) =>
               OrganizationConfigBloc(repo: sl<OrganizationRepo>()),
         ),
+        BlocProvider(create: (context) => SystemBloc(repo: sl<SystemRepo>())),
+        BlocProvider(
+          create: (context) => AuthBloc(
+            authRepo: sl<AuthRepo>(),
+            appChangesValues: context.read<AppChangesValues>(),
+          ),
+        ),
       ],
-      child:
-          BlocBuilder<
+      child: Builder(
+        builder: (context) {
+          return BlocBuilder<
             OrganizationConfigBloc,
             FeaturDataSourceState<OrganizationConfigModel>
           >(
             builder: (context, state) {
+              // استخراج الإعدادات لتكون متاحة لبناء الواجهة والـ Sidebar
+              final config = state.itemState.maybeWhen(
+                success: (data) => data,
+                orElse: () => context.read<OrganizationConfigBloc>().organizationConfig,
+              );
+
               state.itemState.maybeWhen(
-                success: (config) {
-                  if (config != null && config.themes != null) {
-                    final themes = config.themes!;
+                success: (configData) {
+                  if (configData != null && configData.themes != null) {
+                    final themes = configData.themes!;
                     final Map<String, Color> lightColors = {};
                     final Map<String, Color> darkColors = {};
 
                     if (themes.light != null) {
                       final l = themes.light!;
-                      if (l.primary != null) lightColors['primary'] = ColorUtils.fromHex(l.primary, LightColors.primary);
-                      if (l.secondary != null) lightColors['secondary'] = ColorUtils.fromHex(l.secondary, LightColors.secondary);
-                      if (l.background != null) lightColors['background'] = ColorUtils.fromHex(l.background, LightColors.background);
-                      if (l.surface != null) lightColors['surface'] = ColorUtils.fromHex(l.surface, LightColors.surface);
-                      if (l.onPrimary != null) lightColors['textOnPrimary'] = ColorUtils.fromHex(l.onPrimary, LightColors.textOnPrimary);
-                      if (l.error != null) lightColors['error'] = ColorUtils.fromHex(l.error, LightColors.error);
-                      if (l.success != null) lightColors['success'] = ColorUtils.fromHex(l.success, LightColors.success);
-                      if (l.warning != null) lightColors['warning'] = ColorUtils.fromHex(l.warning, LightColors.warning);
+                      if (l.primary != null)
+                        lightColors['primary'] = ColorUtils.fromHex(
+                          l.primary,
+                          LightColors.primary,
+                        );
+                      if (l.secondary != null)
+                        lightColors['secondary'] = ColorUtils.fromHex(
+                          l.secondary,
+                          LightColors.secondary,
+                        );
+                      if (l.background != null)
+                        lightColors['background'] = ColorUtils.fromHex(
+                          l.background,
+                          LightColors.background,
+                        );
+                      if (l.surface != null)
+                        lightColors['surface'] = ColorUtils.fromHex(
+                          l.surface,
+                          LightColors.surface,
+                        );
+                      if (l.onPrimary != null)
+                        lightColors['textOnPrimary'] = ColorUtils.fromHex(
+                          l.onPrimary,
+                          LightColors.textOnPrimary,
+                        );
+                      if (l.error != null)
+                        lightColors['error'] = ColorUtils.fromHex(
+                          l.error,
+                          LightColors.error,
+                        );
+                      if (l.success != null)
+                        lightColors['success'] = ColorUtils.fromHex(
+                          l.success,
+                          LightColors.success,
+                        );
+                      if (l.warning != null)
+                        lightColors['warning'] = ColorUtils.fromHex(
+                          l.warning,
+                          LightColors.warning,
+                        );
                     }
 
                     if (themes.dark != null) {
                       final d = themes.dark!;
-                      if (d.primary != null) darkColors['primary'] = ColorUtils.fromHex(d.primary, DarkColors.primary);
-                      if (d.secondary != null) darkColors['secondary'] = ColorUtils.fromHex(d.secondary, DarkColors.secondary);
-                      if (d.background != null) darkColors['background'] = ColorUtils.fromHex(d.background, DarkColors.background);
-                      if (d.surface != null) darkColors['surface'] = ColorUtils.fromHex(d.surface, DarkColors.surface);
+                      if (d.primary != null)
+                        darkColors['primary'] = ColorUtils.fromHex(
+                          d.primary,
+                          DarkColors.primary,
+                        );
+                      if (d.secondary != null)
+                        darkColors['secondary'] = ColorUtils.fromHex(
+                          d.secondary,
+                          DarkColors.secondary,
+                        );
+                      if (d.background != null)
+                        darkColors['background'] = ColorUtils.fromHex(
+                          d.background,
+                          DarkColors.background,
+                        );
+                      if (d.surface != null)
+                        darkColors['surface'] = ColorUtils.fromHex(
+                          d.surface,
+                          DarkColors.surface,
+                        );
                     }
 
-                    AppColors.setDynamicColors(light: lightColors, dark: darkColors);
+                    AppColors.setDynamicColors(
+                      light: lightColors,
+                      dark: darkColors,
+                    );
                   }
                 },
                 orElse: () {},
@@ -117,17 +190,17 @@ class _AppLouncherState extends State<AppLouncher> {
                     create: (context) =>
                         AdminOrganizationsBloc(repo: sl<OrganizationRepo>()),
                   ),
-                  ChangeNotifierProvider(
-                    create: (context) => AppChangesValues(),
-                  ),
-                  BlocProvider(
-                    create: (context) => AuthBloc(
-                      authRepo: sl<AuthRepo>(),
-                      appChangesValues: context.read<AppChangesValues>(),
-                    ),
-                  ),
                   BlocProvider(
                     create: (context) => TestBloc(testRep: sl<TestRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) => OffersBloc(repo: sl<OfferRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) => LocationsBloc(
+                      repo: sl<LocationRepo>(),
+                      systemRepo: sl<SystemRepo>(),
+                    ),
                   ),
                   BlocProvider(
                     create: (context) =>
@@ -159,11 +232,14 @@ class _AppLouncherState extends State<AppLouncher> {
                 sidebarSelectedTextColor: AppColors.secondary,
                 sidebarIconColor: AppColors.primary,
 
-                // إضافة الشعار في الـ Sidebar
+                // إضافة الشعار والاسم الديناميكي في الـ Sidebar
                 sidebarHeader: SidebarHeaderConfig(
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  logoAssetPath: AppAsset.logo,
-                  title: AppStrings.appName,
+                  // استخدام لوجو المنظمة من الرابط إذا وجد، وإلا اللوجو الافتراضي
+                  logoAssetPath: config?.visual?.logoUrl ?? AppAsset.logo,
+                  title: config?.layout?.appTitle ?? 
+                         context.read<SystemBloc>().systemInfo?.appName ?? 
+                         AppStrings.appName,
                   titleStyle: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -213,7 +289,9 @@ class _AppLouncherState extends State<AppLouncher> {
                 sidebarItems: SidebarItemsConfig().items,
               );
             },
-          ),
+          );
+        },
+      ),
     );
   }
 }

@@ -11,13 +11,20 @@ import 'package:JoDija_tamplites/util/validators/email_validator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/role_input_form.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
 
 class UserInputForm extends StatefulWidget {
   final UserViewProfileModel? user;
   final String? organizationId;
+  final bool isMe;
 
-  const UserInputForm({super.key, this.user, this.organizationId});
+  const UserInputForm({
+    super.key,
+    this.user,
+    this.organizationId,
+    this.isMe = false,
+  });
 
   @override
   State<UserInputForm> createState() => _UserInputFormState();
@@ -67,15 +74,25 @@ class _UserInputFormState extends State<UserInputForm> {
 
     final usersBloc = context.read<UsersBloc>();
     if (widget.user != null) {
-      usersBloc.updateUser(
-        userId: widget.user!.userId,
-        username: usernameController.text.trim(),
-        email: emailController.text.trim(),
-        phone: phoneController.text.trim(),
-        address: addressController.text.trim(),
-        isActive: isActive,
-        organizationId: widget.organizationId,
-      );
+      if (widget.isMe) {
+        usersBloc.updateMyProfile(
+          username: usernameController.text.trim(),
+          email: emailController.text.trim(),
+          phone: phoneController.text.trim(),
+          address: addressController.text.trim(),
+          organizationId: widget.organizationId,
+        );
+      } else {
+        usersBloc.updateUser(
+          userId: widget.user!.userId,
+          username: usernameController.text.trim(),
+          email: emailController.text.trim(),
+          phone: phoneController.text.trim(),
+          address: addressController.text.trim(),
+          isActive: isActive,
+          organizationId: widget.organizationId,
+        );
+      }
     } else {
       usersBloc.createUser(
         username: usernameController.text.trim(),
@@ -209,52 +226,91 @@ class _UserInputFormState extends State<UserInputForm> {
                     labalText: 'العنوان',
                     keyData: "address",
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "اختيار الأدوار",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.add_circle_outline, size: 18),
-                        label: const Text("دور مخصص", style: TextStyle(fontSize: 12)),
-                        onPressed: _createNewCustomRole,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _buildRolesSelection(),
-                  const SizedBox(height: 16),
+                  if (!widget.isMe) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "اختيار الأدوار",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.add_circle_outline, size: 18),
+                          label: const Text(
+                            "دور مخصص",
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          onPressed: _createNewCustomRole,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildRolesSelection(),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text("نشط"),
+                      subtitle: const Text("تفعيل أو تعطيل حساب المستخدم"),
+                      value: isActive,
+                      onChanged: (val) => setState(() => isActive = val),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: isSaving ? null : saveUser,
-                  icon: isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: isSaving ? null : saveUser,
+                        icon: isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          isSaving
+                              ? 'جاري الحفظ...'
+                              : (widget.user != null ? 'تحديث' : 'حفظ'),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.textOnPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        )
-                      : const Icon(Icons.save),
-                  label: Text(
-                    isSaving
-                        ? 'جاري الحفظ...'
-                        : (widget.user != null ? 'تحديث' : 'حفظ'),
+                        ),
+                      ),
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(color: Colors.grey.shade400),
+                        ),
+                        child: const Text("إلغاء", style: TextStyle(color: Colors.grey)),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),

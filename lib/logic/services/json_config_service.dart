@@ -15,7 +15,7 @@ class JsonConfigService {
       );
       _config = json.decode(response);
     } catch (e) {
-      print('Error loading config.json, using empty config: $e');
+       // print('Error loading config.json, using empty config: $e');
       _config = {};
     }
   }

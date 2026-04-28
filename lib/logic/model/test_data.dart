@@ -1,5 +1,5 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
-import 'package:matger_core_logic/models/app_settings.dart';
+import 'package:matger_pro_core_logic/models/app_settings.dart';
 
 class TestData extends AppSettings implements BaseViewDataModel {
   TestData({

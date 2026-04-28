@@ -33,30 +33,49 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
       final changvalue = context.read<AppChangesValues>();
       final currentUser = changvalue.user;
 
+      // 1️⃣ أولاً: التحقق من وضع الأدمن (لحالات التعديلات في الإعدادات العامة)
+
       if (currentUser != null) {
         // 1️⃣ أولاً: التحقق من وضع الأدمن (لحالات التعديلات في الإعدادات العامة)
-        if (currentUser.roles.contains('admin') || AppShellConfigs.isAdminMode) {
+        if (currentUser.roles.contains('admin') ||
+            AppShellConfigs.isAdminMode) {
           widget.goRoute(context, AppRoutes.adminOperations, replace: true);
           return;
         }
 
+        // 0️⃣ التحقق من الانتماء لمنظمة (منع دخول المستخدمين غير المرتبطين بمنظمة)
+        if (currentUser.organizationId == null ||
+            currentUser.organizationId!.isEmpty) {
+          widget.goRoute(context, AppRoutes.logIn, replace: true);
+          return;
+        }
+
         // 2️⃣ ثانياً: إذا لم يكن أدمن، نطبق نظام صلاحيات الشاشات
+        AppRoutes.activeOrgName = currentUser.organizationId!;
         List<RouteItem> routes = SidebarItemsConfig().items;
+
+        // تعديل المتغيرات في الروابط قبل معالجتها
+        // for (var route in routes) {
+        //   if (route.path.contains(':orgName')) {
+        //     route.path = route.path.replaceAll(':orgName', currentUser.organizationId!);
+        //   }
+        //   if (route.prams != null && route.prams!.containsKey('orgName')) {
+        //     route.prams!['orgName'] = currentUser.organizationId!;
+        //   }
+        // }
+
         final availableRoutes = CPScreensConfig.getAvailableRoutes(
           currentUser,
           routes: routes,
         );
 
-        bool hasVisibleRoutes = false;
-        for (var route in availableRoutes) {
-          if (route.isVisableInSideBar) {
-            addRouteItem(route);
-            hasVisibleRoutes = true;
-          }
-        }
+        availableRoutes.forEach(addRouteItem);
+        bool hasVisibleRoutes = availableRoutes.any(
+          (r) => r.isVisableInSideBar,
+        );
 
+        setupAppShellRouteManager(context);
         if (hasVisibleRoutes) {
-          setupAppShellRouteManager(context);
           if (changvalue.laseRoute != null) {
             widget.goRouterInSidBar(context, changvalue.laseRoute!);
           } else {
@@ -147,11 +166,14 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
                       child: Column(
                         children: [
                           Image.asset(
-                            AppAsset.imgplaceholder,
-                            width: size.width > 600 ? 300 : 250,
-                            height: size.width > 600 ? 200 : 150,
-                            fit: BoxFit.contain,
-                          ).animate().fadeIn(duration: 600.ms).scale(
+                                AppAsset.imgplaceholder,
+                                width: size.width > 600 ? 300 : 250,
+                                height: size.width > 600 ? 200 : 150,
+                                fit: BoxFit.contain,
+                              )
+                              .animate()
+                              .fadeIn(duration: 600.ms)
+                              .scale(
                                 begin: const Offset(0.8, 0.8),
                                 end: const Offset(1.0, 1.0),
                                 curve: Curves.easeOutBack,

@@ -1,0 +1,309 @@
+Analyzing delta-mager-pro-mangement-app...                      
+
+   info • The file name 'app-louncher.dart' isn't a lower_case_with_underscores identifier • lib/app-louncher.dart:1:1 • file_names
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/app-louncher.dart:35:8 • depend_on_referenced_packages
+warning • Duplicate import • lib/app-louncher.dart:40:8 • duplicate_import
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:97:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:102:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:107:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:112:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:117:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:122:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:127:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:132:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:141:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:146:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:151:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/app-louncher.dart:156:25 • curly_braces_in_flow_control_structures
+   info • Missing type annotation • lib/configs/app_backend_env.dart:6:3 • strict_top_level_inference
+   info • Type could be non-nullable • lib/configs/grid_configs.dart:19:24 • unnecessary_nullable_for_final_variable_declarations
+   info • Type could be non-nullable • lib/configs/grid_configs.dart:44:24 • unnecessary_nullable_for_final_variable_declarations
+   info • Type could be non-nullable • lib/configs/grid_configs.dart:69:24 • unnecessary_nullable_for_final_variable_declarations
+   info • The file name 'sidbarItmes.dart' isn't a lower_case_with_underscores identifier • lib/configs/sidbarItmes.dart:1:1 • file_names
+   info • The import of 'package:flutter_bloc/flutter_bloc.dart' is unnecessary because all of the used elements are also provided by the import of 'package:provider/provider.dart' • lib/configs/ui_configs.dart:16:8 • unnecessary_import
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/configs/ui_configs.dart:17:8 • depend_on_referenced_packages
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/configs/ui_configs.dart:130:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/configs/ui_configs.dart:131:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/configs/ui_configs.dart:135:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/configs/ui_configs.dart:136:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/configs/ui_configs.dart:147:42 • deprecated_member_use
+warning • The receiver can't be null, so the null-aware operator '?.' is unnecessary • lib/configs/ui_configs.dart:170:35 • invalid_null_aware_operator
+warning • Dead code • lib/configs/ui_configs.dart:217:38 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/configs/ui_configs.dart:217:41 • dead_null_aware_expression
+   info • The variable name 'BaseUrl' isn't a lowerCamelCase identifier • lib/consts/constants/configs.dart:3:17 • non_constant_identifier_names
+  error • The getter 'surfaceVariant' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:17:30 • undefined_getter
+  error • The getter 'surfaceVariant' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:17:58 • undefined_getter
+  error • The getter 'surfaceVariant' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:24:30 • undefined_getter
+  error • The getter 'buttonPrimary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:31:30 • undefined_getter
+  error • The getter 'buttonPrimary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:31:57 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:38:30 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:38:59 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:46:23 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_backgrounds.dart:47:23 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:91:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:98:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:105:59 • deprecated_member_use
+  error • The getter 'surfaceVariant' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:115:29 • undefined_getter
+  error • The getter 'surfaceVariant' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:115:56 • undefined_getter
+  error • The getter 'surfaceVariant' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:122:29 • undefined_getter
+  error • The getter 'buttonPrimary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:129:29 • undefined_getter
+  error • The getter 'buttonPrimary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:129:55 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:136:29 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:136:57 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:144:22 • undefined_getter
+  error • The getter 'buttonSecondary' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_backgrounds.dart:145:22 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:189:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:196:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/consts/constants/theme/app_backgrounds.dart:203:57 • deprecated_member_use
+  error • The getter 'inputBackground' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:133:32 • undefined_getter
+  error • The getter 'inputBorder' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:136:53 • undefined_getter
+  error • The getter 'inputBorder' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:140:53 • undefined_getter
+  error • The getter 'inputFocus' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:145:32 • undefined_getter
+  error • The getter 'textHint' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:157:49 • undefined_getter
+  error • The getter 'icon' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:173:28 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/consts/constants/theme/app_theme.dart:179:28 • undefined_getter
+  error • The getter 'darkButtonPrimary' isn't defined for the type 'AppColors' • lib/consts/constants/theme/app_theme.dart:270:38 • undefined_getter
+  error • The getter 'inputBackground' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:311:31 • undefined_getter
+  error • The getter 'inputBorder' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:314:52 • undefined_getter
+  error • The getter 'inputBorder' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:318:52 • undefined_getter
+  error • The getter 'inputFocus' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:323:31 • undefined_getter
+  error • The getter 'textHint' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:335:48 • undefined_getter
+  error • The getter 'icon' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:351:27 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/consts/constants/theme/app_theme.dart:357:27 • undefined_getter
+   info • The constant name 'Locations' isn't a lowerCamelCase identifier • lib/consts/constants/values/firebase_collections.dart:14:23 • constant_identifier_names
+   info • The constant name 'IsDashbora_KEY' isn't a lowerCamelCase identifier • lib/consts/constants/values/shard_prefrance_key.dart:2:23 • constant_identifier_names
+   info • The constant name 'BaseUrl' isn't a lowerCamelCase identifier • lib/consts/constants/views/assets.dart:10:23 • constant_identifier_names
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/admin_organization_config_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/admin_organizations_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/auth_bloc.dart:8:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/auth_bloc.dart:10:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/categories_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/languages_bloc.dart:7:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/locations_bloc.dart:5:8 • depend_on_referenced_packages
+warning • Unused import: '../model/system_models.dart' • lib/logic/bloc/locations_bloc.dart:7:8 • unused_import
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/offers_bloc.dart:5:8 • depend_on_referenced_packages
+warning • Unused import: 'package:JoDija_tamplites/util/conslol-logs/conslot-log.dart' • lib/logic/bloc/organization_config_bloc.dart:1:8 • unused_import
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/organization_config_bloc.dart:9:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/organization_policy_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/organizations_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/products_bloc.dart:8:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/roles_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The import of 'package:matger_pro_core_logic/core/system/data/system_models.dart' is unnecessary because all of the used elements are also provided by the import of 'package:delta_mager_pro_mangement_app/logic/model/system_models.dart' • lib/logic/bloc/system_bloc.dart:7:8 • unnecessary_import
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/system_bloc.dart:8:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/users_bloc.dart:6:8 • depend_on_referenced_packages
+   info • The imported package 'JoDija_reposatory' isn't a dependency of the importing package • lib/logic/bloc/workflow_management_bloc.dart:7:8 • depend_on_referenced_packages
+   info • Don't invoke 'print' in production code • lib/logic/bloc/workflow_management_bloc.dart:29:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/logic/bloc/workflow_management_bloc.dart:31:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/logic/bloc/workflow_management_bloc.dart:33:11 • avoid_print
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/logic/mixins/system_manager.dart:5:8 • depend_on_referenced_packages
+warning • Unused import: 'package:matger_pro_core_logic/models/localized_string.dart' • lib/logic/model/category.dart:3:8 • unused_import
+warning • Unused import: 'package:matger_pro_core_logic/models/localized_string.dart' • lib/logic/model/offer.dart:3:8 • unused_import
+   info • Unnecessary override • lib/logic/model/offer.dart:52:14 • unnecessary_overrides
+   info • Unnecessary override • lib/logic/model/organization_model.dart:50:14 • unnecessary_overrides
+warning • The library 'package:matger_pro_core_logic/features/commrec/data/product_model.dart' doesn't export a member with the shown name 'LocalizedString' • lib/logic/model/product_model.dart:7:10 • undefined_shown_name
+   info • Unnecessary override • lib/logic/model/product_model.dart:75:14 • unnecessary_overrides
+   info • Statements in an if should be enclosed in a block • lib/logic/model/product_unit.dart:193:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/logic/model/product_unit.dart:197:9 • curly_braces_in_flow_control_structures
+   info • Unnecessary override • lib/logic/model/role.dart:30:15 • unnecessary_overrides
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/logic/providers/app_changes_values.dart:3:8 • depend_on_referenced_packages
+   info • Don't use 'BuildContext's across async gaps • lib/logic/providers/app_changes_values.dart:36:11 • use_build_context_synchronously
+warning • This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AppShellRouterMixin.params, AppShellRouterMixin.query, AppShellRouterMixin.mainPath • lib/screens/admin/admin_operations_screen.dart:14:7 • must_be_immutable
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart' • lib/screens/admin/login_admin_screen.dart:17:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/organization_detail_screen.dart:269:25 • deprecated_member_use
+warning • The declaration '_addRole' isn't referenced • lib/screens/admin/tabs/general/global_roles_tab.dart:43:8 • unused_element
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/general/global_roles_tab.dart:266:40 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/admin/tabs/general/global_roles_tab.dart:267:41 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/global_roles_tab.dart:272:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/global_roles_tab.dart:364:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/global_roles_tab.dart:384:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/global_roles_tab.dart:418:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:170:36 • deprecated_member_use
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/general/organizations_tab.dart:172:40 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/admin/tabs/general/organizations_tab.dart:173:41 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:179:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:180:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:198:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:202:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:350:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:353:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:407:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/organizations_tab.dart:410:49 • deprecated_member_use
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/general/permissions_tab.dart:112:28 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/admin/tabs/general/permissions_tab.dart:113:29 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/permissions_tab.dart:166:22 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/admin/tabs/general/system_management_tab.dart:223:21 • deprecated_member_use
+   info • Unnecessary use of multiple underscores • lib/screens/admin/tabs/general/system_management_tab.dart:344:55 • unnecessary_underscores
+warning • Unused import: 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart' • lib/screens/admin/tabs/general/users_tab.dart:1:8 • unused_import
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/general/users_tab.dart:256:40 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/admin/tabs/general/users_tab.dart:257:41 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/users_tab.dart:262:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/users_tab.dart:274:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/general/users_tab.dart:351:47 • deprecated_member_use
+warning • Unused import: 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/sidebar_provider.dart' • lib/screens/admin/tabs/organization_detail/config_tab.dart:8:8 • unused_import
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/screens/admin/tabs/organization_detail/config_tab.dart:9:8 • depend_on_referenced_packages
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:537:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:539:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:541:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:543:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:546:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:548:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:550:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/config_tab.dart:552:11 • curly_braces_in_flow_control_structures
+   info • 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion • lib/screens/admin/tabs/organization_detail/config_tab.dart:674:12 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/general_info_tab.dart:44:37 • deprecated_member_use
+warning • The value of the local variable 'primaryColor' isn't used • lib/screens/admin/tabs/organization_detail/license_tab.dart:26:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/license_tab.dart:77:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/policies_tab.dart:290:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/policies_tab.dart:299:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/policies_tab.dart:340:34 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/admin/tabs/organization_detail/policies_tab.dart:358:7 • deprecated_member_use
+warning • Unnecessary type check; the result is always 'true' • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:49:33 • unnecessary_type_check
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:243:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:383:10 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:385:10 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:405:11 • deprecated_member_use
+   info • Unnecessary braces in a string interpolation • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:472:29 • unnecessary_brace_in_string_interps
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:485:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/product_config_tab.dart:486:31 • deprecated_member_use
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/organization_detail/roles_tab.dart:254:40 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/admin/tabs/organization_detail/roles_tab.dart:255:41 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/roles_tab.dart:260:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/roles_tab.dart:336:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/roles_tab.dart:356:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/roles_tab.dart:390:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:179:32 • deprecated_member_use
+  error • The getter 'surfaceVariant' isn't defined for the type 'DarkColors' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:236:48 • undefined_getter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:244:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:247:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:261:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:331:28 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:332:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:350:28 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:382:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:401:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:419:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:424:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:445:46 • deprecated_member_use
+  error • Undefined name 'WebsiteColors' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:548:16 • undefined_identifier
+  error • Undefined name 'WebsiteColors' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:550:35 • undefined_identifier
+  error • Undefined name 'WebsiteColors' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:559:53 • undefined_identifier
+  error • Undefined name 'WebsiteColors' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:566:26 • undefined_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:588:38 • deprecated_member_use
+warning • The operand can't be 'null', so the condition is always 'true' • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:609:24 • unnecessary_null_comparison
+warning • The '!' will have no effect because the receiver can't be null • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:610:23 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:614:36 • unnecessary_non_null_assertion
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:624:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:626:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:630:7 • curly_braces_in_flow_control_structures
+warning • The declaration '_showAddStepDialog' isn't referenced • lib/screens/admin/tabs/organization_detail/workflow_tab.dart:656:8 • unused_element
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart' • lib/screens/analytics_screen.dart:2:8 • unused_import
+   info • The import of 'package:provider/provider.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_bloc/flutter_bloc.dart' • lib/screens/category_screen.dart:8:8 • unnecessary_import
+   info • The imported package 'provider' isn't a dependency of the importing package • lib/screens/category_screen.dart:8:8 • depend_on_referenced_packages
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart' • lib/screens/category_screen.dart:9:8 • unused_import
+warning • Unused import: 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart' • lib/screens/category_screen.dart:19:8 • unused_import
+warning • Unused import: 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart' • lib/screens/category_screen.dart:21:8 • unused_import
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/category_screen.dart:332:32 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/category_screen.dart:333:33 • undefined_getter
+warning • Dead code • lib/screens/category_screen.dart:424:48 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/screens/category_screen.dart:424:51 • dead_null_aware_expression
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:193:19 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:194:19 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:195:19 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:197:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:202:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:207:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:208:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:211:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/screens/inputs/category_input_form.dart:214:21 • avoid_print
+warning • Unused import: 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart' • lib/screens/inputs/change_password_form.dart:10:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:67:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:82:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:145:47 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/clone_organization_form.dart:157:23 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:165:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:196:37 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/inputs/clone_organization_form.dart:216:21 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/clone_organization_form.dart:254:47 • deprecated_member_use
+warning • Unused import: 'package:JoDija_tamplites/util/widgits/input_form_validation/widgets/drobdaown_validation.dart' • lib/screens/inputs/organization_input_form.dart:10:8 • unused_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/organization_input_form.dart:218:25 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/organization_input_form.dart:271:29 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/organization_input_form.dart:336:29 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/price_options_widget.dart:207:21 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/screens/inputs/price_options_widget.dart:217:25 • curly_braces_in_flow_control_structures
+   info • Constructors in '@immutable' classes should be declared as 'const' • lib/screens/inputs/product_input_form.dart:30:3 • prefer_const_constructors_in_immutables
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/product_input_form.dart:605:33 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/screens/inputs/product_input_form.dart:621:37 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:410:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:431:46 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/screens/inputs/role_input_form.dart:508:11 • deprecated_member_use
+warning • Dead code • lib/screens/inputs/role_input_form.dart:520:39 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/screens/inputs/role_input_form.dart:520:42 • dead_null_aware_expression
+warning • The left operand can't be null, so the right operand is never executed • lib/screens/inputs/role_input_form.dart:520:52 • dead_null_aware_expression
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:544:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:546:49 • deprecated_member_use
+warning • The value of the local variable 'resourceActions' isn't used • lib/screens/inputs/role_input_form.dart:627:59 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:658:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:661:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:672:44 • deprecated_member_use
+warning • A value for optional parameter 'isGeneral' isn't ever given • lib/screens/inputs/role_input_form.dart:757:10 • unused_element_parameter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:764:28 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:780:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:783:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:852:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:855:26 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:868:28 • deprecated_member_use
+   info • 'dataRowHeight' is deprecated and shouldn't be used. Migrate to use dataRowMinHeight and dataRowMaxHeight instead. This feature was deprecated after v3.7.0-5.0.pre • lib/screens/inputs/role_input_form.dart:896:19 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:898:27 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/screens/inputs/role_input_form.dart:921:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/screens/inputs/role_input_form.dart:997:45 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/inputs/role_input_form.dart:1012:48 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/screens/inputs/role_input_form.dart:1060:45 • curly_braces_in_flow_control_structures
+   info • The file name 'logIn.dart' isn't a lower_case_with_underscores identifier • lib/screens/logIn.dart:1:1 • file_names
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart' • lib/screens/logIn.dart:16:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/logIn.dart:237:58 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/logIn.dart:241:56 • deprecated_member_use
+warning • Unused import: 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart' • lib/screens/offers_screen.dart:5:8 • unused_import
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart' • lib/screens/offers_screen.dart:9:8 • unused_import
+warning • Unused import: 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart' • lib/screens/offers_screen.dart:18:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/offers_screen.dart:290:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/offers_screen.dart:291:44 • deprecated_member_use
+warning • This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AppShellRouterMixin.params, AppShellRouterMixin.query, AppShellRouterMixin.mainPath • lib/screens/policies_screen.dart:14:7 • must_be_immutable
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:87:42 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:87:64 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:140:38 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:140:60 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:290:38 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:290:60 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:333:38 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:334:39 • undefined_getter
+   info • Unnecessary use of 'toList' in a spread • lib/screens/product_details_screen.dart:341:24 • unnecessary_to_list_in_spreads
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:442:38 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:442:60 • undefined_getter
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/product_details_screen.dart:511:51 • deprecated_member_use
+  error • The getter 'divider' isn't defined for the type 'DarkColors' • lib/screens/product_details_screen.dart:523:38 • undefined_getter
+  error • The getter 'divider' isn't defined for the type 'LightColors' • lib/screens/product_details_screen.dart:523:60 • undefined_getter
+warning • Unused import: 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart' • lib/screens/products_screen.dart:6:8 • unused_import
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart' • lib/screens/products_screen.dart:10:8 • unused_import
+warning • Unused import: 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart' • lib/screens/products_screen.dart:18:8 • unused_import
+warning • Unused import: 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart' • lib/screens/products_screen.dart:20:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/screens/products_screen.dart:352:24 • unnecessary_to_list_in_spreads
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/screens/products_screen.dart:863:7 • deprecated_member_use
+warning • Unused import: 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart' • lib/screens/splash_screen.dart:10:8 • unused_import
+warning • This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AppShellRouterMixin.params, AppShellRouterMixin.query, AppShellRouterMixin.mainPath • lib/screens/splash_screen.dart:16:7 • must_be_immutable
+   info • Unnecessary use of multiple underscores • lib/screens/splash_screen.dart:44:20 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores • lib/screens/splash_screen.dart:56:20 • unnecessary_underscores
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/splash_screen.dart:255:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/splash_screen.dart:285:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/splash_screen.dart:311:37 • deprecated_member_use
+   info • The file name 'OrgLoginScreen.dart' isn't a lower_case_with_underscores identifier • lib/screens/testWidget/OrgLoginScreen.dart:1:1 • file_names
+   info • Unnecessary instance of 'Container' • lib/screens/testWidget/OrgLoginScreen.dart:41:13 • avoid_unnecessary_containers
+warning • This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AppShellRouterMixin.params, AppShellRouterMixin.query, AppShellRouterMixin.mainPath • lib/screens/test_generic_view_screen.dart:19:7 • must_be_immutable
+   info • Unnecessary use of 'toList' in a spread • lib/screens/test_generic_view_screen.dart:135:24 • unnecessary_to_list_in_spreads
+warning • Unused import: 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart' • lib/screens/user_management_screen.dart:1:8 • unused_import
+warning • Unused import: 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart' • lib/screens/user_management_screen.dart:5:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/welcom_screen.dart:120:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/welcom_screen.dart:132:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/widgets/empty_state_widget.dart:36:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/widgets/empty_state_widget.dart:82:45 • deprecated_member_use
+warning • Unused import: 'package:delta_mager_pro_mangement_app/main.dart' • test/widget_test.dart:12:8 • unused_import
+

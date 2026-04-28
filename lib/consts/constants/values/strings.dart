@@ -3,13 +3,15 @@ class AppStrings {
   static const String appName = 'Delta Mager Pro';
   static const String analytics = 'Analytics';
   static const String categories = 'الفئات';
-  static const String store = 'المتجر';
+  static const String catalog = 'الكتالوج';
   static const String products = 'المنتجات';
+  static const String offers = 'العروض';
   static const String users = 'المستخدمين';
   static const String profile = 'profile';
   static const String login = 'login';
   static const String welcome = 'welcom';
   static const String welcomeMessage = 'مرحباً بك';
+  static const String policies = 'سياسات المتجر';
 
   // Admin section
   static const String loginAdmin = 'Admin Login';

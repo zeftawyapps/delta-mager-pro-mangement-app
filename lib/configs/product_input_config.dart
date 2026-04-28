@@ -99,7 +99,8 @@ class ProductInputConfig {
       _data[keyShowIngredients] ?? defaultValues[keyShowIngredients];
   static bool get showDiscount =>
       _data[keyShowDiscount] ?? defaultValues[keyShowDiscount];
-  static bool get showIsNew => _data[keyShowIsNew] ?? defaultValues[keyShowIsNew];
+  static bool get showIsNew =>
+      _data[keyShowIsNew] ?? defaultValues[keyShowIsNew];
   static bool get showIsBestSeller =>
       _data[keyShowIsBestSeller] ?? defaultValues[keyShowIsBestSeller];
   static bool get showIsOnSale =>
@@ -109,7 +110,8 @@ class ProductInputConfig {
   static bool get showIsSuperJoker =>
       _data[keyShowIsSuperJoker] ?? defaultValues[keyShowIsSuperJoker];
   static bool get showChangePriceInPopup =>
-      _data[keyShowChangePriceInPopup] ?? defaultValues[keyShowChangePriceInPopup];
+      _data[keyShowChangePriceInPopup] ??
+      defaultValues[keyShowChangePriceInPopup];
   static bool get showDeleteInPopup =>
       _data[keyShowDeleteInPopup] ?? defaultValues[keyShowDeleteInPopup];
   static bool get enableQuickAdd =>
@@ -117,11 +119,13 @@ class ProductInputConfig {
   static bool get enableRichTextEditor =>
       _data[keyEnableRichTextEditor] ?? defaultValues[keyEnableRichTextEditor];
   static bool get enableMultiSizePricing =>
-      _data[keyEnableMultiSizePricing] ?? defaultValues[keyEnableMultiSizePricing];
+      _data[keyEnableMultiSizePricing] ??
+      defaultValues[keyEnableMultiSizePricing];
   static bool get defaultToSinglePrice =>
       _data[keyDefaultToSinglePrice] ?? defaultValues[keyDefaultToSinglePrice];
-  static List<String> get allowedUnits =>
-      List<String>.from(_data[keyAllowedUnits] ?? defaultValues[keyAllowedUnits]);
+  static List<String> get allowedUnits => List<String>.from(
+    _data[keyAllowedUnits] ?? defaultValues[keyAllowedUnits],
+  );
   static bool get enableAddProduct =>
       _data[keyEnableAddProduct] ?? defaultValues[keyEnableAddProduct];
   static bool get showAddProductInGrid =>
@@ -129,14 +133,16 @@ class ProductInputConfig {
   static bool get enableAddCategory =>
       _data[keyEnableAddCategory] ?? defaultValues[keyEnableAddCategory];
   static bool get showAddCategoryInGrid =>
-      _data[keyShowAddCategoryInGrid] ?? defaultValues[keyShowAddCategoryInGrid];
+      _data[keyShowAddCategoryInGrid] ??
+      defaultValues[keyShowAddCategoryInGrid];
   static bool get enableAddOffer =>
       _data[keyEnableAddOffer] ?? defaultValues[keyEnableAddOffer];
   static bool get showAddOfferInGrid =>
       _data[keyShowAddOfferInGrid] ?? defaultValues[keyShowAddOfferInGrid];
 
   static bool get isProductImageRequired =>
-      _data[keyProductImageIsRequired] ?? defaultValues[keyProductImageIsRequired];
+      _data[keyProductImageIsRequired] ??
+      defaultValues[keyProductImageIsRequired];
   static double get productImageHeight =>
       (_data[keyProductImageHeight] ?? defaultValues[keyProductImageHeight])
           .toDouble();
@@ -147,7 +153,8 @@ class ProductInputConfig {
       _data[keyProductImageEnforceRatio] ??
       defaultValues[keyProductImageEnforceRatio];
   static int get maxProductImageSizeMB =>
-      (_data[keyProductImageMaxSizeMB] ?? defaultValues[keyProductImageMaxSizeMB])
+      (_data[keyProductImageMaxSizeMB] ??
+              defaultValues[keyProductImageMaxSizeMB])
           .toInt();
 
   static bool get isCategoryImageRequired =>
