@@ -15,7 +15,9 @@ class ProductInputConfig {
   static const String keyShowIsOnSale = "showIsOnSale";
   static const String keyShowIsJoker = "showIsJoker";
   static const String keyShowIsSuperJoker = "showIsSuperJoker";
+  static const String keyShowIsInsideOffer = "showIsInsideOffer";
   static const String keyShowDiscount = "showDiscount";
+  static const String keyShowDiscountPercentage = "showDiscountPercentage";
   static const String keyEnableMultiSizePricing = "enableMultiSizePricing";
   static const String keyDefaultToSinglePrice = "defaultToSinglePrice";
   static const String keyAllowedUnits = "allowedUnits";
@@ -57,7 +59,9 @@ class ProductInputConfig {
     keyShowIsOnSale: false,
     keyShowIsJoker: true,
     keyShowIsSuperJoker: false,
+    keyShowIsInsideOffer: false,
     keyShowDiscount: true,
+    keyShowDiscountPercentage: true,
     keyEnableMultiSizePricing: true,
     keyDefaultToSinglePrice: false,
     keyAllowedUnits: ["piece", "box", "kg", "gram", "liter", "ml", "pack"],
@@ -97,8 +101,12 @@ class ProductInputConfig {
       _data[keyShowBenefits] ?? defaultValues[keyShowBenefits];
   static bool get showIngredients =>
       _data[keyShowIngredients] ?? defaultValues[keyShowIngredients];
+  static bool get showIsInsideOffer =>
+      _data[keyShowIsInsideOffer] ?? defaultValues[keyShowIsInsideOffer];
   static bool get showDiscount =>
       _data[keyShowDiscount] ?? defaultValues[keyShowDiscount];
+  static bool get showDiscountPercentage =>
+      _data[keyShowDiscountPercentage] ?? defaultValues[keyShowDiscountPercentage];
   static bool get showIsNew =>
       _data[keyShowIsNew] ?? defaultValues[keyShowIsNew];
   static bool get showIsBestSeller =>

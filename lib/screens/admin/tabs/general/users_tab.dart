@@ -150,7 +150,7 @@ class _UsersTabState extends State<UsersTab> {
     return MasterGrid<UserViewProfileModel, UsersBloc>(
       title: "المستخدمين",
       viewMode: ViewMode.list,
-      childAspectRatio: 4.5,
+      childAspectRatio: 9,
       searchHint: widget.searchHint,
       onItemTap: _editUser,
       itemBuilder: (context, userItem, isSelected) => UserCardItem(
@@ -283,6 +283,15 @@ class _UserCardItemState extends State<UserCardItem> {
                         : LightColors.divider.withOpacity(0.1)),
               width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.isDark
+                    ? Colors.black.withOpacity(0.1)
+                    : Colors.grey.withOpacity(0.1),
+                blurRadius: 2,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [

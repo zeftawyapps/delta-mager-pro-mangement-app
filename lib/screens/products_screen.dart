@@ -780,6 +780,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                   _buildBadge(AppStrings.bestSeller, Colors.orange),
                 if (product.isOnSale)
                   _buildBadge(AppStrings.onSale, Colors.redAccent),
+                if (product.additionalData['isInsideOffer'] == true)
+                  _buildBadge(AppStrings.insideOffer, Colors.orangeAccent),
               ],
             ),
           ),

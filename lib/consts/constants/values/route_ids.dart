@@ -3,6 +3,7 @@ class AppRouteIds {
   static const String categories = 'categories';
   static const String products = 'products';
   static const String offers = 'offers';
+  static const String orders = 'orders';
   static const String users = 'users';
   static const String profile = 'profile';
   static const String settings = 'settings';

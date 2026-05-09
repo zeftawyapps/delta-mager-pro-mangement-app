@@ -68,5 +68,6 @@ class AppStrings {
   static const String rating = 'التقييم';
   static const String joker = 'جوكر';
   static const String superJoker = 'سوبر جوكر';
+  static const String insideOffer = 'داخل العرض';
   static const String notAvailable = 'غير متوفر';
 }

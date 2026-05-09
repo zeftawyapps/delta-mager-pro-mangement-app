@@ -3,6 +3,7 @@ import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
 
 class Users extends UserModel implements BaseViewDataModel {
   Users({
+    required super.id,
     required super.username,
     required super.email,
     required super.name,
@@ -19,6 +20,7 @@ class Users extends UserModel implements BaseViewDataModel {
 
   factory Users.fromUserModel(UserModel model) {
     return Users(
+      id: model.id,
       username: model.username,
       email: model.email,
       name: model.name,
@@ -33,9 +35,6 @@ class Users extends UserModel implements BaseViewDataModel {
       otherData: model.otherData,
     );
   }
-
-  @override
-  String get id => username;
 
   @override
   Map<String, dynamic> get map => toJson();

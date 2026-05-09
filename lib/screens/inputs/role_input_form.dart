@@ -42,6 +42,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
   bool isLoadingPermissions = true;
   String searchQuery = '';
   final TextEditingController searchController = TextEditingController();
+  final Map<String, ScrollController> _horizontalScrollControllers = {};
   String? selectedOrganizationId;
 
   @override
@@ -175,6 +176,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
     displayNameController.dispose();
     descriptionController.dispose();
     searchController.dispose();
+    for (var controller in _horizontalScrollControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -286,15 +290,15 @@ class _RoleInputFormState extends State<RoleInputForm> {
             ).showSnackBar(const SnackBar(content: Text('تم حفظ الدور بنجاح')));
 
             // Close ONLY the dialog using rootNavigator to be safe
-            if (context.mounted) {
-              Navigator.of(context, rootNavigator: true).pop(data);
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).maybePop(data);
             }
           },
           failure: (error, reload) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 backgroundColor: Colors.red,
-                content: const Text('❌ خطأ في الإدخال راجع الدعم الفني'),
+                content: Text(error.message ?? '❌ خطأ في الإدخال راجع الدعم الفني'),
               ),
             );
           },
@@ -803,8 +807,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenUsers,
           SystemFeatures.screenOrders,
           SystemFeatures.screenOffers,
+          SystemFeatures.screenPolicies,
           SystemFeatures.order,
           SystemFeatures.offer,
+          SystemFeatures.organization,
         ];
         if (!allowedInOrg.contains(r)) return false;
       }
@@ -831,18 +837,26 @@ class _RoleInputFormState extends State<RoleInputForm> {
     // - Resources: show only essential CRUD (Read, Add, Update, Delete) + Admin/All
     final categoryJobs = isScreensCategory
         ? [SystemJobs.view]
-        : allJobs
-              .where(
-                (j) => [
-                  SystemJobs.read,
-                  SystemJobs.add,
-                  SystemJobs.update,
-                  SystemJobs.delete,
-                  SystemJobs.all,
-                  SystemJobs.admin,
-                ].contains(j),
-              )
-              .toList();
+        : allJobs.where((j) {
+            // For organization resource in an organization context, only allow 'read'
+            if (widget.organizationId != null &&
+                !isScreensCategory &&
+                features.contains(SystemFeatures.organization)) {
+              // This logic will be applied per-row in the DataTable build if needed, 
+              // but here we define the columns. 
+              // If the category contains organization, we should still show the columns 
+              // but maybe disable the checkboxes for non-read jobs.
+            }
+
+            return [
+              SystemJobs.read,
+              SystemJobs.add,
+              SystemJobs.update,
+              SystemJobs.delete,
+              SystemJobs.all,
+              SystemJobs.admin,
+            ].contains(j);
+          }).toList();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -885,9 +899,15 @@ class _RoleInputFormState extends State<RoleInputForm> {
           children: [
             const Divider(height: 1),
             Scrollbar(
+              controller: _horizontalScrollControllers.putIfAbsent(
+                title,
+                () => ScrollController(),
+              ),
               thumbVisibility: true,
               child: SingleChildScrollView(
+                controller: _horizontalScrollControllers[title],
                 scrollDirection: Axis.horizontal,
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 12),
                 child: DataTable(
                   columnSpacing: isScreensCategory ? 60 : 30,
@@ -1048,6 +1068,12 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                     ? Colors.orange
                                     : color,
                                 onChanged: (val) {
+                                  // Restrict 'organization' resource to 'read' only in organization context
+                                  if (widget.organizationId != null &&
+                                      resKey == SystemFeatures.organization &&
+                                      jobKey != SystemJobs.read) {
+                                    return;
+                                  }
                                   setState(() {
                                     if (val == true) {
                                       selectedPermissions.add(permKey);
@@ -1056,6 +1082,12 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                         for (var j in categoryJobs) {
                                           final k =
                                               "$resKey:${j == SystemJobs.all ? '*' : j}";
+                                          
+                                          // Respect restriction even for 'all/admin'
+                                          if (widget.organizationId != null &&
+                                              resKey == SystemFeatures.organization &&
+                                              j != SystemJobs.read) continue;
+
                                           if (!selectedPermissions.contains(k))
                                             selectedPermissions.add(k);
                                         }

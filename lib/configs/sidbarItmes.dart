@@ -5,6 +5,7 @@ import 'package:delta_mager_pro_mangement_app/screens/analytics_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/category_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/products_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/offers_screen.dart';
+import 'package:delta_mager_pro_mangement_app/screens/orders_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/testWidget/OrgLoginScreen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/user_management_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/logIn.dart';
@@ -58,6 +59,16 @@ class SidebarItemsConfig {
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
     RouteItem(
+      id: AppRouteIds.orders,
+      path: AppRoutes.cpOrders,
+      label: "الطلبات",
+      icon: Icons.shopping_cart,
+      content: OrdersScreen(),
+      parentName: "ادارة الطلبات",
+      parentIcon: Icons.shopping_bag,
+      prams: {"orgName": AppRoutes.activeOrgName},
+    ),
+    RouteItem(
       id: AppRouteIds.users,
       path: AppRoutes.cpUsers,
       label: AppStrings.users,
@@ -65,14 +76,14 @@ class SidebarItemsConfig {
       content: UserManagementScreen(),
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
-    RouteItem(
-      id: AppRouteIds.profile,
-      path: AppRoutes.settings,
-      label: AppStrings.profile,
-      icon: Icons.person,
-      content: ProfileScreen(),
-      prams: {"orgName": AppRoutes.activeOrgName},
-    ),
+    // RouteItem(
+    //   id: AppRouteIds.profile,
+    //   path: AppRoutes.settings,
+    //   label: AppStrings.profile,
+    //   icon: Icons.person,
+    //   content: ProfileScreen(),
+    //   prams: {"orgName": AppRoutes.activeOrgName},
+    // ),
     RouteItem(
       id: AppRouteIds.login,
       path: AppRoutes.logIn,

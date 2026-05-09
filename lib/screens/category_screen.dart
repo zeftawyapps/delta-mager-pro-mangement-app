@@ -1,4 +1,5 @@
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:JoDija_tamplites/util/widgits/pob_up_menues/items.dart';
@@ -75,6 +76,15 @@ class CategoryScreen extends StatefulWidget with AppShellRouterMixin {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
+  late AppChangesValues catigory;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print(widget.getPrams());
+    catigory = context.read<AppChangesValues>();
+  }
+
   String get organizationId {
     final params = widget.getPrams();
     final orgName = params?['orgName'];
@@ -169,7 +179,13 @@ class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
         onLoad: (bloc) => bloc.loadCategories(shopId: organizationId),
         onSearch: (bloc, query) =>
             bloc.searchCategories(query, shopId: organizationId),
-        onItemTap: _editCategory,
+        onItemTap: (category) {
+          widget.goRoute(context, AppRoutes.products);
+
+          Future.delayed(Duration.zero, () {
+            catigory.setSelectedCategoryId(category.id);
+          });
+        },
         canAdd: canAdd,
         canMultiSelect: true,
         itemBuilder: (context, category, isSelected) =>

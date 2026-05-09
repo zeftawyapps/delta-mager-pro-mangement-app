@@ -1,3 +1,5 @@
+import 'package:JoDija_tamplites/util/widgits/input_text/refrance_input_text_field.dart';
+import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
@@ -32,14 +34,15 @@ class _OfferInputFormState extends State<OfferInputForm> {
   late TextEditingController descriptionEnController;
   late TextEditingController discountController;
   late TextEditingController sortOrderController;
-  
+  late TextEditingController productNameController;
+
   OfferTargetType selectedTargetType = OfferTargetType.product;
   String? selectedTargetId;
   DateTime? startDate;
   DateTime? endDate;
   bool isActive = true;
   ImageFileModel? selectedImage;
-  
+
   ValidationsForm form = ValidationsForm();
   bool _isDialogShowing = false;
 
@@ -48,11 +51,20 @@ class _OfferInputFormState extends State<OfferInputForm> {
     super.initState();
     nameArController = TextEditingController(text: widget.offer?.name.ar ?? '');
     nameEnController = TextEditingController(text: widget.offer?.name.en ?? '');
-    descriptionArController = TextEditingController(text: widget.offer?.description.ar ?? '');
-    descriptionEnController = TextEditingController(text: widget.offer?.description.en ?? '');
-    discountController = TextEditingController(text: widget.offer?.discountPercentage.toString() ?? '0');
-    sortOrderController = TextEditingController(text: widget.offer?.sortOrder.toString() ?? '0');
-    
+    descriptionArController = TextEditingController(
+      text: widget.offer?.description.ar ?? '',
+    );
+    descriptionEnController = TextEditingController(
+      text: widget.offer?.description.en ?? '',
+    );
+    discountController = TextEditingController(
+      text: widget.offer?.discountPercentage.toString() ?? '0',
+    );
+    sortOrderController = TextEditingController(
+      text: widget.offer?.sortOrder.toString() ?? '0',
+    );
+    productNameController = TextEditingController();
+
     if (widget.offer != null) {
       selectedTargetType = widget.offer!.targetType;
       selectedTargetId = widget.offer!.targetId;
@@ -60,6 +72,13 @@ class _OfferInputFormState extends State<OfferInputForm> {
       endDate = widget.offer!.endDate;
       isActive = widget.offer!.isActive;
     }
+
+    // تحميل المنتجات المخفضة عند البدء إذا كان نوع الهدف هو منتج
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (selectedTargetType == OfferTargetType.product) {
+        context.read<ProductsBloc>().loadDiscountedProducts();
+      }
+    });
   }
 
   @override
@@ -70,19 +89,21 @@ class _OfferInputFormState extends State<OfferInputForm> {
     descriptionEnController.dispose();
     discountController.dispose();
     sortOrderController.dispose();
+    productNameController.dispose();
     super.dispose();
   }
 
   void _saveOffer() {
     if (!form.form.currentState!.validate()) return;
     if (selectedTargetId == null) {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يرجى اختيار الهدف (منتج أو قسم)')),
       );
       return;
     }
 
-    final organizationId = context.read<AppChangesValues>().user?.organizationId ?? '';
+    final organizationId =
+        context.read<AppChangesValues>().user?.organizationId ?? '';
     final bloc = context.read<OffersBloc>();
 
     final name = {
@@ -128,6 +149,78 @@ class _OfferInputFormState extends State<OfferInputForm> {
     }
   }
 
+  void _showProductSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Container(
+            width: 600,
+            height: 500,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'البحث عن منتج',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: MasterGrid<ProductModel, ProductsBloc>(
+                    title: 'المنتجات',
+                    canAdd: false,
+                    onAdd: () {},
+                    searchHint: 'ابحث باسم المنتج...',
+                    onLoad: (bloc) => bloc.loadDiscountedProducts(),
+                    onSearch: (bloc, query) => bloc.loadDiscountedProducts(),
+                    itemBuilder: (context, product, isSelected) {
+                      return ListTile(
+                        leading: product.images.isNotEmpty
+                            ? Image.network(product.images.first, width: 40, height: 40, fit: BoxFit.cover)
+                            : const Icon(Icons.image),
+                        title: Text(product.nameAr),
+                        subtitle: Text('${product.price} ر.س'),
+                        trailing: product.discount != null 
+                            ? Text('%${product.discount} خصم', style: const TextStyle(color: Colors.green))
+                            : null,
+                      );
+                    },
+                    onItemTap: (product) {
+                      setState(() {
+                        selectedTargetId = product.id;
+                        productNameController.text = product.nameAr;
+                        
+                        // تحديث الخصم تلقائياً
+                        double? discountVal = product.discount;
+                        if (discountVal == null || discountVal == 0) {
+                          final additionalDiscount = product.additionalData['discount'];
+                          if (additionalDiscount != null) {
+                            discountVal = double.tryParse(additionalDiscount.toString());
+                          }
+                        }
+                        discountController.text = (discountVal ?? 0).toString();
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<OffersBloc, FeaturDataSourceState<OfferModel>>(
@@ -156,7 +249,10 @@ class _OfferInputFormState extends State<OfferInputForm> {
         );
       },
       builder: (context, state) {
-        final isLoad = state.itemState.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoad = state.itemState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -180,7 +276,8 @@ class _OfferInputFormState extends State<OfferInputForm> {
                 networkImage: widget.offer?.imageUrl,
                 height: 150,
                 width: 150,
-                onImageSelected: (imageModel) => setState(() => selectedImage = imageModel),
+                onImageSelected: (imageModel) =>
+                    setState(() => selectedImage = imageModel),
               ),
               const SizedBox(height: 24),
 
@@ -219,7 +316,7 @@ class _OfferInputFormState extends State<OfferInputForm> {
                     keyData: "descEn",
                   ),
                   const SizedBox(height: 16),
-                  
+
                   Row(
                     children: [
                       Expanded(
@@ -227,9 +324,14 @@ class _OfferInputFormState extends State<OfferInputForm> {
                           controller: discountController,
                           form: form,
                           textInputType: TextInputType.number,
-                          baseValidation: [RequiredValidator(), NumperValidator()],
+                          baseValidation: [
+                            RequiredValidator(),
+                            NumperValidator(),
+                          ],
                           labalText: 'نسبة الخصم (%)',
                           keyData: "discount",
+                          isReadOnly:
+                              true, // الحقل مغلق لأنه يتم جلبه من المنتج المختار
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -247,79 +349,19 @@ class _OfferInputFormState extends State<OfferInputForm> {
                   ),
                   const SizedBox(height: 16),
 
-                  DrobDaownValidation(
-                    itemslsit: const ['منتج', 'قسم'],
-                    index: selectedTargetType == OfferTargetType.product ? 0 : 1,
-                    labalText: 'نوع الهدف',
-                    keyData: 'targetType',
-                    form: form,
-                    baseValidation: const [],
-                    decoration: const InputDecoration(labelText: 'نوع الهدف'),
-                    textStyle: const TextStyle(),
-                    onChange: (val) {
-                      setState(() {
-                        selectedTargetType = val == 'منتج' ? OfferTargetType.product : OfferTargetType.category;
-                        selectedTargetId = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (selectedTargetType == OfferTargetType.product)
-                    BlocBuilder<ProductsBloc, FeaturDataSourceState<ProductModel>>(
-                      builder: (context, prodState) {
-                        final products = prodState.listState.maybeWhen(success: (l) => l ?? [], orElse: () => <ProductModel>[]);
-                        final items = ['اختر المنتج', ...products.map((p) => p.nameAr)];
-                        int idx = 0;
-                        if (selectedTargetId != null) {
-                          idx = products.indexWhere((p) => p.id == selectedTargetId) + 1;
-                        }
-                        return DrobDaownValidation(
-                          itemslsit: items,
-                          index: idx > 0 ? idx : 0,
-                          labalText: 'المنتج المستهدف',
-                          keyData: 'targetIdProd',
-                          form: form,
-                          baseValidation: [RequiredValidator()],
-                          decoration: const InputDecoration(labelText: 'المنتج المستهدف'),
-                          textStyle: const TextStyle(),
-                          onChange: (val) {
-                             if (val != 'اختر المنتج') {
-                               final p = products.firstWhere((p) => p.nameAr == val);
-                               setState(() => selectedTargetId = p.id);
-                             }
-                          },
-                        );
-                      },
-                    )
-                  else
-                    BlocBuilder<CategoriesBloc, FeaturDataSourceState<CategoryModel>>(
-                      builder: (context, catState) {
-                        final categories = catState.listState.maybeWhen(success: (l) => l ?? [], orElse: () => <CategoryModel>[]);
-                        final items = ['اختر القسم', ...categories.map((c) => c.nameAr)];
-                        int idx = 0;
-                        if (selectedTargetId != null) {
-                          idx = categories.indexWhere((c) => c.id == selectedTargetId) + 1;
-                        }
-                        return DrobDaownValidation(
-                          itemslsit: items,
-                          index: idx > 0 ? idx : 0,
-                          labalText: 'القسم المستهدف',
-                          keyData: 'targetIdCat',
-                          form: form,
-                          baseValidation: [RequiredValidator()],
-                          decoration: const InputDecoration(labelText: 'القسم المستهدف'),
-                          textStyle: const TextStyle(),
-                          onChange: (val) {
-                             if (val != 'اختر القسم') {
-                               final c = categories.firstWhere((c) => c.nameAr == val);
-                               setState(() => selectedTargetId = c.id);
-                             }
-                          },
-                        );
-                      },
+                  RefranceFormField(
+                    controller: productNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'المنتج المستهدف',
+                      hintText: 'اضغط للبحث عن منتج...',
+                      prefixIcon: Icon(Icons.search),
                     ),
-                  
+                    textStyle: const TextStyle(),
+                    hintText: 'اضغط للبحث عن منتج...',
+                    onSave: (val) {},
+                    onvlaidate: (val) => val == null || val.isEmpty ? 'يرجى اختيار منتج' : null,
+                    onTap: _showProductSearchDialog,
+                  ),
                   const SizedBox(height: 16),
 
                   Row(
@@ -336,7 +378,11 @@ class _OfferInputFormState extends State<OfferInputForm> {
                             if (date != null) setState(() => startDate = date);
                           },
                           icon: const Icon(Icons.calendar_today),
-                          label: Text(startDate == null ? 'تاريخ البدء' : startDate!.toString().split(' ').first),
+                          label: Text(
+                            startDate == null
+                                ? 'تاريخ البدء'
+                                : startDate!.toString().split(' ').first,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -345,19 +391,25 @@ class _OfferInputFormState extends State<OfferInputForm> {
                           onPressed: () async {
                             final date = await showDatePicker(
                               context: context,
-                              initialDate: endDate ?? DateTime.now().add(const Duration(days: 7)),
+                              initialDate:
+                                  endDate ??
+                                  DateTime.now().add(const Duration(days: 7)),
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2100),
                             );
                             if (date != null) setState(() => endDate = date);
                           },
                           icon: const Icon(Icons.event),
-                          label: Text(endDate == null ? 'تاريخ الانتهاء' : endDate!.toString().split(' ').first),
+                          label: Text(
+                            endDate == null
+                                ? 'تاريخ الانتهاء'
+                                : endDate!.toString().split(' ').first,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   SwitchListTile(
                     title: const Text('نشط'),
                     value: isActive,

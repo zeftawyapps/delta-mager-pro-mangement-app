@@ -90,6 +90,7 @@ class _UserInputFormState extends State<UserInputForm> {
           phone: phoneController.text.trim(),
           address: addressController.text.trim(),
           isActive: isActive,
+          roles: selectedRoles,
           organizationId: widget.organizationId,
         );
       }
@@ -306,7 +307,10 @@ class _UserInputFormState extends State<UserInputForm> {
                           ),
                           side: BorderSide(color: Colors.grey.shade400),
                         ),
-                        child: const Text("إلغاء", style: TextStyle(color: Colors.grey)),
+                        child: const Text(
+                          "إلغاء",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
                   ),
@@ -378,7 +382,9 @@ class _UserInputFormState extends State<UserInputForm> {
       width: 650,
       onResult: (result) {
         // Refresh the roles list
-        context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
+        context.read<RolesBloc>().loadRoles(
+          organizationId: widget.organizationId,
+        );
       },
     );
   }

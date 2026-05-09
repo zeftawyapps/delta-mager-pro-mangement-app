@@ -37,7 +37,6 @@ import 'package:provider/provider.dart';
 import 'configs/app_shell_config.dart';
 import 'configs/ui_configs.dart';
 import 'consts/constants/theme/app_theme.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_bloc.dart';
@@ -45,6 +44,10 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_blo
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organizations_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/workflow_management_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/orders_bloc.dart';
+import 'package:matger_pro_core_logic/features/workflow/repo/workflow_repo.dart';
+import 'package:matger_pro_core_logic/features/commrec/repo/order_repo.dart';
 
 class AppLouncher extends StatefulWidget {
   const AppLouncher({super.key});
@@ -81,7 +84,8 @@ class _AppLouncherState extends State<AppLouncher> {
               // استخراج الإعدادات لتكون متاحة لبناء الواجهة والـ Sidebar
               final config = state.itemState.maybeWhen(
                 success: (data) => data,
-                orElse: () => context.read<OrganizationConfigBloc>().organizationConfig,
+                orElse: () =>
+                    context.read<OrganizationConfigBloc>().organizationConfig,
               );
 
               state.itemState.maybeWhen(
@@ -213,54 +217,52 @@ class _AppLouncherState extends State<AppLouncher> {
                     create: (context) =>
                         OrganizationPolicyBloc(repo: sl<OrganizationRepo>()),
                   ),
+                  BlocProvider(
+                    create: (context) =>
+                        WorkflowManagementBloc(repo: sl<WorkflowRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) => OrdersBloc(repo: sl<OrderRepo>()),
+                  ),
                 ],
                 titleApp: AppStrings.appName,
-                sidebarBackgroundColor: AppShellConfigs.isDarkMode
+                sidebarBackgroundColor: AppColors.primary,
+                sidebarTextColor: Colors.white,
+                sidebarHoverColor: Colors.white.withValues(alpha: 0.1),
+                sidebarHoverTextColor: Colors.white,
+                sidebarSelectedColor: AppShellConfigs.isDarkMode
                     ? AppColors.darkBackground
                     : AppColors.background,
-                sidebarTextColor: AppShellConfigs.isDarkMode
-                    ? AppColors.darkTextPrimary
-                    : AppColors.darkText,
-                sidebarHoverColor: AppShellConfigs.isDarkMode
-                    ? AppColors.darkSurface
-                    : AppColors.surface,
-                sidebarHoverTextColor: AppShellConfigs.isDarkMode
-                    ? AppColors.primary
-                    : AppColors.secondary,
-                sidebarSelectedColor: AppColors.primary,
-                sidebarSelectedIconColor: AppColors.secondary,
-                sidebarSelectedTextColor: AppColors.secondary,
-                sidebarIconColor: AppColors.primary,
+                sidebarSelectedIconColor: AppColors.primary,
+                sidebarSelectedTextColor: AppColors.primary,
+
+                sidebarIconColor: Colors.white,
 
                 // إضافة الشعار والاسم الديناميكي في الـ Sidebar
                 sidebarHeader: SidebarHeaderConfig(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  backgroundColor: Colors.transparent,
                   // استخدام لوجو المنظمة من الرابط إذا وجد، وإلا اللوجو الافتراضي
-                  logoAssetPath: config?.visual?.logoUrl ?? AppAsset.logo,
-                  title: config?.layout?.appTitle ?? 
-                         context.read<SystemBloc>().systemInfo?.appName ?? 
-                         AppStrings.appName,
+                  logoAssetPath: AppAsset.logo,
+                  direction: Axis.horizontal,
+                  title:
+                      config?.layout?.appTitle ??
+                      context.read<SystemBloc>().systemInfo?.appName ??
+                      AppStrings.appName,
                   titleStyle: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.white,
                   ),
-                  logoHight: 70,
-                  logoWidth: 120,
-                  height: 150,
+                  logoHight: 50,
+                  logoWidth: 50,
+                  height: 100,
                   logoFit: BoxFit.contain,
                 ),
-
-                sidebarExpandedArrowColor: AppShellConfigs.isDarkMode
-                    ? Colors.white70
-                    : Colors.black87,
-                sidebarExpandedBackgroundColor: AppShellConfigs.isDarkMode
-                    ? AppColors.darkSurface
-                    : AppColors.surfaceVariant,
-                sidebarExpandedIconColor: AppColors.primary,
-                sidebarExpandedTextColor: AppShellConfigs.isDarkMode
-                    ? AppColors.darkTextPrimary
-                    : AppColors.darkText,
+                sidebarFontSize: 15,
+                sidebarExpandedArrowColor: Colors.white70,
+                sidebarExpandedBackgroundColor: Colors.transparent,
+                sidebarExpandedIconColor: Colors.white,
+                sidebarExpandedTextColor: Colors.white,
 
                 animationDuration: AppShellConfigs.animationDuration,
                 languageCode: AppShellConfigs.languageCode,

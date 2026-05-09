@@ -6,7 +6,8 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:matger_pro_core_logic/features/commrec/repo/product_repo.dart';
 import 'package:matger_pro_core_logic/features/commrec/request_body/product_request_bodies.dart';
-import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart' show PriceOption;
+import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
+    show PriceOption;
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
 import '../model/product_model.dart';
 
@@ -276,7 +277,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
     final List<ProductData> products = variantNames.map((nameData) {
       // nameData هو {"ar": "...", "en": "..."}
       final nameMap = nameData as Map<String, String>;
-      
+
       // دمج بيانات القالب مع الاسم المخصص
       final Map<String, dynamic> productJson = {
         ...template,
@@ -285,7 +286,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         'id': '', // سيتم توليده في السيرفر
         'images': [],
       };
-      
+
       return ProductData.fromJson(productJson);
     }).toList();
 
@@ -293,9 +294,9 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
       organizationId: organizationId,
       products: products,
     );
-    
+
     final result = await repo.bulkCreateProducts(request: request);
-    
+
     if (result.status == StatusModel.success) {
       emit(state.copyWith(itemState: const DataSourceBaseState.init()));
       loadProducts();
@@ -334,6 +335,25 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
             () => searchProducts(query: query, organizationId: organizationId),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> loadDiscountedProducts() async {
+    emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    final result = await repo.getDiscountedProducts();
+    if (result.status == StatusModel.success) {
+      final products =
+          result.data?.map((e) => ProductModel.fromData(e)).toList() ?? [];
+      emit(state.copyWith(listState: DataSourceBaseState.success(products)));
+    } else {
+      emit(
+        state.copyWith(
+          listState: DataSourceBaseState.failure(
+            ErrorStateModel(message: result.message ?? "Error"),
+            () => loadDiscountedProducts(),
           ),
         ),
       );

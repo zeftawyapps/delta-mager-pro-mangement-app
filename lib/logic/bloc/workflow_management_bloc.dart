@@ -87,6 +87,130 @@ class WorkflowManagementBloc
     }
   }
 
+  /// استلام مهمة (Claim) عبر WorkflowRepo مباشرة
+  Future<void> claimTask({
+    required String entityType,
+    required String entryId,
+    int? expectedStepNumber,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.claimTask<Map<String, dynamic>>(
+      entityType: entityType,
+      entryId: entryId,
+      request: WorkflowClaimTaskRequest(expectedStepNumber: expectedStepNumber),
+      parser: (data) => data,
+    );
+
+    if (result.status == StatusModel.success && result.data != null) {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.success(null),
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء استلام المهمة",
+            ),
+            () => claimTask(
+              entityType: entityType,
+              entryId: entryId,
+              expectedStepNumber: expectedStepNumber,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// تنفيذ إجراء (Action) عبر WorkflowRepo مباشرة
+  Future<void> performAction({
+    required String entityType,
+    required String entryId,
+    required String actionName,
+    int? expectedStepNumber,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.performAction<Map<String, dynamic>>(
+      entityType: entityType,
+      entryId: entryId,
+      request: WorkflowExecuteActionRequest(
+        actionName: actionName,
+        expectedStepNumber: expectedStepNumber,
+      ),
+      parser: (data) => data,
+    );
+
+    if (result.status == StatusModel.success && result.data != null) {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.success(null),
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء تنفيذ الإجراء",
+            ),
+            () => performAction(
+              entityType: entityType,
+              entryId: entryId,
+              actionName: actionName,
+              expectedStepNumber: expectedStepNumber,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// تعيين مهمة لموظف (Assign) عبر WorkflowRepo مباشرة
+  Future<void> assignTask({
+    required String entityType,
+    required String entryId,
+    required String targetUserId,
+    int? expectedStepNumber,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.assignTask<Map<String, dynamic>>(
+      entityType: entityType,
+      entryId: entryId,
+      request: WorkflowAssignTaskRequest(
+        targetUserId: targetUserId,
+        expectedStepNumber: expectedStepNumber,
+      ),
+      parser: (data) => data,
+    );
+
+    if (result.status == StatusModel.success && result.data != null) {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.success(null),
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء تعيين المهمة",
+            ),
+            () => assignTask(
+              entityType: entityType,
+              entryId: entryId,
+              targetUserId: targetUserId,
+              expectedStepNumber: expectedStepNumber,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> seedDefault(
     String organizationId, {
     String entityType = 'orders',

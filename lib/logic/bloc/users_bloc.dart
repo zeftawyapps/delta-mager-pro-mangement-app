@@ -91,6 +91,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     String? phone,
     String? address,
     bool? isActive,
+    List<String>? roles,
     String? organizationId,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
@@ -101,6 +102,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
       phone: phone,
       address: address,
       isActive: isActive,
+      roles: roles,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -124,6 +126,8 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
               phone: phone,
               address: address,
               isActive: isActive,
+              roles: roles,
+              organizationId: organizationId,
             ),
           ),
         ),

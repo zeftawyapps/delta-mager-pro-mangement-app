@@ -184,6 +184,11 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 ProductInputConfig.keyShowIsSuperJoker,
                 subtitle: "علامة تمييز ممتازة (Super Joker)",
               ),
+              _buildSwitch(
+                "عرض 'داخل العرض'",
+                ProductInputConfig.keyShowIsInsideOffer,
+                subtitle: "تحديد المنتج كجزء من عرض حالي",
+              ),
             ],
           ),
           _buildGroupCard(
@@ -195,6 +200,12 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 ProductInputConfig.keyShowDiscount,
                 defaultValue: true,
                 subtitle: "السماح بإضافة نسبة خصم تظهر بجانب السعر الحالي",
+              ),
+              _buildSwitch(
+                "إظهار حقل نسبة الخصم (%)",
+                ProductInputConfig.keyShowDiscountPercentage,
+                defaultValue: true,
+                subtitle: "عرض حقل إدخال نسبة الخصم المئوية في النموذج",
               ),
               _buildSwitch(
                 "تفعيل التسعير المتعدد الأحجام",

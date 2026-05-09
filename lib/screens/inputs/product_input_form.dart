@@ -52,6 +52,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
   bool isOnSale = false;
   bool isJoker = false;
   bool isSuperJoker = false;
+  bool isInsideOffer = false;
   bool isAvailable = true; // متاح
   bool isMultiSize = false;
   ProductUnit singlePriceUnit = ProductUnit.piece;
@@ -125,6 +126,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
       isOnSale = widget.product!.isOnSale;
       isJoker = widget.product!.isJoker;
       isSuperJoker = widget.product!.isSuperJoker;
+      isInsideOffer = widget.product!.additionalData['isInsideOffer'] ?? false;
       isAvailable = widget.product!.isAvailable;
 
       priceOptions = widget.product!.priceOptions
@@ -296,6 +298,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
       'usage': usageController.text.trim(),
       'benefits': benefitsList,
       'ingredients': ingredientsList,
+      'isInsideOffer': isInsideOffer,
     };
 
     final List<core_m.PriceOption> priceOptionsList = isMultiSize
@@ -789,13 +792,12 @@ class _ProductInputFormState extends State<ProductInputForm> {
                         ),
                       ],
 
-                      if (ProductInputConfig.showDiscount &&
-                          !ProductInputConfig.enableQuickAdd) ...[
+                      if (ProductInputConfig.showDiscount || 
+                          ProductInputConfig.showDiscountPercentage) ...[
                         SizedBox(height: 20),
                         TextFomrFildValidtion(
                           textInputType: TextInputType.number,
                           controller: discountController,
-                          initValue: "0",
                           keyData: 'discount',
                           baseValidation: [
                             NumperValidator(
@@ -844,6 +846,13 @@ class _ProductInputFormState extends State<ProductInputForm> {
                           value: isSuperJoker,
                           onChanged: (v) =>
                               setState(() => isSuperJoker = v ?? false),
+                        ),
+                      if (ProductInputConfig.showIsInsideOffer)
+                        CheckboxListTile(
+                          title: Text('داخل العرض 🎁'),
+                          value: isInsideOffer,
+                          onChanged: (v) =>
+                              setState(() => isInsideOffer = v ?? false),
                         ),
                       CheckboxListTile(
                         title: Text('متوفر 📦'),

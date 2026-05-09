@@ -102,6 +102,7 @@ mixin SystemManager {
 
     return SystemConfig(
       user: user,
+      feature: feature,
       orgConfig: orgConfig,
       featureConfig: featureConfig,
       canAdd: canAdd,
@@ -116,6 +117,7 @@ mixin SystemManager {
 
 class SystemConfig {
   final Users? user;
+  final String feature;
   final OrganizationConfigModel? orgConfig;
   final dynamic featureConfig;
   final bool canAdd;
@@ -127,6 +129,7 @@ class SystemConfig {
 
   SystemConfig({
     this.user,
+    required this.feature,
     this.orgConfig,
     this.featureConfig,
     required this.canAdd,
@@ -136,4 +139,8 @@ class SystemConfig {
     required this.appBarConfig,
     this.authWidget,
   });
+
+  bool checkPermission(String job) {
+    return user?.can(feature, job) ?? false;
+  }
 }
