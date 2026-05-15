@@ -26,8 +26,14 @@ import 'price_options_widget.dart';
 class ProductInputForm extends StatefulWidget {
   final ProductModel? product;
   final String? initialCategoryId;
+  final bool autoOpenImagePicker;
 
-  ProductInputForm({super.key, this.product, this.initialCategoryId});
+  ProductInputForm({
+    super.key,
+    this.product,
+    this.initialCategoryId,
+    this.autoOpenImagePicker = false,
+  });
 
   @override
   State<ProductInputForm> createState() => _ProductInputFormState();
@@ -61,10 +67,21 @@ class _ProductInputFormState extends State<ProductInputForm> {
   // ============ نظام التسعير المتعدد ============
   List<PriceOption> priceOptions = [];
   bool _isDialogShowing = false;
+  final GlobalKey _imagePickerKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+
+    if (widget.autoOpenImagePicker) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          (_imagePickerKey.currentState as dynamic)?.pickImage();
+        } catch (e) {
+          debugPrint("Could not auto-open image picker: $e");
+        }
+      });
+    }
     // التأكد من اختيار وحدة متاحة افتراضياً
     final visibleUnits = ProductUnit.values.where((u) => u.isVisible).toList();
     if (visibleUnits.isNotEmpty && !visibleUnits.contains(singlePriceUnit)) {
@@ -149,6 +166,89 @@ class _ProductInputFormState extends State<ProductInputForm> {
     } else if (widget.initialCategoryId != null) {
       selectedCategoryId = widget.initialCategoryId;
     }
+  }
+
+
+
+  bool get _shouldShowImagePicker {
+    return widget.autoOpenImagePicker ||
+        ProductInputConfig.showImages ||
+        ProductInputConfig.isProductImageRequired ||
+        isNew ||
+        isBestSeller ||
+        isOnSale ||
+        isJoker ||
+        isSuperJoker ||
+        isInsideOffer;
+  }
+
+  void _onFeatureToggle(String property, bool value) {
+    // الخصائص التي تتطلب وجود صورة
+    final featuredProperties = [
+      'isNew',
+      'isBestSeller',
+      'isOnSale',
+      'isJoker',
+      'isSuperJoker',
+      'isInsideOffer'
+    ];
+
+    final hasImage = selectedImage != null || (widget.product?.images.isNotEmpty ?? false);
+
+    if (value == true && featuredProperties.contains(property) && !hasImage) {
+      // تفعيل الخاصية مؤقتاً في الـ State ليظهر الـ ImagePecker في الواجهة
+      setState(() {
+        switch (property) {
+          case 'isNew': isNew = true; break;
+          case 'isBestSeller': isBestSeller = true; break;
+          case 'isOnSale': isOnSale = true; break;
+          case 'isJoker': isJoker = true; break;
+          case 'isSuperJoker': isSuperJoker = true; break;
+          case 'isInsideOffer': isInsideOffer = true; break;
+        }
+      });
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text(
+            'تنبيه: الصورة مطلوبة',
+            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'لا يمكن تفعيل هذه الخاصية لمنتج بدون صورة. سيتم فتح اختيار الصور الآن.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                // استخدام PostFrameCallback لضمان أن الـ ImagePecker قد تم بناؤه بعد الـ setState
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  try {
+                    (_imagePickerKey.currentState as dynamic)?.pickImage();
+                  } catch (e) {
+                    debugPrint("Could not open image picker: $e");
+                  }
+                });
+              },
+              child: const Text('حسناً'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      switch (property) {
+        case 'isNew': isNew = value; break;
+        case 'isBestSeller': isBestSeller = value; break;
+        case 'isOnSale': isOnSale = value; break;
+        case 'isJoker': isJoker = value; break;
+        case 'isSuperJoker': isSuperJoker = value; break;
+        case 'isInsideOffer': isInsideOffer = value; break;
+      }
+    });
   }
 
   @override
@@ -458,9 +558,9 @@ class _ProductInputFormState extends State<ProductInputForm> {
                       ),
                       SizedBox(height: 20),
 
-                      if (ProductInputConfig.showImages ||
-                          ProductInputConfig.isProductImageRequired)
+                      if (_shouldShowImagePicker)
                         ImagePecker(
+                          key: _imagePickerKey,
                           placeholderAsset: AppAsset.imgplaceholder,
                           networkImage:
                               widget.product?.images.isNotEmpty == true
@@ -815,44 +915,39 @@ class _ProductInputFormState extends State<ProductInputForm> {
                       // Checkboxes
                       if (ProductInputConfig.showIsNew)
                         CheckboxListTile(
-                          title: Text('منتج جديد'),
+                          title: Text('منتج جديد ✨'),
                           value: isNew,
-                          onChanged: (v) => setState(() => isNew = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isNew', v ?? false),
                         ),
                       if (ProductInputConfig.showIsBestSeller)
                         CheckboxListTile(
-                          title: Text('الأكثر مبيعاً'),
+                          title: Text('الأكثر مبيعاً 🔥'),
                           value: isBestSeller,
-                          onChanged: (v) =>
-                              setState(() => isBestSeller = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isBestSeller', v ?? false),
                         ),
                       if (ProductInputConfig.showIsOnSale)
                         CheckboxListTile(
-                          title: Text('عرض خاص'),
+                          title: Text('عرض خاص 🎁'),
                           value: isOnSale,
-                          onChanged: (v) =>
-                              setState(() => isOnSale = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isOnSale', v ?? false),
                         ),
                       if (ProductInputConfig.showIsJoker)
                         CheckboxListTile(
                           title: Text('جوكر 🃏'),
                           value: isJoker,
-                          onChanged: (v) =>
-                              setState(() => isJoker = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isJoker', v ?? false),
                         ),
                       if (ProductInputConfig.showIsSuperJoker)
                         CheckboxListTile(
                           title: Text('سوبر جوكر 🌟'),
                           value: isSuperJoker,
-                          onChanged: (v) =>
-                              setState(() => isSuperJoker = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isSuperJoker', v ?? false),
                         ),
                       if (ProductInputConfig.showIsInsideOffer)
                         CheckboxListTile(
-                          title: Text('داخل العرض 🎁'),
+                          title: Text('داخل العروض 🔥'),
                           value: isInsideOffer,
-                          onChanged: (v) =>
-                              setState(() => isInsideOffer = v ?? false),
+                          onChanged: (v) => _onFeatureToggle('isInsideOffer', v ?? false),
                         ),
                       CheckboxListTile(
                         title: Text('متوفر 📦'),

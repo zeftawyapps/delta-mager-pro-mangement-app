@@ -8,47 +8,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_conf
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/sidebar_provider.dart';
 import 'package:provider/provider.dart';
 
-// 🟢 Helper class to manage grid state dynamically
-class FeatureGridState {
-  final TextEditingController aspectRatio;
-  final TextEditingController spacing;
-  final TextEditingController countSmall;
-  final TextEditingController countMedium;
-  final TextEditingController countLarge;
-  bool showAddInGrid;
 
-  FeatureGridState({
-    required String? initialAspectRatio,
-    required String? initialSpacing,
-    required String? initialCountSmall,
-    required String? initialCountMedium,
-    required String? initialCountLarge,
-    required this.showAddInGrid,
-  })  : aspectRatio = TextEditingController(text: initialAspectRatio ?? "1.0"),
-        spacing = TextEditingController(text: initialSpacing ?? "16.0"),
-        countSmall = TextEditingController(text: initialCountSmall ?? "2"),
-        countMedium = TextEditingController(text: initialCountMedium ?? "3"),
-        countLarge = TextEditingController(text: initialCountLarge ?? "4");
-
-  void dispose() {
-    aspectRatio.dispose();
-    spacing.dispose();
-    countSmall.dispose();
-    countMedium.dispose();
-    countLarge.dispose();
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      "childAspectRatio": double.tryParse(aspectRatio.text) ?? 1.0,
-      "crossAxisSpacing": double.tryParse(spacing.text) ?? 16.0,
-      "crossAxisCountSmall": int.tryParse(countSmall.text) ?? 2,
-      "crossAxisCountMedium": int.tryParse(countMedium.text) ?? 3,
-      "crossAxisCountLarge": int.tryParse(countLarge.text) ?? 4,
-      "showAddInGrid": showAddInGrid,
-    };
-  }
-}
 
 class ConfigSectionTab extends StatefulWidget {
   final OrganizationConfig config;
@@ -70,22 +30,14 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
   bool _isEditingVisual = false;
   bool _isEditingThemes = false;
   bool _isEditingLayout = false;
-  bool _isEditingFeature = false;
+
 
   late TextEditingController _fontFamilyController;
   late TextEditingController _logoUrlController;
   late TextEditingController _appTitleController;
   late TextEditingController _jsonImportController;
   
-  // 🟢 Dynamic management of feature sections
-  final Map<String, FeatureGridState> _gridStates = {};
-  
-  final List<Map<String, String>> _sectionsDefinition = [
-    {'key': 'categories', 'label': 'شبكة الأصناف (Categories)'},
-    {'key': 'products', 'label': 'شبكة المنتجات (Products)'},
-    {'key': 'users', 'label': 'شبكة المستخدمين (Users)'},
-    {'key': 'offers', 'label': 'شبكة العروض (Offers)'},
-  ];
+
 
   bool _showCartLocal = false;
   bool _showSearchLocal = false;
@@ -135,22 +87,7 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     );
     _jsonImportController = TextEditingController();
     
-    final featureConfig = widget.config.feature;
-    
-    // Initialize grid states dynamically
-    for (var section in _sectionsDefinition) {
-      final key = section['key']!;
-      final config = featureConfig?.configs[key];
-      
-      _gridStates[key] = FeatureGridState(
-        initialAspectRatio: config?.childAspectRatio?.toString(),
-        initialSpacing: config?.crossAxisSpacing?.toString(),
-        initialCountSmall: config?.crossAxisCountSmall?.toString(),
-        initialCountMedium: config?.crossAxisCountMedium?.toString(),
-        initialCountLarge: config?.crossAxisCountLarge?.toString(),
-        showAddInGrid: config?.showAddInGrid ?? false,
-      );
-    }
+
 
     _showCartLocal = widget.config.layout?.showCart ?? false;
     _showSearchLocal = widget.config.layout?.showSearch ?? false;
@@ -172,9 +109,7 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     _logoUrlController.dispose();
     _appTitleController.dispose();
     _jsonImportController.dispose();
-    for (var state in _gridStates.values) {
-      state.dispose();
-    }
+
     super.dispose();
   }
 
@@ -309,63 +244,13 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
             ],
           ),
 
-          const SizedBox(height: 16),
-          _buildFormCard(
-            title: "المزايا الإضافية (Features)",
-            icon: Icons.star_outline,
-            isEditing: _isEditingFeature,
-            onEditPressed: () => setState(() => _isEditingFeature = true),
-            onSavePressed: () async {
-              final currentFeatures = Map<String, dynamic>.from(widget.config.features ?? {});
-              final Map<String, dynamic> featureMap = {};
-              
-              for (var entry in _gridStates.entries) {
-                featureMap[entry.key] = entry.value.toJson();
-              }
-              
-              currentFeatures['feature'] = featureMap;
 
-              context.read<AdminOrganizationConfigBloc>().updateConfigSection(
-                organizationId: widget.organizationId,
-                section: "features",
-                sectionData: currentFeatures,
-              );
-              setState(() => _isEditingFeature = false);
-            },
-            children: [
-              for (int i = 0; i < _sectionsDefinition.length; i++) ...[
-                _buildFeatureSection(
-                  _sectionsDefinition[i]['label']!,
-                  _gridStates[_sectionsDefinition[i]['key']]!,
-                ),
-                if (i < _sectionsDefinition.length - 1) const Divider(),
-              ],
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureSection(String title, FeatureGridState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(title),
-        _buildEditableTile("نسبة العرض للارتفاع", state.aspectRatio, Icons.aspect_ratio, _isEditingFeature, defaultValue: "1.0"),
-        _buildEditableTile("المسافة العرضية (Spacing)", state.spacing, Icons.space_bar, _isEditingFeature, defaultValue: "16.0"),
-        _buildEditableTile("عدد العمدة (شاشة صغيرة)", state.countSmall, Icons.grid_view, _isEditingFeature, defaultValue: "2"),
-        _buildEditableTile("عدد العمدة (شاشة متوسطة)", state.countMedium, Icons.grid_view, _isEditingFeature, defaultValue: "3"),
-        _buildEditableTile("عدد العمدة (شاشة كبيرة)", state.countLarge, Icons.grid_view, _isEditingFeature, defaultValue: "4"),
-        _buildToggleTile(
-          "إظهار زر الإضافة داخل الشبكة",
-          state.showAddInGrid,
-          _isEditingFeature,
-          (val) => setState(() => state.showAddInGrid = val),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildSectionTitle(String title) {
     return Padding(

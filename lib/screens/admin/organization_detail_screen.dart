@@ -16,6 +16,9 @@ import 'tabs/organization_detail/policies_tab.dart';
 import 'tabs/organization_detail/license_tab.dart';
 import 'tabs/organization_detail/workflow_tab.dart';
 import 'tabs/organization_detail/roles_tab.dart';
+import 'tabs/organization_detail/features_tab.dart';
+import 'tabs/organization_detail/b2b_home_tab.dart';
+import 'tabs/organization_detail/order_paths_tab.dart';
 
 class OrganizationDetailScreen extends StatefulWidget {
   final OrganizationModel organization;
@@ -41,7 +44,7 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 7,
+      length: 9,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.organization.name),
@@ -59,12 +62,15 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 icon: Icon(Icons.inventory_2_outlined),
                 text: "إعدادات المنتجات",
               ),
+              Tab(icon: Icon(Icons.home_outlined), text: "إعدادات B2B Home"),
+              Tab(icon: Icon(Icons.star_outline), text: "المزايا Features"),
               Tab(icon: Icon(Icons.gavel), text: "السياسات Policies"),
               Tab(icon: Icon(Icons.security), text: "الأدوار Roles"),
               Tab(
                 icon: Icon(Icons.account_tree_outlined),
                 text: "مسارات العمل Workflow",
               ),
+
               Tab(icon: Icon(Icons.verified), text: "الترخيص License"),
             ],
           ),
@@ -161,6 +167,67 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                   );
                 },
               ),
+              
+              // --- Tab 4: B2B Home Configuration ---
+              BlocBuilder<
+                AdminOrganizationConfigBloc,
+                FeaturDataSourceState<OrganizationConfigModel>
+              >(
+                builder: (context, state) {
+                  return state.itemState.maybeWhen(
+                    success: (config) => B2BHomeConfigTab(
+                      config: config!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    orElse: () => const SizedBox(),
+                  );
+                },
+              ),
+
+              // --- Tab 5: Features ---
+              BlocBuilder<
+                AdminOrganizationConfigBloc,
+                FeaturDataSourceState<OrganizationConfigModel>
+              >(
+                builder: (context, state) {
+                  return state.itemState.maybeWhen(
+                    success: (config) => FeaturesSectionTab(
+                      config: config!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
+                    ),
+                    loading: () {
+                      final prevData = state.itemState.maybeWhen(
+                        success: (d) => d,
+                        orElse: () => null,
+                      );
+                      if (prevData != null) {
+                        return Stack(
+                          children: [
+                            FeaturesSectionTab(
+                              config: prevData,
+                              organizationId:
+                                  widget.organization.organizationId,
+                              isDark: isDark,
+                            ),
+                            const Center(child: CircularProgressIndicator()),
+                          ],
+                        );
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    failure: (error, reload) => Center(
+                      child: _buildErrorCard(
+                        error.message ?? 'خطأ في التحميل',
+                        reload,
+                      ),
+                    ),
+                    orElse: () => const SizedBox(),
+                  );
+                },
+              ),
 
               // --- Tab 4: Policies ---
               BlocBuilder<
@@ -211,11 +278,13 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 isDark: isDark,
               ),
 
-              // --- Tab 6: Workflow ---
+              // --- Tab 7: Workflow ---
               WorkflowSectionTab(
                 organizationId: widget.organization.organizationId,
                 isDark: isDark,
               ),
+
+
 
               // --- Tab 7: License ---
               BlocBuilder<

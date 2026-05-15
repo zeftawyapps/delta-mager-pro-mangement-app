@@ -13,17 +13,17 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 import 'package:delta_mager_pro_mangement_app/screens/inputs/role_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/locations_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/location_models.dart';
 
 class UserInputForm extends StatefulWidget {
   final UserViewProfileModel? user;
   final String? organizationId;
-  final bool isMe;
 
   const UserInputForm({
     super.key,
     this.user,
     this.organizationId,
-    this.isMe = false,
   });
 
   @override
@@ -38,8 +38,11 @@ class _UserInputFormState extends State<UserInputForm> {
   late TextEditingController passwordController;
   late TextEditingController phoneController;
   late TextEditingController addressController;
+  late TextEditingController cityController;
 
   List<String> selectedRoles = [];
+  String? _selectedGovernorate;
+  String? _selectedCountry;
   bool isActive = true;
 
   @override
@@ -52,11 +55,16 @@ class _UserInputFormState extends State<UserInputForm> {
     passwordController = TextEditingController(text: '');
     phoneController = TextEditingController(text: widget.user?.phone ?? '');
     addressController = TextEditingController(text: widget.user?.address ?? '');
+    cityController = TextEditingController(text: widget.user?.cityId ?? '');
+    _selectedGovernorate = widget.user?.governorateId;
+    _selectedCountry = widget.user?.countryId ?? 'EG';
     selectedRoles = List<String>.from(widget.user?.roles ?? []);
     isActive = widget.user?.isActiveProfile ?? true;
 
-    // Load roles if not loaded
+    // Load roles
     context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
+    // Load governorates
+    context.read<LocationsBloc>().loadGovernorates();
   }
 
   @override
@@ -66,6 +74,7 @@ class _UserInputFormState extends State<UserInputForm> {
     passwordController.dispose();
     phoneController.dispose();
     addressController.dispose();
+    cityController.dispose();
     super.dispose();
   }
 
@@ -74,26 +83,19 @@ class _UserInputFormState extends State<UserInputForm> {
 
     final usersBloc = context.read<UsersBloc>();
     if (widget.user != null) {
-      if (widget.isMe) {
-        usersBloc.updateMyProfile(
-          username: usernameController.text.trim(),
-          email: emailController.text.trim(),
-          phone: phoneController.text.trim(),
-          address: addressController.text.trim(),
-          organizationId: widget.organizationId,
-        );
-      } else {
-        usersBloc.updateUser(
-          userId: widget.user!.userId,
-          username: usernameController.text.trim(),
-          email: emailController.text.trim(),
-          phone: phoneController.text.trim(),
-          address: addressController.text.trim(),
-          isActive: isActive,
-          roles: selectedRoles,
-          organizationId: widget.organizationId,
-        );
-      }
+      usersBloc.updateUser(
+        userId: widget.user!.userId,
+        username: usernameController.text.trim(),
+        email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
+        address: addressController.text.trim(),
+        isActive: isActive,
+        roles: selectedRoles,
+        organizationId: widget.organizationId,
+        countryId: _selectedCountry,
+        governorateId: _selectedGovernorate,
+        cityId: cityController.text.trim(),
+      );
     } else {
       usersBloc.createUser(
         username: usernameController.text.trim(),
@@ -216,49 +218,58 @@ class _UserInputFormState extends State<UserInputForm> {
                     keyData: "phone",
                   ),
                   const SizedBox(height: 16),
+                  _buildGovernorateDropdown(),
+                  const SizedBox(height: 16),
+                  TextFomrFildValidtion(
+                    controller: cityController,
+                    form: form,
+                    baseValidation: [RequiredValidator()],
+                    decoration: const InputDecoration(
+                      labelText: 'المدينة',
+                      prefixIcon: Icon(Icons.location_city),
+                    ),
+                    labalText: 'المدينة',
+                    keyData: "cityId",
+                  ),
+                  const SizedBox(height: 16),
                   TextFomrFildValidtion(
                     controller: addressController,
                     form: form,
-                    baseValidation: const [],
+                    baseValidation: [RequiredValidator()],
                     decoration: const InputDecoration(
-                      labelText: 'العنوان',
-                      prefixIcon: Icon(Icons.location_on),
+                      labelText: 'العنوان بالتفصيل',
+                      prefixIcon: Icon(Icons.home),
                     ),
-                    labalText: 'العنوان',
+                    labalText: 'العنوان بالتفصيل',
                     keyData: "address",
                   ),
-                  if (!widget.isMe) ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "اختيار الأدوار",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "اختيار الأدوار",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add_circle_outline, size: 18),
-                          label: const Text(
-                            "دور مخصص",
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          onPressed: _createNewCustomRole,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    _buildRolesSelection(),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text("نشط"),
-                      subtitle: const Text("تفعيل أو تعطيل حساب المستخدم"),
-                      value: isActive,
-                      onChanged: (val) => setState(() => isActive = val),
-                    ),
-                  ],
+                      ),
+                      TextButton.icon(
+                        onPressed: _createNewCustomRole,
+                        icon: const Icon(Icons.add),
+                        label: const Text("دور جديد"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRolesSelection(),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text("نشط"),
+                    subtitle: const Text("تفعيل أو تعطيل حساب المستخدم"),
+                    value: isActive,
+                    onChanged: (val) => setState(() => isActive = val),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -369,6 +380,41 @@ class _UserInputFormState extends State<UserInputForm> {
           },
           failure: (err, reload) =>
               Text("خطأ في تحميل الأدوار: ${err.message}"),
+        );
+      },
+    );
+  }
+
+
+
+  Widget _buildGovernorateDropdown() {
+    return BlocBuilder<LocationsBloc, LocationsState>(
+      builder: (context, state) {
+        final governorates = state.governoratesState.maybeWhen(
+          success: (data) => data ?? [],
+          orElse: () => <GovernorateModel>[],
+        );
+
+        return DropdownButtonFormField<String>(
+          value: governorates.any((g) => g.id == _selectedGovernorate)
+              ? _selectedGovernorate
+              : null,
+          decoration: const InputDecoration(
+            labelText: 'المحافظة',
+            prefixIcon: Icon(Icons.map),
+          ),
+          items: governorates.map((gov) {
+            return DropdownMenuItem<String>(
+              value: gov.id.toString(),
+              child: Text(gov.nameAr),
+            );
+          }).toList(),
+          onChanged: (String? value) {
+            setState(() {
+              _selectedGovernorate = value;
+            });
+          },
+          validator: (value) => value == null ? 'يرجى اختيار المحافظة' : null,
         );
       },
     );

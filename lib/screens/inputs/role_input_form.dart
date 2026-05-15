@@ -132,6 +132,8 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenCategories,
           SystemFeatures.screenOffers,
           SystemFeatures.screenPolicies,
+          SystemFeatures.screenB2bHome,
+          SystemFeatures.screenOrderPaths,
         ],
       },
       'management': {
@@ -143,6 +145,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.category,
           SystemFeatures.order,
           SystemFeatures.offer,
+          SystemFeatures.orderPath,
         ],
       },
       'security': {
@@ -808,6 +811,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenOrders,
           SystemFeatures.screenOffers,
           SystemFeatures.screenPolicies,
+          SystemFeatures.screenB2bHome,
           SystemFeatures.order,
           SystemFeatures.offer,
           SystemFeatures.organization,

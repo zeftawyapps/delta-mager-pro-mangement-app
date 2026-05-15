@@ -20,6 +20,7 @@ class OrderModel extends OrderData implements BaseViewDataModel {
     super.handlerOrgId,
     super.additionalCalculation,
     super.additionalData,
+    super.externalReferences,
   });
 
   factory OrderModel.fromData(OrderData data) {
@@ -39,6 +40,7 @@ class OrderModel extends OrderData implements BaseViewDataModel {
       handlerOrgId: data.handlerOrgId,
       additionalCalculation: data.additionalCalculation,
       additionalData: data.additionalData,
+      externalReferences: data.externalReferences,
     );
   }
 

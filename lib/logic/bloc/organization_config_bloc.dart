@@ -26,6 +26,7 @@ class OrganizationConfigBloc
       final configModel = OrganizationConfigModel.fromData(result.data!);
       organizationConfig = configModel; // ✅ التخزين عند النجاح فقط
       JsonConfigService().updateProductInput(configModel.productInput);
+      JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -62,6 +63,7 @@ class OrganizationConfigBloc
       organizationConfig = configModel;
       _updateTheme(configModel);
       JsonConfigService().updateProductInput(configModel.productInput);
+      JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -91,6 +93,7 @@ class OrganizationConfigBloc
     if (result.status == StatusModel.success && result.data != null) {
       final updatedConfigModel = OrganizationConfigModel.fromData(result.data!);
       JsonConfigService().updateProductInput(updatedConfigModel.productInput);
+      JsonConfigService().updateB2bHomeLayout(updatedConfigModel.b2bHomeLayout);
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.success(updatedConfigModel),

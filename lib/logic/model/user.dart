@@ -1,5 +1,6 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
 import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
+import 'package:matger_pro_core_logic/core/auth/data/user_profile_model.dart';
 
 class Users extends UserModel implements BaseViewDataModel {
   Users({
@@ -33,6 +34,22 @@ class Users extends UserModel implements BaseViewDataModel {
       organizationId: model.organizationId,
       permissions: model.permissions,
       otherData: model.otherData,
+    );
+  }
+
+  factory Users.fromProfileModel(UserProfileModel profile, {String? token, List<String>? permissions}) {
+    return Users(
+      id: profile.userId,
+      username: profile.username,
+      email: profile.email,
+      name: profile.username, // نستخدم username كاسم في حال عدم وجود حقل name منفصل
+      phone: profile.phone,
+      roles: profile.roles,
+      isActive: profile.isActiveProfile,
+      token: token,
+      organizationId: profile.organizationId,
+      permissions: permissions,
+      otherData: profile,
     );
   }
 

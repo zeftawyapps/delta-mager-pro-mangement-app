@@ -4,12 +4,15 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/remote_base_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:matger_pro_core_logic/features/users/repo/user_repo.dart';
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import '../model/user_profile.dart';
 
 class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
   final UserRepo repo;
+  final AppChangesValues? appChangesValues;
 
-  UsersBloc({required this.repo})
+  UsersBloc({required this.repo, this.appChangesValues})
     : super(FeaturDataSourceState<UserViewProfileModel>.defaultState());
 
   Future<void> loadUsers({String? organizationId}) async {
@@ -17,7 +20,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     final result = organizationId != null
         ? await repo.searchProfilesInOrg(organizationId: organizationId)
         : await repo.getActiveProfiles();
-        
+
     if (result.status == StatusModel.success) {
       final users =
           result.data?.map((e) => UserViewProfileModel.fromData(e)).toList() ??
@@ -29,6 +32,33 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading users"),
             () => loadUsers(organizationId: organizationId),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> loadMyProfile() async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.getMyProfile();
+
+    if (result.status == StatusModel.success && result.data != null) {
+      final profile = UserViewProfileModel.fromData(result.data!);
+
+      // تحديث الحالة العالمية وحفظ في الكاش
+      if (appChangesValues != null) {
+        appChangesValues!.setUserProfile(profile);
+      }
+
+      emit(state.copyWith(itemState: DataSourceBaseState.success(profile)));
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "Error loading your profile",
+            ),
+            () => loadMyProfile(),
           ),
         ),
       );
@@ -93,6 +123,10 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     bool? isActive,
     List<String>? roles,
     String? organizationId,
+    String? countryId,
+    String? governorateId,
+    String? cityId,
+    Map<String, dynamic>? additionalFields,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateProfile(
@@ -103,6 +137,11 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
       address: address,
       isActive: isActive,
       roles: roles,
+      organizationId: organizationId,
+      countryId: countryId,
+      governorateId: governorateId,
+      cityId: cityId,
+      additionalFields: additionalFields,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -128,6 +167,10 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
               isActive: isActive,
               roles: roles,
               organizationId: organizationId,
+              countryId: countryId,
+              governorateId: governorateId,
+              cityId: cityId,
+              additionalFields: additionalFields,
             ),
           ),
         ),
@@ -141,22 +184,32 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     String? phone,
     String? address,
     String? organizationId,
+    String? countryId,
+    String? governorateId,
+    String? cityId,
+    Map<String, dynamic>? additionalFields,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateMyProfile(
       username: username,
+      email: email,
       phone: phone,
       address: address,
+      countryId: countryId,
+      governorateId: governorateId,
+      cityId: cityId,
+      additionalFields: additionalFields,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
-      emit(
-        state.copyWith(
-          itemState: DataSourceBaseState.success(
-            UserViewProfileModel.fromData(result.data!),
-          ),
-        ),
-      );
+      final profile = UserViewProfileModel.fromData(result.data!);
+
+      // تحديث الحالة العالمية وحفظ في الكاش
+      if (appChangesValues != null) {
+        appChangesValues!.setUserProfile(profile);
+      }
+
+      emit(state.copyWith(itemState: DataSourceBaseState.success(profile)));
       loadUsers(organizationId: organizationId);
     } else {
       emit(
@@ -171,6 +224,10 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
               phone: phone,
               address: address,
               organizationId: organizationId,
+              countryId: countryId,
+              governorateId: governorateId,
+              cityId: cityId,
+              additionalFields: additionalFields,
             ),
           ),
         ),
@@ -192,14 +249,22 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     }
   }
 
-  Future<void> addRoleToUser(String userId, String roleName, {String? organizationId}) async {
+  Future<void> addRoleToUser(
+    String userId,
+    String roleName, {
+    String? organizationId,
+  }) async {
     final result = await repo.addRoleToUser(userId: userId, roleName: roleName);
     if (result.status == StatusModel.success) {
       loadUsers(organizationId: organizationId);
     }
   }
 
-  Future<void> removeRoleFromUser(String userId, String roleName, {String? organizationId}) async {
+  Future<void> removeRoleFromUser(
+    String userId,
+    String roleName, {
+    String? organizationId,
+  }) async {
     final result = await repo.removeRoleFromUser(
       userId: userId,
       roleName: roleName,

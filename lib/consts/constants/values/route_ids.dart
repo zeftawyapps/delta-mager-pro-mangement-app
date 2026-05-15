@@ -18,4 +18,6 @@ class AppRouteIds {
   static const String customAnalyses2 = 'custem_analyses_screen2';
   static const String testMasterGrid = 'test_master_grid';
   static const String policies = 'policies';
+  static const String b2bHome = 'b2bhome';
+  static const String orderPaths = 'orderPaths';
 }

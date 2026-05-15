@@ -21,11 +21,18 @@ class JsonConfigService {
   }
 
   Map<String, dynamic> get productInput => _config['productInput'] ?? {};
+  Map<String, dynamic> get b2bHomeLayout => _config['b2bHomeLayout'] ?? {};
 
   // 🟢 تحديث الإعدادات برمجياً لمزامنتها مع الـ Bloc فور التحميل أو الحفظ
   void updateProductInput(Map<String, dynamic>? data) {
     if (data != null) {
       _config['productInput'] = data;
+    }
+  }
+
+  void updateB2bHomeLayout(Map<String, dynamic>? data) {
+    if (data != null) {
+      _config['b2bHomeLayout'] = data;
     }
   }
 }

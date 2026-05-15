@@ -21,6 +21,7 @@ import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.
 import 'package:delta_mager_pro_mangement_app/consts/constants/views/assets.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/cart_provider.dart';
 import 'package:matger_pro_core_logic/core/auth/repos/auth_repo.dart';
 import 'package:matger_pro_core_logic/core/auth/repos/test_repo.dart';
 import 'package:matger_pro_core_logic/core/di/injection_container.dart';
@@ -46,8 +47,10 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organizations_blo
 import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/workflow_management_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/orders_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/order_path_bloc.dart';
 import 'package:matger_pro_core_logic/features/workflow/repo/workflow_repo.dart';
 import 'package:matger_pro_core_logic/features/commrec/repo/order_repo.dart';
+import 'package:matger_pro_core_logic/features/order_path/repo/order_path_repo.dart';
 
 class AppLouncher extends StatefulWidget {
   const AppLouncher({super.key});
@@ -58,10 +61,20 @@ class AppLouncher extends StatefulWidget {
 
 class _AppLouncherState extends State<AppLouncher> {
   @override
+  void initState() {
+    super.initState();
+    // تحميل بيانات المستخدم من الكاش عند بدء التطبيق
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppChangesValues>().loadUserFromCache();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AppChangesValues()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
         BlocProvider(
           create: (context) =>
               OrganizationConfigBloc(repo: sl<OrganizationRepo>()),
@@ -179,7 +192,10 @@ class _AppLouncherState extends State<AppLouncher> {
                     create: (context) => RolesBloc(repo: sl<RoleRepo>()),
                   ),
                   BlocProvider(
-                    create: (context) => UsersBloc(repo: sl<UserRepo>()),
+                    create: (context) => UsersBloc(
+                      repo: sl<UserRepo>(),
+                      appChangesValues: context.read<AppChangesValues>(),
+                    ),
                   ),
                   BlocProvider(
                     create: (context) =>
@@ -223,6 +239,10 @@ class _AppLouncherState extends State<AppLouncher> {
                   ),
                   BlocProvider(
                     create: (context) => OrdersBloc(repo: sl<OrderRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) =>
+                        OrderPathBloc(repo: sl<OrderPathRepo>()),
                   ),
                 ],
                 titleApp: AppStrings.appName,

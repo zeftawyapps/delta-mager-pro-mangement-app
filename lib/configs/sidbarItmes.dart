@@ -14,8 +14,10 @@ import 'package:delta_mager_pro_mangement_app/screens/admin/login_admin_screen.d
 import 'package:delta_mager_pro_mangement_app/screens/admin/admin_operations_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/splash_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/policies_screen.dart';
+import 'package:delta_mager_pro_mangement_app/screens/order_paths_screen.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/models/route_item.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/screens/content/profile_screen.dart';
+import 'package:delta_mager_pro_mangement_app/screens/b2b/b2b_home_screen.dart';
 import 'package:flutter/material.dart' show Icons;
 
 class SidebarItemsConfig {
@@ -26,6 +28,14 @@ class SidebarItemsConfig {
       label: AppStrings.analytics,
       icon: Icons.home,
       content: AnalyticsScreen(),
+      prams: {"orgName": AppRoutes.activeOrgName},
+    ),
+    RouteItem(
+      id: AppRouteIds.b2bHome,
+      path: AppRoutes.b2bHome,
+      label: 'الرئيسية (الطلبات)',
+      icon: Icons.storefront,
+      content: B2BHomeScreen(),
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
     RouteItem(
@@ -120,8 +130,8 @@ class SidebarItemsConfig {
     RouteItem(
       id: AppRouteIds.splash,
       path: AppRoutes.splash,
-      label: "تحميل الإعدادات",
-      icon: Icons.flash_on,
+      label: "تحميل المشروع",
+      icon: Icons.route,
       content: SplashScreen(),
       isSideBarRouted: false,
     ),
@@ -132,6 +142,17 @@ class SidebarItemsConfig {
       label: AppStrings.policies,
       icon: Icons.gavel,
       content: PoliciesScreen(),
+      prams: {"orgName": AppRoutes.activeOrgName},
+    ),
+
+    RouteItem(
+      id: AppRouteIds.orderPaths,
+      path: AppRoutes.orderPaths,
+      label: "خطوط السير",
+      icon: Icons.route,
+      parentName: "إدارة النظام",
+      parentIcon: Icons.settings_suggest_outlined,
+      content: OrderPathsScreen(),
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
 

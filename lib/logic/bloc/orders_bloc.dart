@@ -74,7 +74,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
     required double totalOrderPrice,
     String orderMode = 'C2B',
     String? workflowSlug,
+    String? senderOrganizationId,
     int calculationMode = 2,
+    Map<String, double>? additionalCalculation,
     Map<String, dynamic>? additionalData,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
@@ -86,7 +88,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
       totalOrderPrice: totalOrderPrice,
       orderMode: orderMode,
       workflowSlug: workflowSlug,
+      senderOrganizationId: senderOrganizationId,
       calculationMode: calculationMode,
+      additionalCalculation: additionalCalculation,
       additionalData: additionalData,
     );
 
@@ -114,7 +118,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
               totalOrderPrice: totalOrderPrice,
               orderMode: orderMode,
               workflowSlug: workflowSlug,
+              senderOrganizationId: senderOrganizationId,
               calculationMode: calculationMode,
+              additionalCalculation: additionalCalculation,
               additionalData: additionalData,
             ),
           ),

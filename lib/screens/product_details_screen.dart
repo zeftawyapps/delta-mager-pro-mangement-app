@@ -3,7 +3,11 @@ import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/s
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+
+import 'package:delta_mager_pro_mangement_app/screens/b2b/widgets/b2b_cart_badge.dart';
 
 // ignore: must_be_immutable
 class ProductDetailsScreen extends StatefulWidget with AppShellRouterMixin {
@@ -15,12 +19,32 @@ class ProductDetailsScreen extends StatefulWidget with AppShellRouterMixin {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  int _quantity = 1;
+  PriceOption? _selectedPrice;
+  final TextEditingController _qtyController = TextEditingController(text: '1');
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.priceOptions.isNotEmpty) {
+      _selectedPrice = widget.product.priceOptions.first;
+    }
+  }
+
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     final product = widget.product;
     final appBarConfig = AppBarConfigs.buildLargeScreenAppBar(context);
+    
+    // Add Cart Badge to actions
+    appBarConfig.actions?.insert(0, B2BCartBadge(organizationId: product.organizationId));
 
     return Scaffold(
       appBar: appBarConfig.buildAppBar(
@@ -52,22 +76,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Pricing and Stock Section
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildPriceOptionsTable(product, isDark),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(flex: 1, child: _buildStatusFlags(product, isDark)),
-                ],
-              ),
-
               const SizedBox(height: 32),
-              // Meta Data and Created At
-              _buildMetaDataSection(product, isDark),
             ],
           ),
         ),
@@ -90,11 +99,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: product.images.isNotEmpty
-                ? Image.network(
-                    product.mainImage,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.image_not_supported, size: 64),
+                ? Hero(
+                    tag: 'product_image_${product.id}',
+                    child: Image.network(
+                      product.mainImage,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Center(
+                        child: Icon(Icons.image_not_supported, size: 64),
+                      ),
                     ),
                   )
                 : const Center(child: Icon(Icons.image, size: 64)),
@@ -176,22 +188,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     : LightColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildInfoChip(
-                  Icons.category,
-                  '${AppStrings.categoryLabel}: ${product.categoryId}',
-                  isDark,
-                ),
-                const SizedBox(width: 12),
-                _buildInfoChip(
-                  Icons.inventory,
-                  '${AppStrings.stockLabel}: ${product.stockQuantity}',
-                  isDark,
-                ),
-              ],
-            ),
             const Divider(height: 32),
             Text(
               AppStrings.description,
@@ -214,363 +210,255 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      AppStrings.currentPrice,
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+            const Divider(height: 32),
+            
+            // Wholesale Selection Section
+            Text(
+              'خيارات الطلب والكمية',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            if (product.priceOptions.isNotEmpty) ...[
+              const Text('اختر فئة السعر:', style: TextStyle(fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: product.priceOptions.map((opt) {
+                  final isSelected = _selectedPrice == opt;
+                  final discount = product.discount ?? 0;
+                  final discountedPrice = discount > 0 ? opt.price * (1 - (discount / 100)) : opt.price;
+                  
+                  return ChoiceChip(
+                    label: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${opt.sizeDisplay?.ar ?? opt.unit}',
+                          style: TextStyle(
+                            color: isSelected ? Colors.white70 : Colors.grey,
+                            fontSize: 10,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${discountedPrice.toStringAsFixed(1)} ج.م',
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (discount > 0) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '${opt.price.toStringAsFixed(1)}',
+                                style: TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: isSelected ? Colors.white54 : Colors.grey,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${product.price} ج.م',
+                    selected: isSelected,
+                    onSelected: (val) => setState(() => _selectedPrice = opt),
+                    selectedColor: isDark ? DarkColors.primary : LightColors.primary,
+                    backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  );
+                }).toList(),
+              ),
+            ] else ...[
+               (() {
+                 final discount = product.discount ?? 0;
+                 final discountedPrice = discount > 0 ? product.price * (1 - (discount / 100)) : product.price;
+                 return Row(
+                   crossAxisAlignment: CrossAxisAlignment.end,
+                   children: [
+                     Text(
+                      '${discountedPrice.toStringAsFixed(1)} ج.م',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? DarkColors.primary
-                            : LightColors.primary,
+                        color: isDark ? DarkColors.primary : LightColors.primary,
+                      ),
+                     ),
+                     if (discount > 0) ...[
+                       const SizedBox(width: 12),
+                       Text(
+                         '${product.price.toStringAsFixed(1)} ج.م',
+                         style: const TextStyle(
+                           fontSize: 18,
+                           decoration: TextDecoration.lineThrough,
+                           color: Colors.grey,
+                         ),
+                       ),
+                     ],
+                   ],
+                 );
+               })(),
+            ],
+
+            const SizedBox(height: 24),
+            // Show total for current selection
+            (() {
+              final basePrice = _selectedPrice?.price ?? product.price;
+              final discount = product.discount ?? 0;
+              final discountedPrice = discount > 0 ? basePrice * (1 - (discount / 100)) : basePrice;
+              final total = discountedPrice * _quantity;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: (isDark ? DarkColors.primary : LightColors.primary).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('إجمالي الطلب:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      '${total.toStringAsFixed(1)} ج.م',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? DarkColors.primary : LightColors.primary,
                       ),
                     ),
                   ],
                 ),
-                if (product.hasDiscount) ...[
-                  const SizedBox(width: 24),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        AppStrings.oldPrice,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      Text(
-                        '${product.oldPrice ?? 0} ج.م',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          decoration: TextDecoration.lineThrough,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                const Spacer(),
-                if (product.cost != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        AppStrings.cost,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      Text(
-                        '${product.cost} ج.م',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              );
+            })(),
 
-  Widget _buildPriceOptionsTable(ProductModel product, bool isDark) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark ? DarkColors.divider : LightColors.divider,
-        ),
-      ),
-      color: isDark ? DarkColors.surface : LightColors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            const SizedBox(height: 24),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  AppStrings.priceOptionsTitle,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Quantity Capsule
+                Container(
+                  width: 160,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      _qtyBtn(Icons.remove, () {
+                        if (_quantity > 1) {
+                          setState(() {
+                            _quantity--;
+                            _qtyController.text = '$_quantity';
+                          });
+                        }
+                      }, isDark),
+                      Expanded(
+                        child: TextField(
+                          controller: _qtyController,
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          onChanged: (val) {
+                            final q = int.tryParse(val);
+                            if (q != null && q > 0) _quantity = q;
+                          },
+                        ),
+                      ),
+                      _qtyBtn(Icons.add, () {
+                        setState(() {
+                          _quantity++;
+                          _qtyController.text = '$_quantity';
+                        });
+                      }, isDark),
+                    ],
+                  ),
                 ),
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add),
-                  label: const Text('إضافة خيار'),
+                const SizedBox(width: 16),
+                // Add to Cart Button
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: LinearGradient(
+                        colors: isDark 
+                          ? [DarkColors.primary, DarkColors.primary.withOpacity(0.8)]
+                          : [LightColors.primary, LightColors.primary.withOpacity(0.8)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isDark ? DarkColors.primary : LightColors.primary).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final basePrice = _selectedPrice?.price ?? product.price;
+                        final discount = product.discount ?? 0;
+                        final finalPrice = discount > 0 ? basePrice * (1 - (discount / 100)) : basePrice;
+                        
+                        context.read<CartProvider>().addItem(
+                          product,
+                          customPrice: basePrice, // CartProvider will calculate discount again or I should pass final?
+                          // Actually CartProvider.addItem calculates discount internally based on product.discount
+                          quantity: _quantity,
+                        );
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.white),
+                                const SizedBox(width: 12),
+                                Text('تمت إضافة $_quantity من ${product.name.ar}'),
+                              ],
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: isDark ? DarkColors.primary : LightColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                      label: const Text(
+                        'إضافة للسلة',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (product.priceOptions.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text('لا توجد خيارات أسعار إضافية لهذا المنتج'),
-                ),
-              )
-            else
-              Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(1),
-                  2: FlexColumnWidth(1),
-                  3: FlexColumnWidth(1),
-                  4: IntrinsicColumnWidth(),
-                },
-                border: TableBorder(
-                  horizontalInside: BorderSide(
-                    color: isDark
-                        ? DarkColors.divider.withValues(alpha: 0.5)
-                        : LightColors.divider.withValues(alpha: 0.5),
-                  ),
-                ),
-                children: [
-                  _buildTableHeader(isDark),
-                  ...product.priceOptions
-                      .map((opt) => _buildTableRow(opt, isDark))
-                      .toList(),
-                ],
-              ),
           ],
         ),
       ),
     );
   }
 
-  TableRow _buildTableHeader(bool isDark) {
-    const style = TextStyle(fontWeight: FontWeight.bold, fontSize: 13);
-    return const TableRow(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(AppStrings.priceOptionsSubtitle, style: style),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(AppStrings.quantity, style: style),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(AppStrings.unit, style: style),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(AppStrings.currentPrice, style: style),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(AppStrings.actions, style: style),
-        ),
-      ],
-    );
-  }
-
-  TableRow _buildTableRow(PriceOption opt, bool isDark) {
-    return TableRow(
-      decoration: BoxDecoration(
-        color: opt.isDefault
-            ? (isDark
-                  ? Colors.blue.withValues(alpha: 0.05)
-                  : Colors.blue.withValues(alpha: 0.02))
-            : null,
+  Widget _qtyBtn(IconData icon, VoidCallback onTap, bool isDark) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: Icon(icon, size: 20, color: isDark ? DarkColors.primary : LightColors.primary),
       ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              Text(opt.sizeDisplay?.ar ?? AppStrings.defaultOption),
-              if (opt.isDefault)
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.star, size: 14, color: Colors.amber),
-                ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(opt.quantity.toString()),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(opt.unit),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            '${opt.price} ج.م',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit, size: 18),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete, size: 18, color: Colors.red),
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusFlags(ProductModel product, bool isDark) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark ? DarkColors.divider : LightColors.divider,
-        ),
-      ),
-      color: isDark ? DarkColors.surface : LightColors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              AppStrings.productStatus,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            _buildFlagToggle(
-              AppStrings.available,
-              product.isAvailable,
-              Icons.check_circle_outline,
-              Colors.green,
-            ),
-            _buildFlagToggle(
-              AppStrings.isNew,
-              product.isNew,
-              Icons.new_releases_outlined,
-              Colors.blue,
-            ),
-            _buildFlagToggle(
-              AppStrings.bestSeller,
-              product.isBestSeller,
-              Icons.trending_up,
-              Colors.orange,
-            ),
-            _buildFlagToggle(
-              AppStrings.onSale,
-              product.isOnSale,
-              Icons.local_offer_outlined,
-              Colors.red,
-            ),
-            _buildFlagToggle(
-              'Joker',
-              product.isJoker,
-              Icons.bolt,
-              Colors.purple,
-            ),
-            _buildFlagToggle(
-              'Super Joker',
-              product.isSuperJoker,
-              Icons.workspace_premium,
-              Colors.amber,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFlagToggle(
-    String label,
-    bool value,
-    IconData icon,
-    Color color,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: value ? color : Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label)),
-          Switch(value: value, onChanged: (v) {}, activeColor: color),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetaDataSection(ProductModel product, bool isDark) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isDark ? DarkColors.divider : LightColors.divider,
-        ),
-      ),
-      color: isDark ? DarkColors.surface : LightColors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            _buildMetaInfo(
-              Icons.calendar_today,
-              AppStrings.createdAt,
-              product.createdAt?.toLocal().toString().split('.')[0] ??
-                  'غير متوفر',
-            ),
-            const Spacer(),
-            _buildMetaInfo(
-              Icons.fingerprint,
-              AppStrings.productId,
-              product.productId,
-            ),
-            const Spacer(),
-            _buildMetaInfo(
-              Icons.star,
-              AppStrings.rating,
-              product.rating.toString(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetaInfo(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
-            ),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -578,9 +466,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         label,
@@ -597,7 +485,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

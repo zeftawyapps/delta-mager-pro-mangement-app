@@ -46,6 +46,42 @@ class LocationsState {
       operationState: operationState ?? this.operationState,
     );
   }
+
+  String getGovernorateName(String? id) {
+    if (id == null) return "";
+    return governoratesState.maybeWhen(
+      success: (list) {
+        if (list == null) return "";
+        try {
+          return list
+              .firstWhere((g) => g.id.toString() == id.toString())
+              .name
+              .ar;
+        } catch (_) {
+          return "";
+        }
+      },
+      orElse: () => "",
+    );
+  }
+
+  String getCityName(String? id) {
+    if (id == null) return "";
+    return citiesState.maybeWhen(
+      success: (list) {
+        if (list == null) return "";
+        try {
+          return list
+              .firstWhere((c) => c.id.toString() == id.toString())
+              .name
+              .ar;
+        } catch (_) {
+          return "";
+        }
+      },
+      orElse: () => "",
+    );
+  }
 }
 
 class LocationsBloc extends Cubit<LocationsState> {

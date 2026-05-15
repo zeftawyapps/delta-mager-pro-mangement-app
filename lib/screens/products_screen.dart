@@ -9,8 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart' hide ProductUnit, PriceOption;
-import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart' as core_m show PriceOption;
+import 'package:delta_mager_pro_mangement_app/logic/model/product_model.dart'
+    hide ProductUnit, PriceOption;
+import 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
+    as core_m
+    show PriceOption;
 import 'package:delta_mager_pro_mangement_app/logic/model/product_unit.dart';
 import 'inputs/price_options_widget.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/category.dart';
@@ -144,7 +147,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
 
   void _unifyPrice(List<ProductModel> products) {
     List<PriceOption> priceOptions = [];
-    final controller = TextEditingController(); // For single base price fallback or simple entry if needed, but we'll use PriceOptionsWidget
+    final controller =
+        TextEditingController(); // For single base price fallback or simple entry if needed, but we'll use PriceOptionsWidget
 
     showDialog(
       context: context,
@@ -159,7 +163,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("سيتم تطبيق الأسعار الجديدة على ${products.length} منتج", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      "سيتم تطبيق الأسعار الجديدة على ${products.length} منتج",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 16),
                     PriceOptionsWidget(
                       initialPriceOptions: priceOptions,
@@ -185,22 +192,33 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                 onPressed: () {
                   if (priceOptions.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('يجب إضافة سعر واحد على الأقل')),
+                      const SnackBar(
+                        content: Text('يجب إضافة سعر واحد على الأقل'),
+                      ),
                     );
                     return;
                   }
 
                   // Find default base price
-                  double basePrice = priceOptions.firstWhere((o) => o.isDefault, orElse: () => priceOptions.first).price;
+                  double basePrice = priceOptions
+                      .firstWhere(
+                        (o) => o.isDefault,
+                        orElse: () => priceOptions.first,
+                      )
+                      .price;
 
                   // Map to core_m.PriceOption
-                  final List<core_m.PriceOption> priceOptionsList = priceOptions.map((e) => core_m.PriceOption(
-                    quantity: e.quantity,
-                    unit: e.unit.name,
-                    price: e.price,
-                    oldPrice: e.oldPrice,
-                    isDefault: e.isDefault,
-                  )).toList();
+                  final List<core_m.PriceOption> priceOptionsList = priceOptions
+                      .map(
+                        (e) => core_m.PriceOption(
+                          quantity: e.quantity,
+                          unit: e.unit.name,
+                          price: e.price,
+                          oldPrice: e.oldPrice,
+                          isDefault: e.isDefault,
+                        ),
+                      )
+                      .toList();
 
                   Navigator.pop(context);
                   context.read<ProductsBloc>().unifyProductsPrice(
@@ -211,9 +229,14 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? DarkColors.primary : LightColors.primary,
+                  backgroundColor: isDark
+                      ? DarkColors.primary
+                      : LightColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -222,7 +245,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
               ),
             ],
           );
-        }
+        },
       ),
     );
   }
@@ -254,10 +277,13 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
     );
   }
 
-  void _editProduct(ProductModel product) {
+  void _editProduct(ProductModel product, {bool autoOpenImagePicker = false}) {
     showCustomInputDialog(
       context: context,
-      content: ProductInputForm(product: product),
+      content: ProductInputForm(
+        product: product,
+        autoOpenImagePicker: autoOpenImagePicker,
+      ),
       height: 600,
       width: 500,
       onResult: (result) {
@@ -299,6 +325,55 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
       productId: product.productId,
       data: {property: value},
     );
+  }
+
+  void _safeToggleProperty(ProductModel product, String property, bool value) {
+    // الخصائص التي تتطلب وجود صورة
+    final featuredProperties = [
+      'isNew',
+      'isBestSeller',
+      'isOnSale',
+      'isJoker',
+      'isSuperJoker',
+      'isInsideOffer',
+    ];
+
+    if (value == true &&
+        featuredProperties.contains(property) &&
+        product.images.isEmpty) {
+      // إظهار مربع حوار تنبيهي بدلاً من SnackBar
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('تنبيه: الصورة مطلوبة'),
+            ],
+          ),
+          content: const Text(
+            'عذراً، لا يمكن تفعيل هذه الخاصية لمنتج بدون صورة. يرجى إضافة صورة للمنتج من شاشة التعديل أولاً.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx); // إغلاق التنبيه
+                Navigator.pop(context); // إغلاق القائمة السفلية
+                // فتح شاشة التعديل فوراً مع تفعيل اختيار الصورة آلياً
+                _editProduct(product, autoOpenImagePicker: true);
+              },
+              child: const Text('موافق (إضافة صورة)'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    _toggleProductProperty(product, property, value);
+    // إغلاق القائمة في حالة النجاح فقط
+    Navigator.pop(context);
   }
 
   void _quickChangePrice(ProductModel product) {
@@ -417,6 +492,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
             },
             onAdd: _addProduct,
             onLoad: (bloc) => bloc.loadProducts(),
+            onSearch: (bloc, query) => bloc.searchProducts(
+              query: query,
+              organizationId: organizationId,
+            ),
             onItemTap: _editProduct,
             canAdd: canAdd,
             itemBuilder: (context, product, isSelected) =>
@@ -983,7 +1062,6 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                       label: 'السعر',
                       color: Colors.green,
                       onTap: () {
-                        Navigator.pop(context);
                         _quickChangePrice(product);
                       },
                     ),
@@ -1005,52 +1083,47 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                     icon: Icons.visibility_outlined,
                     value: product.isAvailable,
                     onChanged: (val) {
-                      Navigator.pop(context);
                       _toggleProductProperty(product, 'isAvailable', val);
                     },
                   ),
                 if (canUpdate && ProductInputConfig.showIsNew)
                   _buildToggleOption(
-                    title: 'منتج جديد',
+                    title: 'منتج جديد 🆕',
                     subtitle: 'إضافة شارة "جديد" على المنتج',
                     icon: Icons.new_releases_outlined,
                     value: product.isNew,
                     onChanged: (val) {
-                      Navigator.pop(context);
-                      _toggleProductProperty(product, 'isNew', val);
+                      _safeToggleProperty(product, 'isNew', val);
                     },
                   ),
                 if (canUpdate && ProductInputConfig.showIsBestSeller)
                   _buildToggleOption(
-                    title: 'الأكثر مبيعاً',
+                    title: 'الأكثر مبيعاً 🔥',
                     subtitle: 'تمييز المنتج كأكثر طلباً',
                     icon: Icons.star_outline,
                     value: product.isBestSeller,
                     onChanged: (val) {
-                      Navigator.pop(context);
-                      _toggleProductProperty(product, 'isBestSeller', val);
+                      _safeToggleProperty(product, 'isBestSeller', val);
                     },
                   ),
                 if (canUpdate && ProductInputConfig.showIsOnSale)
                   _buildToggleOption(
-                    title: 'في العروض',
+                    title: 'في العروض 🎁',
                     subtitle: 'إدراج المنتج في قسم التخفيضات',
                     icon: Icons.local_offer_outlined,
                     value: product.isOnSale,
                     onChanged: (val) {
-                      Navigator.pop(context);
-                      _toggleProductProperty(product, 'isOnSale', val);
+                      _safeToggleProperty(product, 'isOnSale', val);
                     },
                   ),
                 if (canUpdate && ProductInputConfig.showIsJoker)
                   _buildToggleOption(
-                    title: 'منتج جوكر',
+                    title: 'منتج جوكر 🃏',
                     subtitle: 'تمييز كمنتج مميز جداً',
                     icon: Icons.style_outlined,
                     value: product.isJoker,
                     onChanged: (val) {
-                      Navigator.pop(context);
-                      _toggleProductProperty(product, 'isJoker', val);
+                      _safeToggleProperty(product, 'isJoker', val);
                     },
                   ),
                 if (canUpdate && ProductInputConfig.showIsSuperJoker)
@@ -1061,7 +1134,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                     value: product.isSuperJoker,
                     onChanged: (val) {
                       Navigator.pop(context);
-                      _toggleProductProperty(product, 'isSuperJoker', val);
+                      _safeToggleProperty(product, 'isSuperJoker', val);
                     },
                   ),
               ],

@@ -93,4 +93,6 @@ class AppRoutes {
   static String get standalone => "/:orgName/standalone";
   static String get testMasterGrid => "/:orgName/test-master-grid";
   static String get policies => "/:orgName/policies";
+  static String get b2bHome => "/:orgName/b2b-home";
+  static String get orderPaths => "/:orgName/order-paths";
 }

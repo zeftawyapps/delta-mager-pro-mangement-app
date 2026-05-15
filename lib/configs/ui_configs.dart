@@ -10,7 +10,9 @@ import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
-import 'package:delta_mager_pro_mangement_app/screens/inputs/user_input_form.dart';
+import 'package:matger_pro_core_logic/core/auth/data/user_profile_model.dart';
+import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
+import 'package:delta_mager_pro_mangement_app/screens/inputs/profile_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/organization_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/change_password_form.dart';
 import 'package:flutter/material.dart';
@@ -167,6 +169,15 @@ class AppBarConfigs {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      if (user.phone.isNotEmpty)
+                        Text(
+                          user.phone,
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       Text(
                         user.roles?.join(', ') ?? 'مستخدم',
                         style: const TextStyle(fontSize: 8, color: Colors.grey),
@@ -174,7 +185,7 @@ class AppBarConfigs {
                     ],
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.arrow_drop_down, size: 20),
+                  const Icon(Icons.keyboard_arrow_down, size: 20),
                 ],
               ),
             ),
@@ -208,22 +219,59 @@ class AppBarConfigs {
 
   /// إظهار نافذة الملف الشخصي
   static void _showProfileDialog(BuildContext context, Users user) {
+    final appChanges = context.read<AppChangesValues>();
+    
+    // إذا كان لدينا ملف شخصي محمل بالفعل في الحالة العالمية، نستخدمه
+    if (appChanges.userProfile != null) {
+      showCustomInputDialog(
+        context: context,
+        content: ProfileInputForm(
+          user: appChanges.userProfile!,
+          organizationId: user.organizationId,
+        ),
+        width: 600,
+        height: 500,
+      );
+      return;
+    }
+
+    // محاولة استخراج بيانات الموقع من otherData كـ fallback
+    final otherData = user.otherData;
+    String? govId;
+    String? cityId;
+    String? address;
+    String? countryId;
+    String? phone = user.phone;
+
+    if (otherData != null) {
+      govId = otherData.governorateId;
+      cityId = otherData.cityId;
+      address = otherData.address;
+      countryId = otherData.countryId;
+      if (phone.isEmpty) {
+        phone = otherData.phone;
+      }
+    }
+
     final profile = UserViewProfileModel(
-      userId: user.username,
+      userId: user.id ?? '',
       username: user.username,
       email: user.email,
-      phone: user.phone,
+      phone: phone, 
       roles: user.roles,
+      address: address,
+      countryId: countryId,
+      governorateId: govId,
+      cityId: cityId,
       organizationId: user.organizationId,
-      isActiveProfile: user.isActive ?? true,
+      isActiveProfile: user.isActive,
     );
 
     showCustomInputDialog(
       context: context,
-      content: UserInputForm(
+      content: ProfileInputForm(
         user: profile,
         organizationId: user.organizationId,
-        isMe: true,
       ),
       width: 600,
       height: 500,

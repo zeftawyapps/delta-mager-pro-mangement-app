@@ -20,6 +20,7 @@ class OrganizationConfigModel extends OrganizationConfig
     super.systemLicense,
     super.features,
     super.productInput,
+    super.b2bHomeLayout,
   });
 
   factory OrganizationConfigModel.fromData(OrganizationConfig data) {
@@ -31,6 +32,7 @@ class OrganizationConfigModel extends OrganizationConfig
       systemLicense: data.systemLicense,
       features: data.features,
       productInput: data.productInput,
+      b2bHomeLayout: data.b2bHomeLayout,
     );
   }
 

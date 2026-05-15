@@ -17,6 +17,7 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
 
 // ignore: must_be_immutable
 class LoginScreen extends StatefulWidget with AppShellRouterMixin {
@@ -246,6 +247,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               state.itemState.maybeWhen(
                                 success: (user) {
                                   if (user != null) {
+                                    // جلب كامل بيانات الملف الشخصي بعد تسجيل الدخول الناجح
+                                    context.read<UsersBloc>().loadMyProfile();
+                                    
                                     widget.goRoute(
                                       context,
                                       AppRoutes.welcomWithOrgName(

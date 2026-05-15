@@ -3,16 +3,56 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/offer.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
 
 class AppChangesValues extends ChangeNotifier {
   String? laseRoute;
 
   Users? user;
+  UserViewProfileModel? userProfile;
+  
+  /// حفظ بيانات المستخدم في الكاش المحلي
+  Future<void> _saveUserToCache(Users? newUser) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (newUser != null) {
+      final userJson = jsonEncode(newUser.toJson());
+      await prefs.setString('cached_user_data', userJson);
+    } else {
+      await prefs.remove('cached_user_data');
+    }
+  }
+
+  /// تحميل بيانات المستخدم من الكاش المحلي عند بدء التطبيق
+  Future<void> loadUserFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('cached_user_data');
+      if (userJson != null) {
+        final Map<String, dynamic> userData = jsonDecode(userJson);
+        user = Users.fromUserModel(UserModel.fromJson(userData));
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading user from cache: $e');
+    }
+  }
+
   void setUser(Users? newUser) {
     if (user != newUser) {
       user = newUser;
+      _saveUserToCache(newUser); // حفظ في الكاش
+      notifyListeners();
+    }
+  }
+
+  void setUserProfile(UserViewProfileModel? profile) {
+    if (userProfile != profile) {
+      userProfile = profile;
       notifyListeners();
     }
   }
