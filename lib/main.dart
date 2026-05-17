@@ -11,9 +11,10 @@ void main() async {
   // ⚙️ إعدادات النظام - يمكنك التحكم في التطبيق بالكامل من هنا
   AppShellConfigs.isAdminMode = false; // true لوضع المسؤول، false لوضع المنظمة
   AppShellConfigs.titleApp = 'Domancy';
-  AppShellConfigs.defaultOrgName = 'domansy';
+  AppShellConfigs.defaultOrgName = 'delta_gourmet';
 
-  AppBackendEnv().initConfigration();
+  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر (AppEnvType.prod أو AppEnvType.dev أو AppEnvType.local)
+  AppBackendEnv().initConfigration(AppEnvType.prod);
   await initCoreLocator();
   await JsonConfigService().init();
 
