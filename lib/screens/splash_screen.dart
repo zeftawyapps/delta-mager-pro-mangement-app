@@ -12,6 +12,10 @@ import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/s
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/system_models.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/version_check_result.dart';
+import 'package:delta_mager_pro_mangement_app/logic/services/version_check_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SplashScreen extends StatefulWidget with AppShellRouterMixin {
   SplashScreen({super.key});
@@ -21,6 +25,8 @@ class SplashScreen extends StatefulWidget with AppShellRouterMixin {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _isCheckingVersion = false;
+
   @override
   void initState() {
     super.initState();
@@ -85,17 +91,241 @@ class _SplashScreenState extends State<SplashScreen> {
     );
 
     // ننتقل فقط إذا نجحت العمليتان معاً
-    if (systemSuccess && configSuccess) {
-      Future.delayed(const Duration(milliseconds: 2000), () {
+    if (systemSuccess && configSuccess && !_isCheckingVersion) {
+      _isCheckingVersion = true;
+      Future.delayed(const Duration(milliseconds: 1000), () {
         if (mounted) {
-          widget.goRoute(
-            context,
-            AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
-            replace: true,
-          );
+          _checkAppVersionFlow();
         }
       });
     }
+  }
+
+  Future<void> _checkAppVersionFlow() async {
+    String platform = 'web';
+    try {
+      if (Theme.of(context).platform == TargetPlatform.android) {
+        platform = 'android';
+      } else if (Theme.of(context).platform == TargetPlatform.iOS) {
+        platform = 'ios';
+      }
+    } catch (_) {}
+
+    final versionCheckResult = await VersionCheckService().checkAppVersion(
+      currentVersion: AppShellLocalConfigs.appVersion,
+      buildIndex: AppShellLocalConfigs.appBuildIndex,
+      appType: 'management_app',
+      platform: platform,
+      orgId: AppRoutes.activeOrgName,
+    );
+
+    if (!mounted) return;
+
+    if (versionCheckResult != null && versionCheckResult.updateAvailable) {
+      _showUpdateDialog(versionCheckResult);
+    } else {
+      _proceedToLogin();
+    }
+  }
+
+  void _proceedToLogin() {
+    if (mounted) {
+      widget.goRoute(
+        context,
+        AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
+        replace: true,
+      );
+    }
+  }
+
+  void _showUpdateDialog(VersionCheckResult result) {
+    showDialog(
+      context: context,
+      barrierDismissible: !result.forceUpdate, // منع الإغلاق إذا كان التحديث إجبارياً
+      builder: (BuildContext context) {
+        final primaryColor = AppColors.primary;
+        return WillPopScope(
+          onWillPop: () async => !result.forceUpdate, // منع زر الرجوع في الأندرويد
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header with Icon
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            result.forceUpdate
+                                ? Icons.system_update_rounded
+                                : Icons.new_releases_rounded,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            result.forceUpdate ? "تحديث إجباري جديد" : "يتوفر تحديث جديد",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "إصدار ${result.latestVersion} (بناء ${result.buildIndex})",
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Content body
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            result.forceUpdate
+                                ? "لضمان استمرارية تشغيل الخدمات والمبيعات، يجب تحديث التطبيق إلى الإصدار الجديد فوراً."
+                                : "يسعدنا أن نقدم لكم هذا التحديث الجديد لتحسين الأداء وإضافة مميزات جديدة.",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          if (result.releaseNotes.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            const Text(
+                              "أبرز التحديثات والمميزات:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 120),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: result.releaseNotes.map((note) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(Icons.check_circle_rounded, color: primaryColor, size: 18),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              note,
+                                              style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    
+                    // Actions
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: Row(
+                        children: [
+                          if (!result.forceUpdate) ...[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _proceedToLogin();
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(color: primaryColor),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "لاحقاً",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (result.downloadUrl.isNotEmpty) {
+                                  final uri = Uri.parse(result.downloadUrl);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                "تحديث الآن",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _updateTheme(OrganizationConfigModel config) {

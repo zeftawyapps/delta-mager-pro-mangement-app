@@ -9,20 +9,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initCoreLocator();
-
-  // ⚙️ تحميل ملف الإعدادات الاستاتيكي JSON أولاً لتمكين الـ Whitelabeling ديناميكياً لكل عميل
+  
+  // ⚙️ تحميل ملف الإعدادات الاستاتيكي JSON لتمكين الـ Whitelabeling ديناميكياً
   final configService = JsonConfigService();
   await configService.init();
 
-  // ⚙️ إعدادات النظام - يتم ضبطها ديناميكياً بناءً على ملف config.json للعميل
-  AppShellConfigs.isAdminMode = true; // true لوضع المسؤول، false لوضع المنظمة
-  AppShellConfigs.titleApp = configService.appTitle;
+  // 🏢 تفعيل وضع المنظمة (Dashboard Mode)
+  AppShellConfigs.isAdminMode = false; 
+  AppShellConfigs.titleApp = '${configService.appTitle} Dashboard';
   AppShellConfigs.defaultOrgName = configService.defaultOrgName;
   AppShellLocalConfigs.appVersion = configService.appVersion;
   AppShellLocalConfigs.appBuildIndex = configService.appBuildIndex;
 
-  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر (AppEnvType.prod أو AppEnvType.dev أو AppEnvType.local)
-  AppBackendEnv().initConfigration(AppEnvType.local);
+  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر
+  AppBackendEnv().initConfigration(AppEnvType.prod);
 
   runApp(const AppLouncher());
 }

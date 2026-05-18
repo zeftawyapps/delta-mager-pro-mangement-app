@@ -39,3 +39,8 @@ class AppShellConfigs {
   static Color sidebarExpandedIconColor = AppColors.decorativeLight;
   static Color sidebarExpandedTextColor = AppColors.decorativeLight;
 }
+
+class AppShellLocalConfigs {
+  static String appVersion = '1.0.0';
+  static int appBuildIndex = 100;
+}

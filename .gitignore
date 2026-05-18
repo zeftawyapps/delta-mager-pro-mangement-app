@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Whitelabel Client Configurations
+assets/json_config/config.yaml
+assets/json_config/clients/

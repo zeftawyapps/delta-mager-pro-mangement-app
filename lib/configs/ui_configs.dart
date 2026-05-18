@@ -15,6 +15,7 @@ import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/profile_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/organization_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/change_password_form.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +46,7 @@ class AppBarConfigs {
     );
 
     final String title =
-        config?.layout?.appTitle ?? systemInfo?.appName ?? 'Domancy';
+        config?.layout?.appTitle ?? systemInfo?.appName ?? AppShellConfigs.titleApp;
 
     return AppBarConfig(title: title, actions: [_buildUserMenu(context)]);
   }
@@ -64,7 +65,7 @@ class AppBarConfigs {
 
     final String title = config?.layout?.appTitle != null
         ? "${config!.layout!.appTitle} - نظام الإدارة"
-        : systemInfo?.appName ?? 'Domancy Management System';
+        : systemInfo?.appName ?? '${AppShellConfigs.titleApp} Management System';
 
     return AppBarConfig(title: title, actions: [_buildUserMenu(context)]);
   }
