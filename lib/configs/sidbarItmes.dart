@@ -18,18 +18,58 @@ import 'package:delta_mager_pro_mangement_app/screens/order_paths_screen.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/models/route_item.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/screens/content/profile_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/b2b/b2b_home_screen.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:flutter/material.dart' show Icons;
 
 class SidebarItemsConfig {
-  List<RouteItem> get items => [
-    RouteItem(
-      id: AppRouteIds.analytics,
-      path: AppRoutes.analyses,
-      label: AppStrings.analytics,
-      icon: Icons.home,
-      content: AnalyticsScreen(),
-      prams: {"orgName": AppRoutes.activeOrgName},
-    ),
+  List<RouteItem> get items {
+    if (AppShellConfigs.isClientAppMode) {
+      return [
+        RouteItem(
+          id: AppRouteIds.b2bHome,
+          path: AppRoutes.b2bHome,
+          label: 'الرئيسية (الطلبات)',
+          icon: Icons.storefront,
+          content: B2BHomeScreen(),
+          prams: {"orgName": AppRoutes.activeOrgName},
+        ),
+        RouteItem(
+          id: AppRouteIds.login,
+          path: AppRoutes.logIn,
+          label: AppStrings.login,
+          icon: Icons.login,
+          content: LoginScreen(),
+          isSideBarRouted: false,
+          prams: {"orgName": AppRoutes.activeOrgName},
+        ),
+        RouteItem(
+          id: AppRouteIds.welcome,
+          path: AppRoutes.welcome,
+          label: AppStrings.welcome,
+          icon: Icons.home,
+          content: WelcomScreen(),
+          isSideBarRouted: false,
+        ),
+        RouteItem(
+          id: AppRouteIds.splash,
+          path: AppRoutes.splash,
+          label: "تحميل المشروع",
+          icon: Icons.route,
+          content: SplashScreen(),
+          isSideBarRouted: false,
+        ),
+      ];
+    }
+
+    return [
+      RouteItem(
+        id: AppRouteIds.analytics,
+        path: AppRoutes.analyses,
+        label: AppStrings.analytics,
+        icon: Icons.home,
+        content: AnalyticsScreen(),
+        prams: {"orgName": AppRoutes.activeOrgName},
+      ),
     RouteItem(
       id: AppRouteIds.b2bHome,
       path: AppRoutes.b2bHome,
@@ -173,4 +213,5 @@ class SidebarItemsConfig {
       // queryParameters: {"qu": "paramter"},
     ),
   ];
+ }
 }

@@ -277,6 +277,44 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
     );
   }
 
+  void _publishBulkProducts(List<ProductModel> products, bool publish) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(publish ? 'نشر جماعي' : 'إلغاء النشر الجماعي'),
+        content: Text(
+          publish
+              ? 'هل تريد نشر ${products.length} من المنتجات المحددة للعامة؟'
+              : 'هل تريد إلغاء نشر ${products.length} من المنتجات المحددة وجعلها خاصة؟',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<ProductsBloc>().bulkUpdateProducts(
+                productIds: products.map((e) => e.productId).toList(),
+                organizationId: organizationId,
+                updateData: {
+                  'sharingLevel': publish ? 'public' : 'private',
+                  'isMasterProduct': publish ? true : false,
+                },
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: publish ? Colors.green : Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(publish ? 'تأكيد النشر' : 'تأكيد الإلغاء'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _editProduct(ProductModel product, {bool autoOpenImagePicker = false}) {
     showCustomInputDialog(
       context: context,
@@ -324,6 +362,16 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
     context.read<ProductsBloc>().updateProduct(
       productId: product.productId,
       data: {property: value},
+    );
+  }
+
+  void _publishProduct(ProductModel product, bool publish) {
+    context.read<ProductsBloc>().updateProduct(
+      productId: product.productId,
+      data: {
+        'sharingLevel': publish ? 'public' : 'private',
+        'isMasterProduct': publish ? true : product.isMasterProduct,
+      },
     );
   }
 
@@ -501,6 +549,34 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
             itemBuilder: (context, product, isSelected) =>
                 _buildProductCard(product, isDark, canUpdate, canDelete),
             multiSelectActions: (selectedItems) => [
+              ElevatedButton.icon(
+                onPressed: () => _publishBulkProducts(selectedItems.toList(), true),
+                icon: const Icon(Icons.public, size: 16),
+                label: const Text("نشر"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () => _publishBulkProducts(selectedItems.toList(), false),
+                icon: const Icon(Icons.public_off, size: 16),
+                label: const Text("إلغاء النشر"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               PopupMenuButton<int>(
                 offset: const Offset(0, 50),
                 shape: RoundedRectangleBorder(
@@ -518,6 +594,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                     print("تعديل ${selectedItems.length} منتج");
                   } else if (value == 3) {
                     _deleteBulkProducts(selectedItems.toList());
+                  } else if (value == 4) {
+                    _publishBulkProducts(selectedItems.toList(), true);
+                  } else if (value == 5) {
+                    _publishBulkProducts(selectedItems.toList(), false);
                   }
                 },
                 itemBuilder: (context) => [
@@ -540,6 +620,20 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                     child: ListTile(
                       leading: Icon(Icons.delete_sweep, color: Colors.red),
                       title: Text("حذف منتجات"),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 4,
+                    child: ListTile(
+                      leading: Icon(Icons.public, color: Colors.green),
+                      title: Text("نشر جماعي"),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 5,
+                    child: ListTile(
+                      leading: Icon(Icons.public_off, color: Colors.orange),
+                      title: Text("إلغاء النشر الجماعي"),
                     ),
                   ),
                 ],
@@ -850,6 +944,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (product.sharingLevel == 'public')
+                  _buildBadge(AppStrings.publicPublished, Colors.teal, icon: Icons.public),
                 if (product.isNew) _buildBadge(AppStrings.isNew, Colors.green),
                 if (product.isSuperJoker)
                   _buildBadge(AppStrings.superJoker, Colors.deepPurple),
@@ -1086,6 +1182,16 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
                       _toggleProductProperty(product, 'isAvailable', val);
                     },
                   ),
+                if (canUpdate)
+                  _buildToggleOption(
+                    title: 'نشر للعامة في الكتالوج 🌐',
+                    subtitle: 'نشر للمتجر المفتوح للزوار وعامة الناس',
+                    icon: Icons.public_outlined,
+                    value: product.sharingLevel == 'public',
+                    onChanged: (val) {
+                      _publishProduct(product, val);
+                    },
+                  ),
                 if (canUpdate && ProductInputConfig.showIsNew)
                   _buildToggleOption(
                     title: 'منتج جديد 🆕',
@@ -1202,7 +1308,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
     );
   }
 
-  Widget _buildBadge(String text, Color color) {
+  Widget _buildBadge(String text, Color color, {IconData? icon}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1217,14 +1323,30 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
           ),
         ],
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: icon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 10),
+                const SizedBox(width: 4),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          : Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
     );
   }
 }

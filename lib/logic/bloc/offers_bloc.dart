@@ -82,6 +82,8 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
     int? sortOrder,
     Uint8List? imageBytes,
     String? imageName,
+    bool? isMasterProduct,
+    String? sharingLevel,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.createOffer(
@@ -97,6 +99,8 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
       sortOrder: sortOrder,
       imageBytes: imageBytes,
       imageName: imageName,
+      isMasterProduct: isMasterProduct,
+      sharingLevel: sharingLevel,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -147,6 +151,8 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
     int? sortOrder,
     Uint8List? imageBytes,
     String? imageName,
+    bool? isMasterProduct,
+    String? sharingLevel,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
 
@@ -163,6 +169,8 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
       sortOrder: sortOrder,
       imageBytes: imageBytes,
       imageName: imageName,
+      isMasterProduct: isMasterProduct,
+      sharingLevel: sharingLevel,
     );
 
     if (result.status == StatusModel.success && result.data != null) {

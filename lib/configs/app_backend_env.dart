@@ -41,10 +41,9 @@ class AppBackendEnv {
     }
   }
 
-  initConfigration(AppEnvType env) {
+  void initConfigration(AppEnvType env) {
     _currentEnv = env;
     projectConfig(myBaseUrl: baseUrl, myImageUrl: imageUrl);
     ProjectAPIHeader.setLanguage("ar");
   }
 }
-

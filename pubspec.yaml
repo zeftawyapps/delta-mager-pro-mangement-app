@@ -1,5 +1,6 @@
 name: delta_mager_pro_mangement_app
 description: "A new Flutter project."
+buildIndix: 1
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -72,8 +73,8 @@ flutter:
   assets:
     - assets/logo/
     - assets/images/
-    - assets/json_config/
-    - assets/json_config/clients/
+    - project_builder/
+    - project_builder/clients/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -4,7 +4,9 @@ import 'package:matger_pro_core_logic/models/localized_string.dart';
 
 // Re-exporting core data structures for application-wide use
 export 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
-    show LocalizedString, PriceOption, ProductUnit, ProductData;
+    show PriceOption, ProductUnit, ProductData;
+export 'package:matger_pro_core_logic/models/localized_string.dart'
+    show LocalizedString;
 
 class ProductModel extends ProductData implements BaseViewDataModel {
   ProductModel({
@@ -30,6 +32,8 @@ class ProductModel extends ProductData implements BaseViewDataModel {
     super.additionalData = const {},
     super.meta,
     super.createdAt,
+    super.isMasterProduct = true,
+    super.sharingLevel = 'private',
   });
 
   factory ProductModel.fromData(ProductData data) {
@@ -56,6 +60,8 @@ class ProductModel extends ProductData implements BaseViewDataModel {
       additionalData: data.additionalData,
       meta: data.meta,
       createdAt: data.createdAt,
+      isMasterProduct: data.isMasterProduct,
+      sharingLevel: data.sharingLevel,
     );
   }
 

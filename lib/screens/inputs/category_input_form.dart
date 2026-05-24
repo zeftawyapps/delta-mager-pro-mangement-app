@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
@@ -27,6 +28,8 @@ class CategoryInputFormState extends State<CategoryInputForm> {
   ImageFileModel? _selectedImage;
   ValidationsForm form = ValidationsForm();
   bool _isDialogShowing = false;
+  bool _isActive = true;
+  bool _isPublic = false;
 
   @override
   void initState() {
@@ -40,6 +43,8 @@ class CategoryInputFormState extends State<CategoryInputForm> {
     descriptionController = TextEditingController(
       text: widget.category?.descriptionAr ?? '',
     );
+    _isActive = widget.category?.isActive ?? true;
+    _isPublic = widget.category != null ? (widget.category!.sharingLevel == 'public') : true;
   }
 
   @override
@@ -80,20 +85,39 @@ class CategoryInputFormState extends State<CategoryInputForm> {
 
     final bloc = context.read<CategoriesBloc>();
     final nameAr = nameArController.text.trim();
+    final nameEn = nameEnController.text.trim();
+    final desc = descriptionController.text.trim();
+
+    // ترميز الأسماء والوصف كـ JSON لدعم اللغتين في الباك اند بشكل مثالي
+    final nameMap = {
+      'ar': nameAr,
+      'en': nameEn.isNotEmpty ? nameEn : nameAr,
+    };
+    final descMap = {
+      'ar': desc,
+      'en': nameEn.isNotEmpty ? nameEn : nameAr,
+    };
+    
+    final nameParam = jsonEncode(nameMap);
+    final descParam = jsonEncode(descMap);
 
     if (widget.category != null) {
       bloc.updateCategory(
         categoryId: widget.category!.categoryId,
-        name: nameAr,
-        isActive: true,
+        name: nameParam,
+        isActive: _isActive,
+        isMasterProduct: _isPublic ? true : widget.category?.isMasterProduct,
+        sharingLevel: _isPublic ? 'public' : 'private',
         imageBytes: _selectedImage?.bytes,
         imageName: _selectedImage?.file?.path.split('/').last,
       );
     } else {
       bloc.createCategory(
-        name: nameAr,
+        name: nameParam,
         shopId: context.read<AppChangesValues>().user!.organizationId!,
-        description: descriptionController.text.trim(),
+        description: descParam,
+        isMasterProduct: _isPublic ? true : true,
+        sharingLevel: _isPublic ? 'public' : 'private',
         imageBytes: _selectedImage?.bytes,
         imageName: _selectedImage?.file?.path.split('/').last,
       );
@@ -265,6 +289,77 @@ class CategoryInputFormState extends State<CategoryInputForm> {
                     ),
                     labalText: 'وصف الفئة',
                     keyData: "description",
+                  ),
+                  const SizedBox(height: 24),
+
+                  // إعدادات النشر والظهور
+                  Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    color: Colors.grey.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.visibility_outlined, color: AppColors.primary, size: 20),
+                              SizedBox(width: 8),
+                              const Text(
+                                "إعدادات النشر والظهور",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 20),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text(
+                              "حالة النشاط",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            subtitle: const Text(
+                              "تحديد ما إذا كانت الفئة نشطة ومتاحة في التطبيق",
+                              style: TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                            value: _isActive,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) {
+                              setState(() {
+                                _isActive = val;
+                              });
+                            },
+                          ),
+                          const Divider(height: 10),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text(
+                              "نشر للعامة في الكتالوج",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            subtitle: const Text(
+                              "تظهر في كتالوج الزوار العام (تتطلب وجود منتج عام نشط واحد على الأقل داخلها)",
+                              style: TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                            value: _isPublic,
+                            activeColor: Colors.green,
+                            onChanged: (val) {
+                              setState(() {
+                                _isPublic = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
 

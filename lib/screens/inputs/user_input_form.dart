@@ -42,6 +42,7 @@ class _UserInputFormState extends State<UserInputForm> {
 
   List<String> selectedRoles = [];
   String? _selectedGovernorate;
+  String? _selectedCity;
   String? _selectedCountry;
   bool isActive = true;
 
@@ -57,14 +58,19 @@ class _UserInputFormState extends State<UserInputForm> {
     addressController = TextEditingController(text: widget.user?.address ?? '');
     cityController = TextEditingController(text: widget.user?.cityId ?? '');
     _selectedGovernorate = widget.user?.governorateId;
+    _selectedCity = widget.user?.cityId;
     _selectedCountry = widget.user?.countryId ?? 'EG';
     selectedRoles = List<String>.from(widget.user?.roles ?? []);
     isActive = widget.user?.isActiveProfile ?? true;
 
     // Load roles
     context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
-    // Load governorates
-    context.read<LocationsBloc>().loadGovernorates();
+    // Load governorates for the selected country
+    context.read<LocationsBloc>().loadGovernorates(_selectedCountry);
+    // Load cities if governorate is pre-selected
+    if (_selectedGovernorate != null) {
+      context.read<LocationsBloc>().loadCities(_selectedGovernorate!);
+    }
   }
 
   @override
@@ -220,17 +226,7 @@ class _UserInputFormState extends State<UserInputForm> {
                   const SizedBox(height: 16),
                   _buildGovernorateDropdown(),
                   const SizedBox(height: 16),
-                  TextFomrFildValidtion(
-                    controller: cityController,
-                    form: form,
-                    baseValidation: [RequiredValidator()],
-                    decoration: const InputDecoration(
-                      labelText: 'المدينة',
-                      prefixIcon: Icon(Icons.location_city),
-                    ),
-                    labalText: 'المدينة',
-                    keyData: "cityId",
-                  ),
+                  _buildCityDropdown(),
                   const SizedBox(height: 16),
                   TextFomrFildValidtion(
                     controller: addressController,
@@ -395,10 +391,24 @@ class _UserInputFormState extends State<UserInputForm> {
           orElse: () => <GovernorateModel>[],
         );
 
+        final isLoading = state.governoratesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
+
+        // التأكد من أن القيمة المختارة موجودة في القائمة ومطابقتها بشكل مرن وآمن
+        String? currentValue;
+        try {
+          if (_selectedGovernorate != null && governorates.isNotEmpty) {
+            currentValue = governorates.firstWhere(
+              (g) => g.id.toString().trim() == _selectedGovernorate?.toString().trim()
+            ).id.toString();
+          }
+        } catch (_) {}
+
         return DropdownButtonFormField<String>(
-          value: governorates.any((g) => g.id == _selectedGovernorate)
-              ? _selectedGovernorate
-              : null,
+          value: currentValue,
+          hint: isLoading ? const Text('جاري تحميل المحافظات...') : null,
           decoration: const InputDecoration(
             labelText: 'المحافظة',
             prefixIcon: Icon(Icons.map),
@@ -412,9 +422,62 @@ class _UserInputFormState extends State<UserInputForm> {
           onChanged: (String? value) {
             setState(() {
               _selectedGovernorate = value;
+              _selectedCity = null;
+              cityController.clear();
             });
+            if (value != null) {
+              context.read<LocationsBloc>().loadCities(value);
+            }
           },
           validator: (value) => value == null ? 'يرجى اختيار المحافظة' : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildCityDropdown() {
+    return BlocBuilder<LocationsBloc, LocationsState>(
+      builder: (context, state) {
+        final cities = state.citiesState.maybeWhen(
+          success: (data) => data ?? [],
+          orElse: () => <CityModel>[],
+        );
+
+        final isLoading = state.citiesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
+
+        // التأكد من أن القيمة المختارة موجودة في القائمة ومطابقتها بشكل مرن وآمن
+        String? currentValue;
+        try {
+          if (_selectedCity != null && cities.isNotEmpty) {
+            currentValue = cities.firstWhere(
+              (c) => c.id.toString().trim() == _selectedCity?.toString().trim()
+            ).id.toString();
+          }
+        } catch (_) {}
+
+        return DropdownButtonFormField<String>(
+          value: currentValue,
+          hint: isLoading ? const Text('جاري تحميل المدن...') : null,
+          decoration: const InputDecoration(
+            labelText: 'المدينة',
+            prefixIcon: Icon(Icons.location_city),
+          ),
+          items: cities.map((c) {
+            return DropdownMenuItem<String>(
+              value: c.id.toString(),
+              child: Text(c.nameAr),
+            );
+          }).toList(),
+          onChanged: (String? value) {
+            setState(() {
+              _selectedCity = value;
+              cityController.text = value ?? '';
+            });
+          },
+          validator: (value) => value == null ? 'يرجى اختيار المدينة' : null,
         );
       },
     );

@@ -1,0 +1,25 @@
+# 📱 إعدادات هوية عميل: دومانسي (Default Domansy Client)
+appBranding:
+  appTitle: "Domancy"
+  defaultOrgName: "domacy"
+
+# 🚀 توافق الإصدارات الخاص بهذا العميل (رقم البناء)
+appVersion: "1.0.0"
+appBuildIndex: 1
+isAdminMode: true
+
+# 🔗 روابط الخادم الخاص بهذا العميل لكل بيئة تشغيل (Dynamic Environment Base URLs)
+envUrls:
+  local:
+    baseUrl: "http://localhost:8080/api/v1"
+    imageUrl: "http://localhost:8080"
+  dev:
+    baseUrl: "https://deltamatger-dev-804546043960.europe-west1.run.app/api/v1"
+    imageUrl: "https://deltamatger-dev-804546043960.europe-west1.run.app"
+  prod:
+    baseUrl: "https://matger-domancy-754150733984.me-central1.run.app/api/v1"
+    imageUrl: "https://matger-domancy-754150733984.me-central1.run.app"
+
+# 🌐 روابط الاستضافة الحية على الفايربيز (Firebase Hosting Links)
+firebaseAdminUrl: "https://domancy-admin.web.app"
+firebaseDashboardUrl: "https://domancy-orgs.web.app"

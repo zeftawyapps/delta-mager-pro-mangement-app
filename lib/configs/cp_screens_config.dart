@@ -1,3 +1,4 @@
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/models/route_item.dart';
 
@@ -6,6 +7,13 @@ class CPScreensConfig {
     Users user, {
     List<RouteItem> routes = const [],
   }) {
+    if (AppShellConfigs.isClientAppMode) {
+      for (var route in routes) {
+        route.isVisableInSideBar = true;
+      }
+      return routes;
+    }
+
     for (var route in routes) {
       // ✅ التركيبة الديناميكية: screen.sidebarId:view
       final String permissionKey = "screen.${route.id}:view";

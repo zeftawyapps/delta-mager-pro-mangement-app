@@ -20,6 +20,7 @@ class B2bHomeConfig {
   static const String modeHorizontalList = "horizontal_list";
   static const String modeGrid = "grid";
   static const String modeSlider = "slider";
+  static const String modeZoomSlider = "zoom_slider";
 
   // 🔑 Order Settings Keys
   static const String keyOrderSettings = "orderSettings";
@@ -50,8 +51,8 @@ class B2bHomeConfig {
       {
         "id": "sec_new",
         "type": typeNewProducts,
-        "displayMode": modeGrid,
-        "title": "وصل حديثاً",
+        "displayMode": modeZoomSlider,
+        "title": "جديدنا",
         "isActive": true,
         "config": {"crossAxisCount": 4}
       },

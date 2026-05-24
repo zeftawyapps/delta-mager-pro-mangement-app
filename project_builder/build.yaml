@@ -1,0 +1,64 @@
+# 🚀 Delta Matger Pro - Unified Multi-Tenant Configuration
+# ============================================================
+# هذا الملف هو المصدر الوحيد للحقيقة (Single Source of Truth) لكافة إعدادات العملاء والبناء.
+# يتم قراءة هذا الملف بواسطة سكربت التهيئة لتوليد كافة ملفات Firebase و Flutter Configs تلقائياً.
+
+global:
+  appVersion: "1.0.0"
+  appBuildIndex: 1
+
+clients:
+  domansy:
+    name: "Domancy"
+    appTitle: "Domancy"
+    defaultOrgName: "domacy"
+    baseUrl: "https://matger-domancy-754150733984.me-central1.run.app/api/v1"
+    imageUrl: "https://matger-domancy-754150733984.me-central1.run.app"
+    firebase_project: "domansy-dev"
+    hosting:
+      admin: "domancy-admin"        # الاستضافة لتطبيق الإدارة (domancy-admin.web.app)
+      dashboard: "domancy-orgs"     # الاستضافة للتطبيق الرئيسي (domancy-orgs.web.app)
+      
+  factory:
+    name: "Factory"
+    appTitle: "Matger Pro Factory"
+    defaultOrgName: "factory"
+    baseUrl: "https://matger-factory-754150733984.me-central1.run.app/api/v1"
+    imageUrl: "https://matger-factory-754150733984.me-central1.run.app"
+    firebase_project: "domansy-dev"
+    hosting:
+      admin: "factory-admin"
+      dashboard: "factory-orgs"
+
+  mall:
+    name: "Mall"
+    appTitle: "Matger Pro Mall"
+    defaultOrgName: "mall"
+    baseUrl: "https://matger-mall-754150733984.me-central1.run.app/api/v1"
+    imageUrl: "https://matger-mall-754150733984.me-central1.run.app"
+    firebase_project: "domansy-dev"
+    hosting:
+      admin: "mall-admin"
+      dashboard: "mall-orgs"
+
+  distribution:
+    name: "Distribution"
+    appTitle: "Matger Pro Distribution"
+    defaultOrgName: "distribution"
+    baseUrl: "https://matger-distribution-754150733984.me-central1.run.app/api/v1"
+    imageUrl: "https://matger-distribution-754150733984.me-central1.run.app"
+    firebase_project: "domansy-dev"
+    hosting:
+      admin: "dist-admin"
+      dashboard: "dist-orgs"
+
+  local:
+    name: "Local"
+    appTitle: "Matger Pro Local"
+    defaultOrgName: "local"
+    baseUrl: "http://localhost:8080/api/v1"
+    imageUrl: "http://localhost:8080"
+    firebase_project: "domansy-dev"
+    hosting:
+      admin: "local-admin"
+      dashboard: "local-orgs"

@@ -46,7 +46,7 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
         // 0️⃣ التحقق من الانتماء لمنظمة (منع دخول المستخدمين غير المرتبطين بمنظمة)
         if (currentUser.organizationId == null ||
             currentUser.organizationId!.isEmpty) {
-          widget.goRoute(context, AppRoutes.logIn, replace: true);
+          widget.goRouterInSidBar(context, AppRoutes.logIn);
           return;
         }
 
@@ -70,27 +70,34 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
         );
 
         availableRoutes.forEach(addRouteItem);
-        bool hasVisibleRoutes = availableRoutes.any(
-          (r) => r.isVisableInSideBar,
-        );
 
         setupAppShellRouteManager(context);
-        if (hasVisibleRoutes) {
-          if (changvalue.laseRoute != null) {
-            widget.goRouterInSidBar(context, changvalue.laseRoute!);
-          } else {
-            try {
-              final firstRoute = availableRoutes.firstWhere(
-                (r) => r.isVisableInSideBar && r.isSideBarRouted != false,
-              );
-              widget.goRouterInSidBar(context, firstRoute.path);
-            } catch (e) {
-              widget.goRouterInSidBar(context, AppRoutes.settings);
+
+        if (changvalue.laseRoute != null) {
+          widget.goRouterInSidBar(context, changvalue.laseRoute!);
+        } else {
+          RouteItem? firstRoute;
+          for (var r in availableRoutes) {
+            if (r.isVisableInSideBar && r.isSideBarRouted != false) {
+              firstRoute = r;
+              break;
             }
           }
-        } else {
-          // إذا لم تكن هناك شاشات مسموح بها، نكتفي بالملف الشخصي أو تسجيل الخروج
-          widget.goRoute(context, AppRoutes.settings, replace: true);
+          if (firstRoute != null) {
+            widget.goRouterInSidBar(context, firstRoute.resolvedPath);
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'عذراً، لا توجد أي شاشات متاحة لفتحها حالياً. يرجى التواصل مع الإدارة.',
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+              widget.goRoute(context, AppRoutes.logIn, replace: true);
+            }
+          }
         }
       } else {
         widget.goRoute(context, AppRoutes.analyses, replace: true);

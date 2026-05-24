@@ -9,32 +9,21 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initCoreLocator();
-
-  // ⚙️ تحميل ملف الإعدادات الاستاتيكي JSON أولاً لتمكين الـ Whitelabeling ديناميكياً لكل عميل
+  
+  // ⚙️ تحميل ملف الإعدادات الاستاتيكي JSON لتمكين الـ Whitelabeling ديناميكياً لكل عميل
   final configService = JsonConfigService();
   await configService.init();
 
-  // ⚙️ إعدادات النظام - يتم ضبطها ديناميكياً بناءً على ملف config.json للعميل
-  AppShellConfigs.isAdminMode = configService.isAdminMode; // true لوضع المسؤول، false لوضع المنظمة
+  // 🏢 تفعيل وضع العميل وتطبيق الطلبات المخصص (Client App Mode)
+  AppShellConfigs.isAdminMode = false; 
+  AppShellConfigs.isClientAppMode = true; 
   AppShellConfigs.titleApp = configService.appTitle;
   AppShellConfigs.defaultOrgName = configService.defaultOrgName;
   AppShellLocalConfigs.appVersion = configService.appVersion;
   AppShellLocalConfigs.appBuildIndex = configService.appBuildIndex;
 
-  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر بناءً على ملف الإعدادات YAML
-  AppEnvType activeEnv;
-  switch (configService.env.toLowerCase()) {
-    case 'local':
-      activeEnv = AppEnvType.local;
-      break;
-    case 'dev':
-      activeEnv = AppEnvType.dev;
-      break;
-    case 'prod':
-    default:
-      activeEnv = AppEnvType.prod;
-  }
-  AppBackendEnv().initConfigration(activeEnv);
+  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر
+  AppBackendEnv().initConfigration(AppEnvType.prod);
 
   runApp(const AppLouncher());
 }

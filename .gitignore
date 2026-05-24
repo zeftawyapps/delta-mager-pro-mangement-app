@@ -45,5 +45,6 @@ app.*.map.json
 /android/app/release
 
 # Whitelabel Client Configurations
-assets/json_config/config.yaml
-assets/json_config/clients/
+project_builder/config.yaml
+.firebaserc
+firebase.json

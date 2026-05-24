@@ -613,6 +613,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                 selectionMode == WorkflowSelectionMode.assign) &&
             isAssignedToMe);
 
+    final bool isAssignable =
+        (stepInfo?.allowDirectAssignment == true) ||
+        (selectionMode == WorkflowSelectionMode.assign);
+
     // لون الخطوة
     Color sheetColor = Colors.blue;
     if (stepInfo?.stepColor != null && stepInfo!.stepColor!.isNotEmpty) {
@@ -902,8 +906,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                         ),
                       ),
 
-                    // 4. زر التعيين (Assign) — فقط لمن لديه صلاحية workflowAssigner
-                    if (canAssign)
+                    // 4. زر التعيين (Assign) — فقط لمن لديه صلاحية workflowAssigner والخطوة قابلة للإسناد
+                    if (canAssign && isAssignable)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: SizedBox(

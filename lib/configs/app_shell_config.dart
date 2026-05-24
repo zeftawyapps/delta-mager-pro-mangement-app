@@ -10,6 +10,7 @@ class AppShellConfigs {
   static bool isAdminMode = true;
   static String titleApp = 'Domancy';
   static String defaultOrgName = 'domansy';
+  static bool isClientAppMode = false;
   static Duration animationDuration = const Duration(milliseconds: 1000);
   static String languageCode = 'ar';
   static SidBarAnimationType animationType = SidBarAnimationType.slideAndFade;

@@ -12,20 +12,26 @@ class JsonConfigService {
     try {
       // 1. تحميل الإعدادات الرئيسية العامة لتحديد العميل النشط
       final String response = await rootBundle.loadString(
-        'assets/json_config/config.yaml',
+        'project_builder/config.yaml',
       );
       final YamlMap yamlMap = loadYaml(response);
       final String activeClient = yamlMap['activeClient'] ?? 'domansy';
+      final String env = yamlMap['env'] ?? 'prod';
+      final bool isAdminMode = yamlMap['isAdminMode'] is bool
+          ? yamlMap['isAdminMode'] as bool
+          : (yamlMap['isAdminMode']?.toString() == 'true');
 
       // 2. تحميل ملف العميل النشط مباشرة كإعداد أساسي وحيد للتطبيق
       final String clientResponse = await rootBundle.loadString(
-        'assets/json_config/clients/$activeClient.yaml',
+        'project_builder/clients/$activeClient.yaml',
       );
       final YamlMap clientYamlMap = loadYaml(clientResponse);
       _config = _yamlToMap(clientYamlMap);
-      
-      // حفظ اسم العميل النشط في الإعدادات للاستخدام البرمجي
+
+      // حفظ اسم العميل النشط والبيئة ووضع المسؤول في الإعدادات للاستخدام البرمجي
       _config['activeClient'] = activeClient;
+      _config['env'] = env;
+      _config['isAdminMode'] = isAdminMode;
     } catch (e) {
       // print('Error loading configuration: $e');
       _config = {};
@@ -62,8 +68,25 @@ class JsonConfigService {
   String get appVersion => _config['appVersion'] ?? '1.0.0';
   int get appBuildIndex => _config['appBuildIndex'] ?? 100;
   String get activeClient => _config['activeClient'] ?? 'domansy';
-  String get clientBaseUrl => _config['baseUrl'] ?? '';
-  String get clientImageUrl => _config['imageUrl'] ?? '';
+  bool get isAdminMode => _config['isAdminMode'] is bool
+      ? _config['isAdminMode'] as bool
+      : (_config['isAdminMode']?.toString() == 'true');
+  String get env => _config['env'] ?? 'prod';
+  String get clientBaseUrl {
+    final envUrls = _config['envUrls'];
+    if (envUrls is Map && envUrls[env] is Map) {
+      return envUrls[env]['baseUrl']?.toString() ?? '';
+    }
+    return _config['baseUrl'] ?? '';
+  }
+
+  String get clientImageUrl {
+    final envUrls = _config['envUrls'];
+    if (envUrls is Map && envUrls[env] is Map) {
+      return envUrls[env]['imageUrl']?.toString() ?? '';
+    }
+    return _config['imageUrl'] ?? '';
+  }
 
   // 🟢 تحديث الإعدادات برمجياً لمزامنتها مع الـ Bloc فور التحميل أو الحفظ
   void updateProductInput(Map<String, dynamic>? data) {

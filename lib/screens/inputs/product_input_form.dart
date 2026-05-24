@@ -61,6 +61,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
   bool isInsideOffer = false;
   bool isAvailable = true; // متاح
   bool isMultiSize = false;
+  bool _isPublic = false;
   ProductUnit singlePriceUnit = ProductUnit.piece;
   late TextEditingController singlePriceQuantityController;
 
@@ -143,7 +144,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
       isOnSale = widget.product!.isOnSale;
       isJoker = widget.product!.isJoker;
       isSuperJoker = widget.product!.isSuperJoker;
-      isInsideOffer = widget.product!.additionalData['isInsideOffer'] ?? false;
+      final insideOfferVal = widget.product!.additionalData['isInsideOffer'];
+      isInsideOffer = insideOfferVal is bool ? insideOfferVal : (insideOfferVal?.toString() == 'true');
       isAvailable = widget.product!.isAvailable;
 
       priceOptions = widget.product!.priceOptions
@@ -163,8 +165,12 @@ class _ProductInputFormState extends State<ProductInputForm> {
 
       // تفعيل التسعير المتعدد تلقائياً إذا كان المنتج يحتوي على أكثر من سعر
       isMultiSize = widget.product!.priceOptions.length > 1;
+      _isPublic = widget.product!.sharingLevel == 'public';
     } else if (widget.initialCategoryId != null) {
       selectedCategoryId = widget.initialCategoryId;
+      _isPublic = true;
+    } else {
+      _isPublic = true;
     }
   }
 
@@ -399,6 +405,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
       'benefits': benefitsList,
       'ingredients': ingredientsList,
       'isInsideOffer': isInsideOffer,
+      'isMasterProduct': _isPublic ? true : true,
+      'sharingLevel': _isPublic ? 'public' : 'private',
     };
 
     final List<core_m.PriceOption> priceOptionsList = isMultiSize
@@ -455,6 +463,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
         'isJoker': isJoker,
         'isSuperJoker': isSuperJoker,
         'isAvailable': isAvailable,
+        'isMasterProduct': _isPublic ? true : (widget.product?.isMasterProduct ?? true),
+        'sharingLevel': _isPublic ? 'public' : 'private',
         'additionalData': additionalData,
         'priceOptions': priceOptionsList.map((e) => e.toJson()).toList(),
         'images': selectedImage != null ? [] : (widget.product?.images ?? []),
@@ -955,8 +965,59 @@ class _ProductInputFormState extends State<ProductInputForm> {
                         onChanged: (v) =>
                             setState(() => isAvailable = v ?? true),
                       ),
+                      const SizedBox(height: 16),
 
-                      SizedBox(height: 20),
+                      // إعدادات النشر والظهور
+                      Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        color: Colors.grey.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.visibility_outlined, color: AppColors.primary, size: 20),
+                                  SizedBox(width: 8),
+                                  const Text(
+                                    "إعدادات الكتالوج العام والظهور",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 20),
+                              SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text(
+                                  "نشر للعامة في الكتالوج",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                subtitle: const Text(
+                                  "يظهر هذا المنتج للزوار وعامة المستخدمين في المتجر الإلكتروني المفتوح",
+                                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                                ),
+                                value: _isPublic,
+                                activeColor: Colors.green,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _isPublic = val;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
                       SizedBox(
                         width: double.infinity,

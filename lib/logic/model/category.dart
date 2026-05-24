@@ -13,6 +13,8 @@ class CategoryModel extends CategoryData implements BaseViewDataModel {
     super.meta,
     super.displayOrder,
     super.productCount,
+    super.isMasterProduct = true,
+    super.sharingLevel = 'private',
   });
 
   factory CategoryModel.fromData(CategoryData data) {
@@ -26,6 +28,8 @@ class CategoryModel extends CategoryData implements BaseViewDataModel {
       meta: data.meta,
       displayOrder: data.displayOrder,
       productCount: data.productCount,
+      isMasterProduct: data.isMasterProduct,
+      sharingLevel: data.sharingLevel,
     );
   }
 

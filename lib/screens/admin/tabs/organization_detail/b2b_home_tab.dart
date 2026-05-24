@@ -631,5 +631,6 @@ class _B2BHomeConfigTabState extends State<B2BHomeConfigTab> {
     B2bHomeConfig.modeHorizontalList: "قائمة عرضية (Scroll)",
     B2bHomeConfig.modeGrid: "شبكة (Grid)",
     B2bHomeConfig.modeSlider: "بانر متحرك (Slider)",
+    B2bHomeConfig.modeZoomSlider: "سلايدر تكبير وتصغير (Zoom Slider)",
   };
 }

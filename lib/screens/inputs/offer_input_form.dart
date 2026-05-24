@@ -41,6 +41,7 @@ class _OfferInputFormState extends State<OfferInputForm> {
   DateTime? startDate;
   DateTime? endDate;
   bool isActive = true;
+  bool _isPublic = true;
   ImageFileModel? selectedImage;
 
   ValidationsForm form = ValidationsForm();
@@ -71,6 +72,9 @@ class _OfferInputFormState extends State<OfferInputForm> {
       startDate = widget.offer!.startDate;
       endDate = widget.offer!.endDate;
       isActive = widget.offer!.isActive;
+      _isPublic = widget.offer!.sharingLevel == 'public';
+    } else {
+      _isPublic = true;
     }
 
     // تحميل المنتجات المخفضة عند البدء إذا كان نوع الهدف هو منتج
@@ -130,6 +134,8 @@ class _OfferInputFormState extends State<OfferInputForm> {
         sortOrder: int.tryParse(sortOrderController.text),
         imageBytes: selectedImage?.bytes,
         imageName: selectedImage?.file?.path.split('/').last,
+        isMasterProduct: _isPublic,
+        sharingLevel: _isPublic ? 'public' : 'private',
       );
     } else {
       bloc.createOffer(
@@ -145,6 +151,8 @@ class _OfferInputFormState extends State<OfferInputForm> {
         sortOrder: int.tryParse(sortOrderController.text),
         imageBytes: selectedImage?.bytes,
         imageName: selectedImage?.file?.path.split('/').last,
+        isMasterProduct: _isPublic,
+        sharingLevel: _isPublic ? 'public' : 'private',
       );
     }
   }
@@ -410,10 +418,43 @@ class _OfferInputFormState extends State<OfferInputForm> {
                     ],
                   ),
 
-                  SwitchListTile(
-                    title: const Text('نشط'),
-                    value: isActive,
-                    onChanged: (val) => setState(() => isActive = val),
+                  Card(
+                    elevation: 0,
+                    color: Colors.grey.shade50,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        children: [
+                          SwitchListTile(
+                            title: const Text(
+                              'حالة النشاط',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: const Text('تفعيل أو تعطيل العرض بالكامل'),
+                            value: isActive,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) => setState(() => isActive = val),
+                          ),
+                          const Divider(),
+                          SwitchListTile(
+                            title: const Text(
+                              'نشر للعامة في الكتالوج 🌐',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: const Text(
+                              'إظهار العرض في الكتالوج العام المفتوح للزوار والجمهور',
+                            ),
+                            value: _isPublic,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) => setState(() => _isPublic = val),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 24),
