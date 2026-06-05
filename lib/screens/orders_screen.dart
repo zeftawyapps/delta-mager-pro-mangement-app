@@ -17,6 +17,10 @@ import 'package:delta_mager_pro_mangement_app/screens/orders/widgets/order_item_
 import 'package:delta_mager_pro_mangement_app/screens/orders/widgets/order_management_sheet.dart';
 import 'package:delta_mager_pro_mangement_app/screens/orders/widgets/assign_staff_sheet.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/order_path_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/order_path_model.dart';
 
 class OrdersScreen extends StatefulWidget with AppShellRouterMixin {
   final bool canAdd;
@@ -48,6 +52,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     super.initState();
     appChangesValues = context.read<AppChangesValues>();
     _loadWorkflows();
+    context.read<OrderPathBloc>().loadOrderPaths(organizationId);
   }
 
   void _loadWorkflows() {
@@ -55,6 +60,250 @@ class _OrdersScreenState extends State<OrdersScreen>
       organizationId,
       entityType: 'orders',
     );
+  }
+
+  List<WorkflowStep> _getVisibleSteps(List<WorkflowStep> originalSteps, String workflowSlug) {
+    final user = appChangesValues.user;
+    final roles = user?.roles ?? [];
+
+    final isExempt = AppShellConfigs.isAdminMode ||
+        roles.contains('admin') ||
+        roles.contains('organizationOwner') ||
+        roles.contains('owner') ||
+        roles.contains('super_admin');
+
+    if (isExempt) {
+      return originalSteps;
+    }
+
+    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
+      success: (data) => data,
+      orElse: () => null,
+    );
+
+    if (orgConfig == null) {
+      return originalSteps;
+    }
+
+    final ordersConfig = orgConfig.ordersConfig;
+    if (ordersConfig == null || ordersConfig is! Map) {
+      return originalSteps;
+    }
+
+    final rolesConfig = ordersConfig['rolesConfig'];
+    if (rolesConfig == null || rolesConfig is! Map) {
+      return originalSteps;
+    }
+
+    List<String> allowedSteps = [];
+    bool hasRoleConfig = false;
+
+    for (final role in roles) {
+      if (rolesConfig.containsKey(role)) {
+        final rConfig = rolesConfig[role];
+        if (rConfig is Map) {
+          final steps = rConfig['allowedSteps'];
+          if (steps is List) {
+            allowedSteps.addAll(steps.map((e) => e.toString()));
+            hasRoleConfig = true;
+          }
+        }
+      }
+    }
+
+    if (!hasRoleConfig) {
+      return originalSteps;
+    }
+
+    final filtered = originalSteps.where((step) => allowedSteps.contains(step.stepKey)).toList();
+    
+    if (filtered.isEmpty) {
+      return originalSteps;
+    }
+
+    return filtered;
+  }
+
+  List<WorkflowConfigModel> _getVisibleConfigs(List<WorkflowConfigModel> originalConfigs) {
+    final user = appChangesValues.user;
+    final roles = user?.roles ?? [];
+
+    final isExempt = AppShellConfigs.isAdminMode ||
+        roles.contains('admin') ||
+        roles.contains('organizationOwner') ||
+        roles.contains('owner') ||
+        roles.contains('super_admin');
+
+    if (isExempt) {
+      return originalConfigs;
+    }
+
+    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
+      success: (data) => data,
+      orElse: () => null,
+    );
+
+    if (orgConfig == null) {
+      return originalConfigs;
+    }
+
+    final ordersConfig = orgConfig.ordersConfig;
+    if (ordersConfig == null || ordersConfig is! Map) {
+      return originalConfigs;
+    }
+
+    final rolesConfig = ordersConfig['rolesConfig'];
+    if (rolesConfig == null || rolesConfig is! Map) {
+      return originalConfigs;
+    }
+
+    String? selectedWorkflowId;
+    for (final role in roles) {
+      if (rolesConfig.containsKey(role)) {
+        final rConfig = rolesConfig[role];
+        if (rConfig is Map) {
+          final wId = rConfig['selectedWorkflowId'];
+          if (wId != null && wId.toString().isNotEmpty) {
+            selectedWorkflowId = wId.toString();
+            break;
+          }
+        }
+      }
+    }
+
+    if (selectedWorkflowId == null) {
+      return originalConfigs;
+    }
+
+    final filtered = originalConfigs.where((config) => config.id == selectedWorkflowId).toList();
+    if (filtered.isEmpty) {
+      return originalConfigs;
+    }
+
+    return filtered;
+  }
+
+  WorkflowConfigModel? _getActiveConfig() {
+    final wfState = context.read<WorkflowManagementBloc>().state;
+    return wfState.listState.maybeWhen(
+      success: (configs) {
+        if (configs != null && configs.isNotEmpty) {
+          final visibleConfigs = _getVisibleConfigs(configs);
+          if (_selectedWorkflowIndex < visibleConfigs.length) {
+            return visibleConfigs[_selectedWorkflowIndex];
+          }
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
+  }
+
+  int _getActiveAbsoluteStepIndex() {
+    final activeConfig = _getActiveConfig();
+    if (activeConfig == null) return 0;
+    final visibleSteps = _getVisibleSteps(activeConfig.workflow.steps, activeConfig.workflowSlug);
+    if (_stepTabController == null || visibleSteps.isEmpty) return 0;
+    
+    final currentIndex = _stepTabController!.index;
+    if (currentIndex >= visibleSteps.length) return 0;
+    
+    final selectedVisibleStep = visibleSteps[currentIndex];
+    final originalSteps = activeConfig.workflow.steps;
+    final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
+    return absoluteIndex != -1 ? absoluteIndex : 0;
+  }
+
+  int _getActiveStepNumber(int absoluteStepIndex) {
+    final activeConfig = _getActiveConfig();
+    if (activeConfig == null) return absoluteStepIndex + 1;
+    final steps = activeConfig.workflow.steps;
+    if (absoluteStepIndex < steps.length) {
+      return steps[absoluteStepIndex].stepNumber;
+    }
+    return absoluteStepIndex + 1;
+  }
+
+  List<OrderModel> _filterOrdersByPath(List<OrderModel> originalOrders, int absoluteStepIndex) {
+    final user = appChangesValues.user;
+    final roles = user?.roles ?? [];
+
+    final isExempt = AppShellConfigs.isAdminMode ||
+        roles.contains('admin') ||
+        roles.contains('organizationOwner') ||
+        roles.contains('owner') ||
+        roles.contains('super_admin');
+
+    if (isExempt) {
+      return originalOrders;
+    }
+
+    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
+      success: (data) => data,
+      orElse: () => null,
+    );
+
+    if (orgConfig == null) {
+      return originalOrders;
+    }
+
+    final ordersConfig = orgConfig.ordersConfig;
+    if (ordersConfig == null || ordersConfig is! Map) {
+      return originalOrders;
+    }
+
+    final rolesConfig = ordersConfig['rolesConfig'];
+    if (rolesConfig == null || rolesConfig is! Map) {
+      return originalOrders;
+    }
+
+    bool filterByPath = false;
+    List<String> allowedPaths = [];
+
+    for (final role in roles) {
+      if (rolesConfig.containsKey(role)) {
+        final rConfig = rolesConfig[role];
+        if (rConfig is Map) {
+          final isFilterEnabled = rConfig['filterByPath'] == true || rConfig['filterByPath'] == 'true';
+          if (isFilterEnabled) {
+            filterByPath = true;
+            final paths = rConfig['allowedPaths'];
+            if (paths is List) {
+              allowedPaths.addAll(paths.map((e) => e.toString()));
+            }
+          }
+        }
+      }
+    }
+
+    if (!filterByPath) {
+      return originalOrders;
+    }
+
+    final pathState = context.read<OrderPathBloc>().state;
+    final allPaths = pathState.listState.maybeWhen(
+      success: (list) => list ?? [],
+      orElse: () => <OrderPathModel>[],
+    );
+
+    return originalOrders.where((order) {
+      final orderPathId = order.externalReferences['orderPathId']?.toString();
+      if (orderPathId == null || orderPathId.isEmpty) {
+        return true;
+      }
+
+      final pathObj = allPaths.where((p) => p.id == orderPathId).firstOrNull;
+      if (pathObj == null) {
+        return true;
+      }
+
+      final currentStepNumber = _getActiveStepNumber(absoluteStepIndex);
+      if (pathObj.triggerStepNumber == currentStepNumber) {
+        return allowedPaths.contains(orderPathId);
+      }
+
+      return true;
+    }).toList();
   }
 
   @override
@@ -101,7 +350,8 @@ class _OrdersScreenState extends State<OrdersScreen>
               state.listState.maybeWhen(
                 success: (configs) {
                   if (configs != null && configs.isNotEmpty) {
-                    _initializeTabController(configs);
+                    final visibleConfigs = _getVisibleConfigs(configs);
+                    _initializeTabController(visibleConfigs);
                   }
                 },
                 orElse: () {},
@@ -125,19 +375,31 @@ class _OrdersScreenState extends State<OrdersScreen>
                     );
                   }
 
-                  final currentConfig = configs[_selectedWorkflowIndex];
-                  final steps = currentConfig.workflow.steps;
+                  final visibleConfigs = _getVisibleConfigs(configs);
+                  if (visibleConfigs.isEmpty) {
+                    return const Center(
+                      child: Text("لا توجد مسارات عمل متاحة لهذا المستخدم"),
+                    );
+                  }
+
+                  if (_selectedWorkflowIndex >= visibleConfigs.length) {
+                    _selectedWorkflowIndex = 0;
+                  }
+
+                  final currentConfig = visibleConfigs[_selectedWorkflowIndex];
+                  final originalSteps = currentConfig.workflow.steps;
+                  final visibleSteps = _getVisibleSteps(originalSteps, currentConfig.workflowSlug);
 
                   return Column(
                     children: <Widget>[
-                      if (configs.length > 1)
+                      if (visibleConfigs.length > 1)
                         WorkflowSelector(
-                          configs: configs,
+                          configs: visibleConfigs,
                           selectedWorkflowIndex: _selectedWorkflowIndex,
                           onSelected: (index) {
                             setState(() {
                               _selectedWorkflowIndex = index;
-                              _initializeTabController(configs, forcedIndex: 0);
+                              _initializeTabController(visibleConfigs, forcedIndex: 0);
                             });
                           },
                         ),
@@ -154,9 +416,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: steps.length,
+                            itemCount: visibleSteps.length,
                             itemBuilder: (context, index) {
-                              final s = steps[index];
+                              final s = visibleSteps[index];
                               final isSelected =
                                   _stepTabController?.index == index;
                               final stepColor = _getStepColor(s);
@@ -247,7 +509,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     child: CircularProgressIndicator(),
                                   ),
                                   success: (orders) {
-                                    if (orders == null || orders.isEmpty) {
+                                    final currentAbsoluteStepIndex = _getActiveAbsoluteStepIndex();
+                                    final filteredOrders = _filterOrdersByPath(orders ?? [], currentAbsoluteStepIndex);
+
+                                    if (filteredOrders.isEmpty) {
                                       return Center(
                                         child: Column(
                                           mainAxisAlignment:
@@ -260,7 +525,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                             ),
                                             const SizedBox(height: 16),
                                             Text(
-                                              "لا توجد طلبات في مرحلة ${steps[_stepTabController?.index ?? 0].stepName.ar}",
+                                              "لا توجد طلبات في مرحلة ${visibleSteps[_stepTabController?.index ?? 0].stepName.ar}",
                                               style: const TextStyle(
                                                 color: Colors.grey,
                                               ),
@@ -271,10 +536,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     }
 
                                     return ListViewModel<OrderModel>(
-                                      data: orders,
+                                      data: filteredOrders,
                                       listItem: (index, order) {
                                         final stepColor = _getStepColor(
-                                          steps[_stepTabController?.index ?? 0],
+                                          visibleSteps[_stepTabController?.index ?? 0],
                                         );
 
                                         return OrderItemCard(
@@ -349,7 +614,7 @@ class _OrdersScreenState extends State<OrdersScreen>
           onActionCompleted: () {
             _loadOrders(
               _getActiveWorkflowSlug(),
-              _stepTabController?.index ?? 0,
+              _getActiveAbsoluteStepIndex(),
             );
           },
           onAssignClicked: () {
@@ -377,7 +642,7 @@ class _OrdersScreenState extends State<OrdersScreen>
           onAssigned: () {
             _loadOrders(
               _getActiveWorkflowSlug(),
-              _stepTabController?.index ?? 0,
+              _getActiveAbsoluteStepIndex(),
             );
           },
         );
@@ -386,16 +651,8 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   String _getActiveWorkflowSlug() {
-    final wfState = context.read<WorkflowManagementBloc>().state;
-    return wfState.listState.maybeWhen(
-      success: (configs) {
-        if (configs != null && configs.isNotEmpty) {
-          return configs[_selectedWorkflowIndex].workflowSlug;
-        }
-        return '';
-      },
-      orElse: () => '',
-    );
+    final activeConfig = _getActiveConfig();
+    return activeConfig?.workflowSlug ?? '';
   }
 
   void _initializeTabController(
@@ -403,28 +660,32 @@ class _OrdersScreenState extends State<OrdersScreen>
     int? forcedIndex,
   }) {
     if (configs.isEmpty) return;
-    final steps = configs[_selectedWorkflowIndex].workflow.steps;
+    final currentConfig = configs[_selectedWorkflowIndex];
+    final originalSteps = currentConfig.workflow.steps;
+    final visibleSteps = _getVisibleSteps(originalSteps, currentConfig.workflowSlug);
 
     int targetIndex = forcedIndex ?? (_stepTabController?.index ?? 0);
 
-    if (targetIndex >= steps.length) {
+    if (targetIndex >= visibleSteps.length) {
       targetIndex = 0;
     }
 
     if (_stepTabController == null ||
-        _stepTabController!.length != steps.length) {
+        _stepTabController!.length != visibleSteps.length) {
       _stepTabController?.dispose();
       _stepTabController = TabController(
-        length: steps.length,
+        length: visibleSteps.length,
         vsync: this,
         initialIndex: targetIndex,
       );
 
       _stepTabController!.addListener(() {
         if (!_stepTabController!.indexIsChanging) {
+          final selectedVisibleStep = visibleSteps[_stepTabController!.index];
+          final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
           _loadOrders(
-            configs[_selectedWorkflowIndex].workflowSlug,
-            _stepTabController!.index,
+            currentConfig.workflowSlug,
+            absoluteIndex != -1 ? absoluteIndex : 0,
           );
         }
       });
@@ -434,10 +695,14 @@ class _OrdersScreenState extends State<OrdersScreen>
       }
     }
 
-    _loadOrders(
-      configs[_selectedWorkflowIndex].workflowSlug,
-      _stepTabController!.index,
-    );
+    if (visibleSteps.isNotEmpty) {
+      final selectedVisibleStep = visibleSteps[_stepTabController!.index];
+      final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
+      _loadOrders(
+        currentConfig.workflowSlug,
+        absoluteIndex != -1 ? absoluteIndex : 0,
+      );
+    }
 
     setState(() {});
   }
