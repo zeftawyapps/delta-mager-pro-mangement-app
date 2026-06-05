@@ -43,8 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
     orgName = widget.getPrams()!['orgName']!;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<AuthBloc>().checkSavedUser(
         onUserFound: (user) {
+          if (!mounted) return;
           widget.goRoute(context, AppRoutes.welcome, replace: true);
         },
         onUserNotFound: () {},

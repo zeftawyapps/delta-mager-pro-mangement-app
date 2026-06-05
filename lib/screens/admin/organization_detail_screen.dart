@@ -9,16 +9,17 @@ import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 
 // Import Tabs
-import 'tabs/organization_detail/general_info_tab.dart';
-import 'tabs/organization_detail/config_tab.dart';
-import 'tabs/organization_detail/product_config_tab.dart';
-import 'tabs/organization_detail/policies_tab.dart';
-import 'tabs/organization_detail/license_tab.dart';
-import 'tabs/organization_detail/workflow_tab.dart';
-import 'tabs/organization_detail/roles_tab.dart';
-import 'tabs/organization_detail/features_tab.dart';
-import 'tabs/organization_detail/b2b_home_tab.dart';
-import 'tabs/organization_detail/order_paths_tab.dart';
+import 'tabs/organization_detail/general/general_info_tab.dart';
+import 'tabs/organization_detail/settings/config/config_tab.dart';
+import 'tabs/organization_detail/settings/product_config/product_config_tab.dart';
+import 'tabs/organization_detail/operations/policies/policies_tab.dart';
+import 'tabs/organization_detail/general/license_tab.dart';
+import 'tabs/organization_detail/operations/workflow/workflow_tab.dart';
+import 'tabs/organization_detail/operations/roles/roles_tab.dart';
+import 'tabs/organization_detail/settings/features_tab.dart';
+import 'tabs/organization_detail/settings/b2b_home/b2b_home_tab.dart';
+import 'tabs/organization_detail/operations/order_paths/order_paths_tab.dart';
+import 'tabs/organization_detail/operations/order_screen_config/order_screen_config_tab.dart';
 
 class OrganizationDetailScreen extends StatefulWidget {
   final OrganizationModel organization;
@@ -44,34 +45,95 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 9,
+      length: 11,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.organization.name),
           backgroundColor: isDark ? DarkColors.surface : LightColors.primary,
           foregroundColor: Colors.white,
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true, // Added for mobile support if many tabs
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             tabs: [
-              Tab(icon: Icon(Icons.info), text: "البيانات الأساسية"),
-              Tab(icon: Icon(Icons.settings), text: "الإعدادات Config"),
-              Tab(
-                icon: Icon(Icons.inventory_2_outlined),
-                text: "إعدادات المنتجات",
+              Tooltip(
+                message: "البيانات الأساسية للمنظمة مثل الاسم والشعار وتفاصيل التواصل.",
+                child: Tab(
+                  icon: Icon(Icons.info),
+                  text: "البيانات الأساسية",
+                ),
               ),
-              Tab(icon: Icon(Icons.home_outlined), text: "إعدادات B2B Home"),
-              Tab(icon: Icon(Icons.star_outline), text: "المزايا Features"),
-              Tab(icon: Icon(Icons.gavel), text: "السياسات Policies"),
-              Tab(icon: Icon(Icons.security), text: "الأدوار Roles"),
-              Tab(
-                icon: Icon(Icons.account_tree_outlined),
-                text: "مسارات العمل Workflow",
+              Tooltip(
+                message: "إمكانيات الإعدادات والتهيئات العامة للنظام والمنظمة.",
+                child: Tab(
+                  icon: Icon(Icons.settings),
+                  text: "الإعدادات Config",
+                ),
               ),
-
-              Tab(icon: Icon(Icons.verified), text: "الترخيص License"),
+              Tooltip(
+                message: "تخصيص خيارات المنتجات والأسعار والخصومات الخاصة بالمؤسسة.",
+                child: Tab(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  text: "إعدادات المنتجات",
+                ),
+              ),
+              Tooltip(
+                message: "تهيئة وإعداد الشاشة الرئيسية وتصميم واجهة تطبيق الـ B2B للعملاء.",
+                child: Tab(
+                  icon: Icon(Icons.home_outlined),
+                  text: "إعدادات B2B Home",
+                ),
+              ),
+              Tooltip(
+                message: "التحكم في الميزات الإضافية مثل الولاء وعروض المبيعات والدعم الفني.",
+                child: Tab(
+                  icon: Icon(Icons.star_outline),
+                  text: "المزايا Features",
+                ),
+              ),
+              Tooltip(
+                message: "إدارة وتعديل سياسات الاسترجاع والخصوصية وشروط الاستخدام للمنظمة.",
+                child: Tab(
+                  icon: Icon(Icons.gavel),
+                  text: "السياسات Policies",
+                ),
+              ),
+              Tooltip(
+                message: "إدارة وتوزيع أدوار وصلاحيات الموظفين والمشرفين التابعين للمنظمة.",
+                child: Tab(
+                  icon: Icon(Icons.security),
+                  text: "الأدوار Roles",
+                ),
+              ),
+              Tooltip(
+                message: "تصميم وإدارة خط سير حركة الطلبات ومراحل العمل التشغيلية.",
+                child: Tab(
+                  icon: Icon(Icons.account_tree_outlined),
+                  text: "مسارات العمل Workflow",
+                ),
+              ),
+              Tooltip(
+                message: "تحديد خطوط السير والتوجيه الجغرافي للمناديب في المناطق.",
+                child: Tab(
+                  icon: Icon(Icons.alt_route),
+                  text: "خطوط السير Paths",
+                ),
+              ),
+              Tooltip(
+                message: "تخصيص طريقة عرض بيانات الطلبات وحقول الإدخال للمشرفين.",
+                child: Tab(
+                  icon: Icon(Icons.tune),
+                  text: "إعدادات الطلبات Orders Config",
+                ),
+              ),
+              Tooltip(
+                message: "التحقق من تفاصيل ترخيص المنظمة وتاريخ انتهاء الصلاحية والحدود.",
+                child: Tab(
+                  icon: Icon(Icons.verified),
+                  text: "الترخيص License",
+                ),
+              ),
             ],
           ),
         ),
@@ -278,15 +340,37 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 isDark: isDark,
               ),
 
-              // --- Tab 7: Workflow ---
+              // --- Tab 8: Workflow ---
               WorkflowSectionTab(
                 organizationId: widget.organization.organizationId,
                 isDark: isDark,
               ),
 
+              // --- Tab 9: Order Paths ---
+              OrderPathsSectionTab(
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
 
+              // --- Tab 10: Orders Configuration ---
+              BlocBuilder<
+                AdminOrganizationConfigBloc,
+                FeaturDataSourceState<OrganizationConfigModel>
+              >(
+                builder: (context, state) {
+                  return state.itemState.maybeWhen(
+                    success: (config) => OrderScreenConfigTab(
+                      config: config!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    orElse: () => const SizedBox(),
+                  );
+                },
+              ),
 
-              // --- Tab 7: License ---
+              // --- Tab 11: License ---
               BlocBuilder<
                 AdminOrganizationConfigBloc,
                 FeaturDataSourceState<OrganizationConfigModel>

@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/configs.dart';
 
 class JsonConfigService {
   static final JsonConfigService _instance = JsonConfigService._internal();
@@ -12,20 +13,23 @@ class JsonConfigService {
     try {
       // 1. تحميل الإعدادات الرئيسية العامة لتحديد العميل النشط
       final String response = await rootBundle.loadString(
-        'assets/json_config/config.yaml',
+        AppConfigAssets.firebaseConfig,
       );
       final YamlMap yamlMap = loadYaml(response);
       final String activeClient = yamlMap['activeClient'] ?? 'domansy';
 
       // 2. تحميل ملف العميل النشط مباشرة كإعداد أساسي وحيد للتطبيق
       final String clientResponse = await rootBundle.loadString(
-        'assets/json_config/clients/$activeClient.yaml',
+        '${AppConfigAssets.BaseUrl}$activeClient.yaml',
       );
       final YamlMap clientYamlMap = loadYaml(clientResponse);
       _config = _yamlToMap(clientYamlMap);
       
       // حفظ اسم العميل النشط في الإعدادات للاستخدام البرمجي
       _config['activeClient'] = activeClient;
+
+      // حفظ حالة المسؤول أو المنظمة من config.yaml
+      _config['isAdminMode'] = yamlMap['isAdminMode'] == true || yamlMap['isAdminMode'] == 'true';
     } catch (e) {
       // print('Error loading configuration: $e');
       _config = {};
@@ -55,6 +59,7 @@ class JsonConfigService {
 
   Map<String, dynamic> get productInput => _config['productInput'] ?? {};
   Map<String, dynamic> get b2bHomeLayout => _config['b2bHomeLayout'] ?? {};
+  Map<String, dynamic> get ordersConfig => _config['ordersConfig'] ?? {};
   Map<String, dynamic> get appBranding => _config['appBranding'] ?? {};
   Map<String, dynamic> get branding => appBranding;
   String get appTitle => appBranding['appTitle'] ?? 'Domancy';
@@ -64,6 +69,7 @@ class JsonConfigService {
   String get activeClient => _config['activeClient'] ?? 'domansy';
   String get clientBaseUrl => _config['baseUrl'] ?? '';
   String get clientImageUrl => _config['imageUrl'] ?? '';
+  bool get isAdminMode => _config['isAdminMode'] ?? true;
 
   // 🟢 تحديث الإعدادات برمجياً لمزامنتها مع الـ Bloc فور التحميل أو الحفظ
   void updateProductInput(Map<String, dynamic>? data) {
@@ -75,6 +81,12 @@ class JsonConfigService {
   void updateB2bHomeLayout(Map<String, dynamic>? data) {
     if (data != null) {
       _config['b2bHomeLayout'] = data;
+    }
+  }
+
+  void updateOrdersConfig(Map<String, dynamic>? data) {
+    if (data != null) {
+      _config['ordersConfig'] = data;
     }
   }
 }

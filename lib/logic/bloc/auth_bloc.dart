@@ -14,6 +14,7 @@ import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dar
 import 'package:JoDija_tamplites/util/shardeprefrance/shard_check.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   final AuthRepo authRepo;
@@ -99,6 +100,9 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
           token: user.token!,
         );
 
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('active_org_name', orgName);
+
         emit(state.copyWith(itemState: DataSourceBaseState.success(user)));
       } catch (e) {
         emit(
@@ -173,11 +177,14 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
       isRegistAction: (shardUserModel) async {
         // المستخدم مسجل - قم بتسجيل الدخول تلقائياً
         if (shardUserModel.email != null && shardUserModel.pass != null) {
-          AppRoutes.defaultOrgName = AppRoutes.activeOrgName;
+          final prefs = await SharedPreferences.getInstance();
+          final savedOrgName = prefs.getString('active_org_name') ?? AppRoutes.activeOrgName;
+          AppRoutes.activeOrgName = savedOrgName;
+          AppRoutes.defaultOrgName = savedOrgName;
 
           final result = await signeIn(
             map: {
-              "orgName": AppRoutes.activeOrgName,
+              "orgName": savedOrgName,
               "email": shardUserModel.email!,
               "pass": utf8.decode(base64Decode(shardUserModel.pass!)), // Decode
             },
@@ -200,8 +207,10 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   }
 
   // إضافة signOut مع مسح البيانات المخزنة وتصفير التوكن
-  void signOut() {
+  void signOut() async {
     SharedPrefranceChecking().clearDataInShardRefrace();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('active_org_name');
     ProjectAPIHeader.setToken(''); // تصفير التوكن في الهيدر
     appChangesValues?.setUser(null); // تصفير بيانات المستخدم المشتركة
     emit(FeaturDataSourceState<Users>.defaultState());

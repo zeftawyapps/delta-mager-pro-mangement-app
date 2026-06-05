@@ -5,7 +5,6 @@ class AppAsset {
 }
 
 class AppConfigAssets {
-  static const String firebaseConfig =
-      'assets/json_config/firebase_config.json';
-  static const String BaseUrl = 'assets/json_config/base_url_config.json';
+  static const String firebaseConfig = 'project_builder/config.yaml';
+  static const String BaseUrl = 'project_builder/clients/';
 }

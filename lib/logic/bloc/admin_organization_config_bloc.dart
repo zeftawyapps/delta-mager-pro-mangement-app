@@ -23,6 +23,7 @@ class AdminOrganizationConfigBloc
       // 🟢 مزامنة الإعدادات مع الـ Static Config الخدمي
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
+      JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -47,6 +48,7 @@ class AdminOrganizationConfigBloc
       // 🟢 مزامنة الإعدادات مع الـ Static Config الخدمي
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
+      JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -78,6 +80,7 @@ class AdminOrganizationConfigBloc
       // 🟢 مزامنة الإعدادات مع الـ Static Config الخدمي
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
+      JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(

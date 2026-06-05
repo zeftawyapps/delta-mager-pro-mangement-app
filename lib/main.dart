@@ -15,7 +15,8 @@ void main() async {
   await configService.init();
 
   // ⚙️ إعدادات النظام - يتم ضبطها ديناميكياً بناءً على ملف config.json للعميل
-  AppShellConfigs.isAdminMode = true; // true لوضع المسؤول، false لوضع المنظمة
+  AppShellConfigs.isAdminMode =
+      configService.isAdminMode; // true لوضع المسؤول، false لوضع المنظمة
   AppShellConfigs.titleApp = configService.appTitle;
   AppShellConfigs.defaultOrgName = configService.defaultOrgName;
   AppShellLocalConfigs.appVersion = configService.appVersion;

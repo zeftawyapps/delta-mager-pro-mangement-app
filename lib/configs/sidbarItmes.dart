@@ -28,6 +28,8 @@ class SidebarItemsConfig {
       label: AppStrings.analytics,
       icon: Icons.home,
       content: AnalyticsScreen(),
+      isSideBarRouted: true,
+      isVisableInSideBar: true,
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
     RouteItem(

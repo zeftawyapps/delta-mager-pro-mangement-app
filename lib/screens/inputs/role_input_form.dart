@@ -44,6 +44,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
   final TextEditingController searchController = TextEditingController();
   final Map<String, ScrollController> _horizontalScrollControllers = {};
   String? selectedOrganizationId;
+  bool allowAuthLogin = false;
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
     descriptionController = TextEditingController(
       text: widget.role?.description ?? '',
     );
+    allowAuthLogin = widget.role?.allowAuthLogin ?? false;
     selectedPermissions = List<String>.from(widget.role?.permissions ?? []);
     _loadPermissions();
 
@@ -259,6 +261,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         displayName: displayNameController.text.trim(),
         description: descriptionController.text.trim(),
         permissions: finalPermissions,
+        allowAuthLogin: allowAuthLogin,
         organizationId: targetOrgId,
       );
     } else if (widget.role != null && widget.role!.id != null) {
@@ -268,6 +271,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         displayName: displayNameController.text.trim(),
         description: descriptionController.text.trim(),
         permissions: finalPermissions,
+        allowAuthLogin: allowAuthLogin,
         organizationId: widget.organizationId,
       );
     } else {
@@ -276,6 +280,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         displayName: displayNameController.text.trim(),
         description: descriptionController.text.trim(),
         permissions: finalPermissions,
+        allowAuthLogin: allowAuthLogin,
         organizationId: widget.organizationId,
       );
     }
@@ -394,6 +399,36 @@ class _RoleInputFormState extends State<RoleInputForm> {
                     ),
                     labalText: 'الوصف',
                     keyData: "description",
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
+                      ),
+                    ),
+                    child: SwitchListTile(
+                      title: const Text(
+                        'السماح بتسجيل الدخول',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: const Text(
+                        'يسمح للمستخدمين المرتبطين بهذا الدور بتسجيل الدخول للنظام',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      secondary: Icon(
+                        Icons.login,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      value: allowAuthLogin,
+                      onChanged: (val) {
+                        setState(() {
+                          allowAuthLogin = val;
+                        });
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(

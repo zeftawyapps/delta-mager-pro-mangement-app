@@ -236,4 +236,115 @@ class WorkflowManagementBloc
       );
     }
   }
+
+  Future<void> addStep({
+    required String organizationId,
+    required String entityType,
+    required WorkflowStep step,
+    bool reorder = false,
+    String? slug,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.addStep(
+      orgId: organizationId,
+      entityType: entityType,
+      step: step,
+      reorder: reorder,
+      slug: slug,
+    );
+
+    if (result.status == StatusModel.success) {
+      loadSpecificConfig(organizationId, entityType: entityType);
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء إضافة الخطوة",
+            ),
+            () => addStep(
+              organizationId: organizationId,
+              entityType: entityType,
+              step: step,
+              reorder: reorder,
+              slug: slug,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> updateStep({
+    required String organizationId,
+    required int stepNumber,
+    required String entityType,
+    required WorkflowStep step,
+    String? slug,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.updateStep(
+      orgId: organizationId,
+      stepNumber: stepNumber,
+      entityType: entityType,
+      step: step,
+      slug: slug,
+    );
+
+    if (result.status == StatusModel.success) {
+      loadSpecificConfig(organizationId, entityType: entityType);
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء تعديل الخطوة",
+            ),
+            () => updateStep(
+              organizationId: organizationId,
+              stepNumber: stepNumber,
+              entityType: entityType,
+              step: step,
+              slug: slug,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> deleteStep({
+    required String organizationId,
+    required int stepNumber,
+    required String entityType,
+    String? slug,
+  }) async {
+    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+    final result = await repo.deleteStep(
+      orgId: organizationId,
+      stepNumber: stepNumber,
+      entityType: entityType,
+      slug: slug,
+    );
+
+    if (result.status == StatusModel.success) {
+      loadSpecificConfig(organizationId, entityType: entityType);
+    } else {
+      emit(
+        state.copyWith(
+          itemState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "حدث خطأ أثناء حذف الخطوة",
+            ),
+            () => deleteStep(
+              organizationId: organizationId,
+              stepNumber: stepNumber,
+              entityType: entityType,
+              slug: slug,
+            ),
+          ),
+        ),
+      );
+    }
+  }
 }

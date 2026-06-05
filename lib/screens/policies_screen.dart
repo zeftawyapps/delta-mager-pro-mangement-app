@@ -1,6 +1,7 @@
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
+import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/organization_detail/operations/policies/policies_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_bloc.dart';
@@ -9,7 +10,6 @@ import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
-import 'admin/tabs/organization_detail/policies_tab.dart';
 
 class PoliciesScreen extends StatefulWidget with AppShellRouterMixin {
   PoliciesScreen({super.key});
@@ -20,11 +20,6 @@ class PoliciesScreen extends StatefulWidget with AppShellRouterMixin {
 
 class _PoliciesScreenState extends State<PoliciesScreen> {
   String get organizationId {
-    final params = widget.getPrams();
-    final orgName = params?['orgName'];
-    if (orgName != null && orgName != "" && orgName != ":orgName") {
-      return orgName;
-    }
     final user = context.read<AppChangesValues>().user;
     return user?.organizationId ?? 'shop1';
   }

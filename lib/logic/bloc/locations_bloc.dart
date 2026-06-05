@@ -14,6 +14,7 @@ class LocationsState {
   final DataSourceBaseState<List<CityModel>> citiesState;
   final DataSourceBaseState<List<LanguageModel>> languagesState;
   final DataSourceBaseState<bool> operationState;
+  final Map<String, CityModel> citiesCache; // Cache of all loaded cities by ID
 
   LocationsState({
     required this.countriesState,
@@ -21,6 +22,7 @@ class LocationsState {
     required this.citiesState,
     required this.languagesState,
     required this.operationState,
+    this.citiesCache = const {},
   });
 
   factory LocationsState.initial() => LocationsState(
@@ -29,6 +31,7 @@ class LocationsState {
     citiesState: const DataSourceBaseState.init(),
     languagesState: const DataSourceBaseState.init(),
     operationState: const DataSourceBaseState.init(),
+    citiesCache: const {},
   );
 
   LocationsState copyWith({
@@ -37,6 +40,7 @@ class LocationsState {
     DataSourceBaseState<List<CityModel>>? citiesState,
     DataSourceBaseState<List<LanguageModel>>? languagesState,
     DataSourceBaseState<bool>? operationState,
+    Map<String, CityModel>? citiesCache,
   }) {
     return LocationsState(
       countriesState: countriesState ?? this.countriesState,
@@ -44,6 +48,7 @@ class LocationsState {
       citiesState: citiesState ?? this.citiesState,
       languagesState: languagesState ?? this.languagesState,
       operationState: operationState ?? this.operationState,
+      citiesCache: citiesCache ?? this.citiesCache,
     );
   }
 
@@ -67,6 +72,9 @@ class LocationsState {
 
   String getCityName(String? id) {
     if (id == null) return "";
+    if (citiesCache.containsKey(id.toString())) {
+      return citiesCache[id.toString()]!.name.ar;
+    }
     return citiesState.maybeWhen(
       success: (list) {
         if (list == null) return "";
@@ -145,7 +153,16 @@ class LocationsBloc extends Cubit<LocationsState> {
     if (result.status == StatusModel.success) {
       final list =
           result.data?.map((e) => CityModel.fromData(e)).toList() ?? [];
-      emit(state.copyWith(citiesState: DataSourceBaseState.success(list)));
+      
+      final newCache = Map<String, CityModel>.from(state.citiesCache);
+      for (var city in list) {
+        newCache[city.id.toString()] = city;
+      }
+
+      emit(state.copyWith(
+        citiesState: DataSourceBaseState.success(list),
+        citiesCache: newCache,
+      ));
     } else {
       emit(
         state.copyWith(

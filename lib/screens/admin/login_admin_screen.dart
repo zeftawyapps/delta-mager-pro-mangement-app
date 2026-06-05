@@ -36,8 +36,10 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<AuthBloc>().checkSavedUser(
         onUserFound: (user) {
+          if (!mounted) return;
           if (user.roles.contains('admin')) {
             widget.goRoute(context, AppRoutes.welcome, replace: true);
           }

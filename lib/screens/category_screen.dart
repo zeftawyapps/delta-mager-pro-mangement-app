@@ -17,6 +17,7 @@ import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
 import 'inputs/category_input_form.dart';
+import 'package:delta_mager_pro_mangement_app/catalog/categories/category_card.dart';
 
 // ignore: must_be_immutable
 class CategoryScreen extends StatefulWidget with AppShellRouterMixin {
@@ -188,8 +189,14 @@ class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
         },
         canAdd: canAdd,
         canMultiSelect: true,
-        itemBuilder: (context, category, isSelected) =>
-            _buildCategoryCard(category, isDark, canUpdate, canDelete),
+        itemBuilder: (context, category, isSelected) => CategoryCard(
+          category: category,
+          isDark: isDark,
+          canUpdate: canUpdate,
+          canDelete: canDelete,
+          onEdit: () => _editCategory(category),
+          onDelete: () => _deleteCategory(category),
+        ),
         multiSelectActions: (selectedItems) => [
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.white),
@@ -218,98 +225,6 @@ class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
         shrinkWrap: widget.shrinkWrap,
         scrollController: widget.scrollController,
         debounceMs: widget.debounceMs,
-      ),
-    );
-  }
-
-  Widget _buildCategoryCard(
-    CategoryModel category,
-    bool isDark,
-    bool canUpdate,
-    bool canDelete,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      clipBehavior: Clip.antiAlias,
-      color: isDark ? DarkColors.surface : LightColors.surface,
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 3,
-                child: category.image != null && category.image != ""
-                    ? Image.network(
-                        category.image!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.broken_image, size: 30),
-                        ),
-                      )
-                    : Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.category, size: 40),
-                      ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        category.name.ar,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${category.productCount ?? 0} منتج',
-                        style: TextStyle(
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: PopUpMenu(
-              iconSize: 18,
-              items: [
-                if (canUpdate)
-                  pubMenuItems(
-                    title: AppStrings.edit,
-                    icon: Icons.edit,
-                    value: 1,
-                    onTap: () => _editCategory(category),
-                  ),
-                if (canDelete)
-                  pubMenuItems(
-                    title: AppStrings.delete,
-                    icon: Icons.delete,
-                    value: 2,
-                    onTap: () => _deleteCategory(category),
-                  ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -36,6 +36,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
     String? displayName,
     String? description,
     required List<String> permissions,
+    bool allowAuthLogin = false,
     String? organizationId,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
@@ -44,6 +45,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
       displayName: displayName,
       description: description,
       permissions: permissions,
+      allowAuthLogin: allowAuthLogin,
       organizationId: organizationId,
     );
 
@@ -66,6 +68,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
               displayName: displayName,
               description: description,
               permissions: permissions,
+              allowAuthLogin: allowAuthLogin,
               organizationId: organizationId,
             ),
           ),
@@ -81,6 +84,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
     String? description,
     List<String>? permissions,
     bool? isActive,
+    bool? allowAuthLogin,
     String? organizationId,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
@@ -91,6 +95,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
       description: description,
       permissions: permissions,
       isActive: isActive,
+      allowAuthLogin: allowAuthLogin,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -113,6 +118,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
               displayName: displayName,
               description: description,
               permissions: permissions,
+              allowAuthLogin: allowAuthLogin,
               organizationId: organizationId,
             ),
           ),

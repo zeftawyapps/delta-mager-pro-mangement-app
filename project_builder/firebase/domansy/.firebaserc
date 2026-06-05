@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "domansy-dev"
+  },
+  "targets": {
+    "domansy-dev": {
+      "hosting": {
+        "admin": [
+          "domancy-admin"
+        ],
+        "dashboard": [
+          "domancy-orgs"
+        ]
+      }
+    }
+  }
+}

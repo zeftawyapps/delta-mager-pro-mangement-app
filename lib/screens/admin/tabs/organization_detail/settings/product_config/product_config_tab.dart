@@ -4,8 +4,9 @@ import 'package:matger_pro_core_logic/core/orgnization/data/organization_config.
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_unit.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:delta_mager_pro_mangement_app/configs/product_input_config.dart';
+
+import 'widgets/image_config_section.dart';
 
 class ProductConfigSectionTab extends StatefulWidget {
   final OrganizationConfig config;
@@ -340,13 +341,25 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
             title: "إعدادات الصور (Image Config)",
             icon: Icons.image_outlined,
             children: [
-              _buildImageConfigSection(
-                  "صور المنتجات",
-                  ProductInputConfig.keyProductImageIsRequired.split('_')[0]),
+              ImageConfigSection(
+                title: "صور المنتجات",
+                groupPrefix: ProductInputConfig.keyProductImageIsRequired.split('_')[0],
+                data: _data,
+                isEditing: _isEditing,
+                isDark: widget.isDark,
+                primaryColor: primaryColor,
+                onFieldUpdated: _updateField,
+              ),
               const Divider(),
-              _buildImageConfigSection(
-                  "صور التصنيفات",
-                  ProductInputConfig.keyCategoryImageIsRequired.split('_')[0]),
+              ImageConfigSection(
+                title: "صور التصنيفات",
+                groupPrefix: ProductInputConfig.keyCategoryImageIsRequired.split('_')[0],
+                data: _data,
+                isEditing: _isEditing,
+                isDark: widget.isDark,
+                primaryColor: primaryColor,
+                onFieldUpdated: _updateField,
+              ),
             ],
           ),
         ],
@@ -419,95 +432,6 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
         ),
         const Divider(height: 1),
       ],
-    );
-  }
-
-  Widget _buildImageConfigSection(String title, String groupPrefix) {
-    final primaryColor = widget.isDark ? DarkColors.primary : LightColors.primary;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: primaryColor,
-          ),
-        ),
-        _buildSwitch(
-          "الصورة مطلوبة",
-          "${groupPrefix}_isRequired",
-          subtitle: "جعل رفع الصورة شرطاً أساسياً لحفظ المنتج",
-        ),
-        _buildSwitch(
-          "فرض نسبة العرض للارتفاع",
-          "${groupPrefix}_enforceRatio",
-          defaultValue: true,
-          subtitle: "إجبار المستخدم على قص الصورة لتناسب الأبعاد المذكورة",
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: _buildNumberInput(
-                "الارتفاع",
-                "${groupPrefix}_height",
-                _data["${groupPrefix}_height"] ?? 200,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildNumberInput(
-                "العرض",
-                "${groupPrefix}_width",
-                _data["${groupPrefix}_width"] ?? 200,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildNumberInput(
-                "الحد الأقصى (MB)",
-                "${groupPrefix}_maxSizeMB",
-                _data["${groupPrefix}_maxSizeMB"] ?? 5,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNumberInput(String label, String key, dynamic value) {
-    return TextFormField(
-      initialValue: value.toString(),
-      key: ValueKey("${key}_${_isEditing}"),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          fontSize: 11,
-          color: widget.isDark ? Colors.white70 : Colors.black54,
-        ),
-        isDense: true,
-        border: const OutlineInputBorder(),
-        filled: !_isEditing,
-        fillColor: _isEditing
-            ? null
-            : (widget.isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.grey.withOpacity(0.05)),
-      ),
-      keyboardType: TextInputType.number,
-      readOnly: !_isEditing,
-      onChanged: (val) {
-        final numVal = num.tryParse(val);
-        if (numVal != null) {
-          _updateField(key, numVal);
-        }
-      },
-      style: TextStyle(
-        fontSize: 13,
-        color: widget.isDark ? Colors.white : Colors.black87,
-      ),
     );
   }
 }

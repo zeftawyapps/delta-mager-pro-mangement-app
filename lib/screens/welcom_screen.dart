@@ -51,7 +51,13 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
         }
 
         // 2️⃣ ثانياً: إذا لم يكن أدمن، نطبق نظام صلاحيات الشاشات
-        AppRoutes.activeOrgName = currentUser.organizationId!;
+        final routeParams = widget.getPrams();
+        final orgNameFromRoute = routeParams?['orgName'];
+        if (orgNameFromRoute != null &&
+            orgNameFromRoute.isNotEmpty &&
+            orgNameFromRoute != ":orgName") {
+          AppRoutes.activeOrgName = orgNameFromRoute;
+        }
         List<RouteItem> routes = SidebarItemsConfig().items;
 
         // تعديل المتغيرات في الروابط قبل معالجتها
@@ -83,7 +89,7 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
               final firstRoute = availableRoutes.firstWhere(
                 (r) => r.isVisableInSideBar && r.isSideBarRouted != false,
               );
-              widget.goRouterInSidBar(context, firstRoute.path);
+              widget.goRouterInSidBar(context, firstRoute.resolvedPath);
             } catch (e) {
               widget.goRouterInSidBar(context, AppRoutes.settings);
             }

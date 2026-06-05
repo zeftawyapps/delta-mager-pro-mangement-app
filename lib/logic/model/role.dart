@@ -9,6 +9,7 @@ class RoleModel extends RoleDataModel implements BaseViewDataModel {
     super.description,
     super.permissions,
     super.isActive,
+    super.allowAuthLogin,
     super.organizationId,
     super.meta,
   });
@@ -21,6 +22,7 @@ class RoleModel extends RoleDataModel implements BaseViewDataModel {
       description: data.description,
       permissions: data.permissions,
       isActive: data.isActive,
+      allowAuthLogin: data.allowAuthLogin,
       organizationId: data.organizationId,
       meta: data.meta,
     );

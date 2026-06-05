@@ -63,8 +63,12 @@ class _UserInputFormState extends State<UserInputForm> {
 
     // Load roles
     context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
-    // Load governorates
-    context.read<LocationsBloc>().loadGovernorates();
+    // Load governorates using the default/selected country ID ('EG')
+    context.read<LocationsBloc>().loadGovernorates(_selectedCountry);
+    // Load cities if a governorate is already selected (editing mode)
+    if (_selectedGovernorate != null) {
+      context.read<LocationsBloc>().loadCities(_selectedGovernorate!);
+    }
   }
 
   @override
@@ -220,17 +224,7 @@ class _UserInputFormState extends State<UserInputForm> {
                   const SizedBox(height: 16),
                   _buildGovernorateDropdown(),
                   const SizedBox(height: 16),
-                  TextFomrFildValidtion(
-                    controller: cityController,
-                    form: form,
-                    baseValidation: [RequiredValidator()],
-                    decoration: const InputDecoration(
-                      labelText: 'المدينة',
-                      prefixIcon: Icon(Icons.location_city),
-                    ),
-                    labalText: 'المدينة',
-                    keyData: "cityId",
-                  ),
+                  _buildCityDropdown(),
                   const SizedBox(height: 16),
                   TextFomrFildValidtion(
                     controller: addressController,
@@ -395,10 +389,24 @@ class _UserInputFormState extends State<UserInputForm> {
           orElse: () => <GovernorateModel>[],
         );
 
+        final isLoading = state.governoratesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
+
+        // التأكد من أن القيمة المختارة موجودة في القائمة ومطابقتها بشكل مرن
+        String? currentValue;
+        try {
+          if (_selectedGovernorate != null && governorates.isNotEmpty) {
+            currentValue = governorates.firstWhere(
+              (g) => g.id.toString().trim() == _selectedGovernorate?.toString().trim()
+            ).id.toString();
+          }
+        } catch (_) {}
+
         return DropdownButtonFormField<String>(
-          value: governorates.any((g) => g.id == _selectedGovernorate)
-              ? _selectedGovernorate
-              : null,
+          value: currentValue,
+          hint: isLoading ? const Text('جاري تحميل المحافظات...') : null,
           decoration: const InputDecoration(
             labelText: 'المحافظة',
             prefixIcon: Icon(Icons.map),
@@ -412,9 +420,63 @@ class _UserInputFormState extends State<UserInputForm> {
           onChanged: (String? value) {
             setState(() {
               _selectedGovernorate = value;
+              cityController.clear(); // مسح المدينة عند تغيير المحافظة
             });
+            if (value != null) {
+              context.read<LocationsBloc>().loadCities(value);
+            }
           },
           validator: (value) => value == null ? 'يرجى اختيار المحافظة' : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildCityDropdown() {
+    return BlocBuilder<LocationsBloc, LocationsState>(
+      builder: (context, state) {
+        final cities = state.citiesState.maybeWhen(
+          success: (data) => data ?? [],
+          orElse: () => <CityModel>[],
+        );
+
+        final isLoading = state.citiesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
+
+        // التأكد من أن القيمة المختارة موجودة في القائمة ومطابقتها بشكل مرن
+        String? currentValue;
+        try {
+          if (cityController.text.isNotEmpty && cities.isNotEmpty) {
+            currentValue = cities.firstWhere(
+              (c) => c.id.toString().trim() == cityController.text.trim()
+            ).id.toString();
+          }
+        } catch (_) {}
+
+        return DropdownButtonFormField<String>(
+          value: currentValue,
+          hint: isLoading ? const Text('جاري تحميل المدن...') : null,
+          decoration: const InputDecoration(
+            labelText: 'المدينة',
+            prefixIcon: Icon(Icons.location_city),
+          ),
+          items: cities.map((city) {
+            return DropdownMenuItem<String>(
+              value: city.id.toString(),
+              child: Text(city.nameAr),
+            );
+          }).toList(),
+          onChanged: _selectedGovernorate == null
+              ? null
+              : (String? value) {
+                  setState(() {
+                    cityController.text = value ?? '';
+                  });
+                },
+          validator: (value) => value == null || value.isEmpty ? 'يرجى اختيار المدينة' : null,
+          disabledHint: const Text('يرجى اختيار المحافظة أولاً'),
         );
       },
     );
