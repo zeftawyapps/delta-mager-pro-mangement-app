@@ -18,6 +18,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
     int limit = 10,
     int? currentStepIndex,
     String? workflowSlug,
+    String? orderPathId,
   }) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
     final result = await repo.getOrganizationOrders(
@@ -25,6 +26,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
       limit: limit,
       currentStepIndex: currentStepIndex,
       workflowSlug: workflowSlug,
+      orderPathId: orderPathId,
     );
 
     if (result.status == StatusModel.success) {
@@ -42,6 +44,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
                 limit: limit,
                 currentStepIndex: currentStepIndex,
                 workflowSlug: workflowSlug,
+                orderPathId: orderPathId,
               ),
             ),
           ),
@@ -59,6 +62,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
               limit: limit,
               currentStepIndex: currentStepIndex,
               workflowSlug: workflowSlug,
+              orderPathId: orderPathId,
             ),
           ),
         ),

@@ -4,15 +4,14 @@ import 'package:delta_mager_pro_mangement_app/configs/grid_configs.dart';
 import 'package:delta_mager_pro_mangement_app/configs/product_input_config.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:flutter/material.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/offer.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/offers_bloc.dart';
-import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
-import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'inputs/offer_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/catalog/offers/offer_card.dart';
 
@@ -72,10 +71,17 @@ class OffersScreen extends StatefulWidget with AppShellRouterMixin {
   State<OffersScreen> createState() => _OffersScreenState();
 }
 
-class _OffersScreenState extends State<OffersScreen> with SystemManager {
-  String get organizationId {
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
+class _OffersScreenState extends State<OffersScreen>
+    with SystemManager, OrgLifecycleManager {
+  @override
+  void initState() {
+    super.initState();
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        context.read<OffersBloc>().loadOffers(organizationId: orgId);
+        setState(() {});
+      },
+    );
   }
 
   void _addOffer() {

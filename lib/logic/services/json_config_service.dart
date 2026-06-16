@@ -59,6 +59,7 @@ class JsonConfigService {
 
   Map<String, dynamic> get productInput => _config['productInput'] ?? {};
   Map<String, dynamic> get b2bHomeLayout => _config['b2bHomeLayout'] ?? {};
+  Map<String, dynamic> get website => _config['website'] ?? {};
   Map<String, dynamic> get ordersConfig => _config['ordersConfig'] ?? {};
   Map<String, dynamic> get appBranding => _config['appBranding'] ?? {};
   Map<String, dynamic> get branding => appBranding;
@@ -81,6 +82,12 @@ class JsonConfigService {
   void updateB2bHomeLayout(Map<String, dynamic>? data) {
     if (data != null) {
       _config['b2bHomeLayout'] = data;
+    }
+  }
+
+  void updateWebsite(Map<String, dynamic>? data) {
+    if (data != null) {
+      _config['website'] = data;
     }
   }
 

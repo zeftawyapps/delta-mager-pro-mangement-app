@@ -305,6 +305,28 @@ class RoleCustomizationPanel extends StatelessWidget {
           const SizedBox(height: 8),
 
           ToggleOption(
+            title: "إظهار بار التصفية حسب خطوط السير",
+            subtitle: "السماح للمستخدم بالتصفية اليدوية بين خطوط السير من شريط علوي",
+            value: config.showPathFilterBar,
+            isDark: isDark,
+            onChanged: isEditing
+                ? (val) => onConfigUpdated(config.copyWith(showPathFilterBar: val))
+                : null,
+          ),
+          const SizedBox(height: 8),
+
+          ToggleOption(
+            title: "تصفية الطلبات حسب الشخص المعين",
+            subtitle: "إظهار الطلبات المعينة للمستخدم الحالي فقط",
+            value: config.filterByAssignedUser,
+            isDark: isDark,
+            onChanged: isEditing
+                ? (val) => onConfigUpdated(config.copyWith(filterByAssignedUser: val))
+                : null,
+          ),
+          const SizedBox(height: 8),
+
+          ToggleOption(
             title: "تصفية حسب خطوط السير",
             subtitle: "السماح لهذا الدور برؤية الطلبات في خطوط سير محددة فقط",
             value: config.filterByPath,

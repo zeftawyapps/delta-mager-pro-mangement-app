@@ -66,15 +66,46 @@ class B2bHomeConfig {
 
   // 🔵 Getters
   static Map<String, dynamic> get orderSettings {
-    final settings = _data[keyOrderSettings] as Map?;
-    if (settings == null) return Map<String, dynamic>.from(defaultValues[keyOrderSettings]);
+    final settings = _data[keyOrderSettings];
+    if (settings == null || settings is! Map) {
+      return Map<String, dynamic>.from(defaultValues[keyOrderSettings]);
+    }
     return Map<String, dynamic>.from(settings);
   }
 
-  static String? get defaultWorkflowSlug => orderSettings[keyWorkflowSlug];
-  static bool get defaultAllowDefaultWorkflow => orderSettings[keyAllowDefaultWorkflow] ?? true;
-  static int get defaultCalculationMode => orderSettings[keyCalculationMode] ?? 2;
-  static String get defaultOrderMode => orderSettings[keyOrderMode] ?? 'B2B';
+  static String? get defaultWorkflowSlug {
+    final val = orderSettings[keyWorkflowSlug];
+    return val?.toString();
+  }
+
+  static bool get defaultAllowDefaultWorkflow {
+    final settings = orderSettings;
+    final val = settings[keyAllowDefaultWorkflow];
+    if (val == null) return true;
+    if (val is bool) return val;
+    if (val is String) {
+      return val.toLowerCase() == 'true';
+    }
+    return true;
+  }
+
+  static int get defaultCalculationMode {
+    final settings = orderSettings;
+    final val = settings[keyCalculationMode];
+    if (val == null) return 2;
+    if (val is num) return val.toInt();
+    if (val is String) {
+      return int.tryParse(val) ?? 2;
+    }
+    return 2;
+  }
+
+  static String get defaultOrderMode {
+    final settings = orderSettings;
+    final val = settings[keyOrderMode];
+    return val?.toString() ?? 'B2B';
+  }
+
   static List<Map<String, dynamic>> get sections {
     final list = _data[keySections] as List?;
     if (list == null) return List<Map<String, dynamic>>.from(defaultValues[keySections]);

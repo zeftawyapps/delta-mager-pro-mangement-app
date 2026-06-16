@@ -1,9 +1,7 @@
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
-import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
-import 'package:JoDija_tamplites/util/widgits/pob_up_menues/items.dart';
-import 'package:JoDija_tamplites/util/widgits/pob_up_menues/pubUpmenu.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,7 +12,6 @@ import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/configs/grid_configs.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
-import 'package:matger_pro_core_logic/core/auth/utils/permission_manager.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
 import 'inputs/category_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/catalog/categories/category_card.dart';
@@ -76,24 +73,18 @@ class CategoryScreen extends StatefulWidget with AppShellRouterMixin {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
-  late AppChangesValues catigory;
+class _CategoryScreenState extends State<CategoryScreen>
+    with SystemManager, OrgLifecycleManager {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     print(widget.getPrams());
-    catigory = context.read<AppChangesValues>();
-  }
-
-  String get organizationId {
-    final params = widget.getPrams();
-    final orgName = params?['orgName'];
-    if (orgName != null && orgName != "" && orgName != ":orgName") {
-      return orgName;
-    }
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        context.read<CategoriesBloc>().loadCategories(shopId: orgId);
+        setState(() {});
+      },
+    );
   }
 
   void _addCategory() {
@@ -181,10 +172,11 @@ class _CategoryScreenState extends State<CategoryScreen> with SystemManager {
         onSearch: (bloc, query) =>
             bloc.searchCategories(query, shopId: organizationId),
         onItemTap: (category) {
+          final appChanges = context.read<AppChangesValues>();
           widget.goRoute(context, AppRoutes.products);
 
           Future.delayed(Duration.zero, () {
-            catigory.setSelectedCategoryId(category.id);
+            appChanges.setSelectedCategoryId(category.id);
           });
         },
         canAdd: canAdd,

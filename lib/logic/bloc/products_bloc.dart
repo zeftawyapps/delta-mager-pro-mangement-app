@@ -43,6 +43,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
     required double price,
     Uint8List? imageBytes,
     String? imageName,
+    List<Uint8List>? images,
     Map<String, dynamic>? additionalData,
     bool isNew = false,
     bool isBestSeller = false,
@@ -62,6 +63,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
       price: price,
       imageBytes: imageBytes,
       imageName: imageName,
+      images: images,
       additionalData: additionalData,
       isNew: isNew,
       isBestSeller: isBestSeller,
@@ -96,6 +98,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
               price: price,
               imageBytes: imageBytes,
               imageName: imageName,
+              images: images,
               additionalData: additionalData,
               isNew: isNew,
               isBestSeller: isBestSeller,
@@ -118,6 +121,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
     required Map<String, dynamic> data,
     Uint8List? imageBytes,
     String? imageName,
+    List<Uint8List>? images,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
 
@@ -126,6 +130,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
       data: data,
       imageBytes: imageBytes,
       imageName: imageName,
+      images: images,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -147,6 +152,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
               data: data,
               imageBytes: imageBytes,
               imageName: imageName,
+              images: images,
             ),
           ),
         ),

@@ -173,6 +173,7 @@ class PriceOption {
   final double price; // السعر
   final double? oldPrice; // السعر القديم (للخصم)
   final bool isDefault; // هل هذا الحجم الافتراضي؟
+  final Map<String, double> customPrices;
 
   PriceOption({
     required this.quantity,
@@ -180,6 +181,7 @@ class PriceOption {
     required this.price,
     this.oldPrice,
     this.isDefault = false,
+    this.customPrices = const {},
   });
 
   /// اسم الحجم للعرض (مثل: 100 جرام، ربع كيلو)
@@ -225,10 +227,18 @@ class PriceOption {
       'price': price,
       'oldPrice': oldPrice,
       'isDefault': isDefault,
+      'customPrices': customPrices,
     };
   }
 
   factory PriceOption.fromJson(Map<String, dynamic> json) {
+    final Map<String, double> prices = {};
+    if (json['customPrices'] != null && json['customPrices'] is Map) {
+      (json['customPrices'] as Map).forEach((key, val) {
+        prices[key.toString()] = TypeParser.parseDouble(val);
+      });
+    }
+
     return PriceOption(
       quantity: TypeParser.parseDouble(json['quantity']),
       unit: ProductUnit.fromString(json['unit'] ?? 'gram') ?? ProductUnit.gram,
@@ -236,6 +246,7 @@ class PriceOption {
       oldPrice:
           json['oldPrice'] != null ? TypeParser.parseDouble(json['oldPrice']) : null,
       isDefault: TypeParser.parseBool(json['isDefault']),
+      customPrices: prices,
     );
   }
 
@@ -245,6 +256,7 @@ class PriceOption {
     double? price,
     double? oldPrice,
     bool? isDefault,
+    Map<String, double>? customPrices,
   }) {
     return PriceOption(
       quantity: quantity ?? this.quantity,
@@ -252,6 +264,7 @@ class PriceOption {
       price: price ?? this.price,
       oldPrice: oldPrice ?? this.oldPrice,
       isDefault: isDefault ?? this.isDefault,
+      customPrices: customPrices ?? this.customPrices,
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:delta_mager_pro_mangement_app/screens/offers_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/orders_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/testWidget/OrgLoginScreen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/user_management_screen.dart';
+import 'package:delta_mager_pro_mangement_app/screens/blogs_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/logIn.dart';
 import 'package:delta_mager_pro_mangement_app/screens/welcom_screen.dart';
 import 'package:delta_mager_pro_mangement_app/screens/admin/login_admin_screen.dart';
@@ -86,6 +87,14 @@ class SidebarItemsConfig {
       label: AppStrings.users,
       icon: Icons.person_2_outlined,
       content: UserManagementScreen(),
+      prams: {"orgName": AppRoutes.activeOrgName},
+    ),
+    RouteItem(
+      id: "blog",
+      path: AppRoutes.cpBlogs,
+      label: "المدونة والصفحات",
+      icon: Icons.article_outlined,
+      content: BlogsScreen(),
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
     // RouteItem(

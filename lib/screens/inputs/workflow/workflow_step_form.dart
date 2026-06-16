@@ -45,6 +45,7 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
   late String targetType;
   late bool ableToEditOrderItems;
   late bool allowDirectAssignment;
+  late List<String> selectedTriggers;
 
   @override
   void initState() {
@@ -65,6 +66,7 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
     targetType = s?.targetType ?? 'user';
     ableToEditOrderItems = s?.ableToEditOrderItems ?? false;
     allowDirectAssignment = s?.allowDirectAssignment ?? false;
+    selectedTriggers = List<String>.from(s?.stepTriggers ?? []);
 
     // Load roles to ensure they are available
     context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
@@ -103,6 +105,7 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
       statusTag: statusTagController.text.trim(),
       ableToEditOrderItems: ableToEditOrderItems,
       allowDirectAssignment: allowDirectAssignment,
+      stepTriggers: selectedTriggers,
       actions: widget.step?.actions ?? [],
     );
 

@@ -5,6 +5,7 @@ import 'package:JoDija_tamplites/util/validators/required_validator.dart';
 import 'package:JoDija_tamplites/util/widgits/input_form_validation/form_validations.dart';
 import 'package:JoDija_tamplites/util/widgits/input_form_validation/widgets/text_form_vlidation.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,53 +29,65 @@ class LoginScreen extends StatefulWidget with AppShellRouterMixin {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String? orgName;
+  // ======================== متغيرات الحالة ========================
+  String? orgName; // اسم المؤسسة المستخرجة من رابط الصفحة
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    // AppRoutes.activeOrgName = widget.params!['orgName']!;
-    // orgName = widget.params!['orgName']!;
-    // final config = context.read<OrganizationConfigBloc>().organizationConfig;
-    // if (config == null) {
-    //   widget.goRoute(context, AppRoutes.splash, replace: true);
-    // }
+
+    // استخراج اسم المؤسسة من معاملات الرابط (Route Params)
     AppRoutes.activeOrgName = widget.getPrams()!['orgName']!;
     orgName = widget.getPrams()!['orgName']!;
 
+    // بعد اكتمال بناء الواجهة، نتحقق من وجود مستخدم مسجل الدخول مسبقاً
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<AuthBloc>().checkSavedUser(
-        onUserFound: (user) {
-          if (!mounted) return;
-          widget.goRoute(context, AppRoutes.welcome, replace: true);
-        },
-        onUserNotFound: () {},
-      );
+
+      final appChanges = context.read<AppChangesValues>();
+      if (!appChanges.isInitialized) {
+        // التحقق من وجود مستخدم محفوظ (Session)
+        // إذا وُجد يتم توجيهه لصفحة الترحيب مباشرة
+        context.read<AuthBloc>().checkSavedUser(
+          onUserFound: (user) {
+            if (!mounted) return;
+            widget.goRoute(context, AppRoutes.welcome, replace: true);
+          },
+          onUserNotFound: () {
+            // لا يوجد مستخدم → يبقى في صفحة تسجيل الدخول
+          },
+        );
+      }
     });
 
+    // جلب إعدادات المؤسسة من الخادم
     final config = context.read<OrganizationConfigBloc>().organizationConfig;
     if (config == null) {
+      // إذا لم تكن الإعدادات محملة مسبقاً، نقوم بجلبها باسم المؤسسة
       context.read<OrganizationConfigBloc>().getOrganizationConfigByName(
         AppRoutes.activeOrgName,
       );
     } else {
+      // إذا كانت موجودة بالفعل، نطبق الثيم مباشرة
       _updateTheme(config);
     }
   }
 
-  final _formKey = GlobalKey<FormState>();
-  final emailContrall = TextEditingController();
-  final passContrall = TextEditingController();
-  bool isPass = true;
-  ValidationsForm form = ValidationsForm();
+  // ======================== متغيرات النموذج (Form) ========================
+  final _formKey = GlobalKey<FormState>(); // مفتاح النموذج للتحقق من صحة الحقول
+  final emailContrall = TextEditingController(); // حقل إدخال البريد الإلكتروني
+  final passContrall = TextEditingController(); // حقل إدخال كلمة المرور
+  bool isPass = true; // للتحكم في إظهار/إخفاء كلمة المرور
+  ValidationsForm form = ValidationsForm(); // مدير التحقق من صحة الحقول
 
+  /// تطبيق ألوان الثيم المستخرجة من إعدادات المؤسسة ديناميكياً
   void _updateTheme(OrganizationConfigModel config) {
     if (config.themes == null) return;
     final themes = config.themes!;
     final Map<String, Color> lightColors = {};
     final Map<String, Color> darkColors = {};
 
+    // استخراج ألوان الوضع الفاتح (Light Mode)
     if (themes.light != null) {
       final l = themes.light!;
       if (l.primary != null) {
@@ -91,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
+    // استخراج ألوان الوضع الداكن (Dark Mode)
     if (themes.dark != null) {
       final d = themes.dark!;
       if (d.primary != null) {
@@ -107,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
+    // تطبيق الألوان على النظام
     AppColors.setDynamicColors(light: lightColors, dark: darkColors);
     if (mounted) setState(() {});
   }
@@ -251,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (user != null) {
                                     // جلب كامل بيانات الملف الشخصي بعد تسجيل الدخول الناجح
                                     context.read<UsersBloc>().loadMyProfile();
-                                    
+
                                     widget.goRoute(
                                       context,
                                       AppRoutes.welcomWithOrgName(

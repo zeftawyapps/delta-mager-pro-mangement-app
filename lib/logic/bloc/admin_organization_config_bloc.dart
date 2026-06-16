@@ -24,6 +24,7 @@ class AdminOrganizationConfigBloc
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
       JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
+      JsonConfigService().updateWebsite(configModel.website);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -49,6 +50,7 @@ class AdminOrganizationConfigBloc
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
       JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
+      JsonConfigService().updateWebsite(configModel.website);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(
@@ -81,6 +83,7 @@ class AdminOrganizationConfigBloc
       JsonConfigService().updateProductInput(configModel.productInput);
       JsonConfigService().updateB2bHomeLayout(configModel.b2bHomeLayout);
       JsonConfigService().updateOrdersConfig(configModel.ordersConfig);
+      JsonConfigService().updateWebsite(configModel.website);
       emit(state.copyWith(itemState: DataSourceBaseState.success(configModel)));
     } else {
       emit(

@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Website Layout Sections Configuration Model",
+  "description": "Defines the custom schema, structure, display modes, and default data values for the website home layout sections manager.",
+  "dataModel": {
+    "sections": {
+      "type": "array",
+      "description": "List of widgets or content sections loaded dynamically on the storefront homepage.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "displayMode",
+          "title",
+          "isActive"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the section (e.g., 'web_offers', 'web_categories')."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of content loaded in this section.",
+            "enum": [
+              "categories",
+              "offers",
+              "new_products",
+              "best_seller",
+              "blog_posts",
+              "custom_banner"
+            ],
+            "enumDescriptions": {
+              "categories": "Product categories navigation row (الأصناف)",
+              "offers": "Promotional banners and discounts slider (العروض)",
+              "new_products": "New arrivals showcase grid (المنتجات الجديدة)",
+              "best_seller": "Best selling items grid (الأكثر مبيعاً)",
+              "blog_posts": "Recent editorial/news blog articles (أحدث المقالات)",
+              "custom_banner": "Custom advertising or call-to-action banner (بانر إعلاني مخصص)"
+            }
+          },
+          "displayMode": {
+            "type": "string",
+            "description": "Visual layout layout mode applied to the section.",
+            "enum": [
+              "horizontal_list",
+              "grid",
+              "slider"
+            ],
+            "enumDescriptions": {
+              "horizontal_list": "Horizontal scrollable element list (قائمة عرضية)",
+              "grid": "Multi-column responsive grid layout (شبكة)",
+              "slider": "Full-width sliding banner carousel (بانر متحرك)"
+            }
+          },
+          "title": {
+            "type": "string",
+            "description": "Header title displayed at the top of the section (e.g., 'وصل حديثاً')."
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the section is active and visible on the website."
+          },
+          "config": {
+            "type": "object",
+            "description": "Section-specific parameters.",
+            "properties": {
+              "autoPlay": {
+                "type": "boolean",
+                "description": "For 'offers' or 'slider' types: whether the banners rotate automatically (default: true)."
+              },
+              "crossAxisCount": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 4,
+                "description": "For grid types ('new_products', 'best_seller'): number of columns in the product grid (default: 4)."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "For list/grid types ('blog_posts'): maximum number of items to fetch and show (default: 3)."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultValues": {
+    "sections": [
+      {
+        "id": "web_offers",
+        "type": "offers",
+        "displayMode": "slider",
+        "title": "أحدث العروض والخصومات",
+        "isActive": true,
+        "config": {
+          "autoPlay": true
+        }
+      },
+      {
+        "id": "web_categories",
+        "type": "categories",
+        "displayMode": "horizontal_list",
+        "title": "تسوق حسب التصنيف",
+        "isActive": true,
+        "config": {}
+      },
+      {
+        "id": "web_new_products",
+        "type": "new_products",
+        "displayMode": "grid",
+        "title": "وصل حديثاً",
+        "isActive": true,
+        "config": {
+          "crossAxisCount": 4
+        }
+      },
+      {
+        "id": "web_best_sellers",
+        "type": "best_seller",
+        "displayMode": "grid",
+        "title": "الأكثر مبيعاً",
+        "isActive": true,
+        "config": {
+          "crossAxisCount": 4
+        }
+      },
+      {
+        "id": "web_blog_posts",
+        "type": "blog_posts",
+        "displayMode": "grid",
+        "title": "أحدث المقالات في المدونة",
+        "isActive": true,
+        "config": {
+          "limit": 3
+        }
+      }
+    ]
+  }
+}

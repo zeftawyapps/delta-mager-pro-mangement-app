@@ -16,6 +16,7 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart'; // 🆕
+import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 
 // ignore: must_be_immutable
 class LoginAdminScreen extends StatefulWidget with AppShellRouterMixin {
@@ -37,15 +38,18 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<AuthBloc>().checkSavedUser(
-        onUserFound: (user) {
-          if (!mounted) return;
-          if (user.roles.contains('admin')) {
-            widget.goRoute(context, AppRoutes.welcome, replace: true);
-          }
-        },
-        onUserNotFound: () {},
-      );
+      final appChanges = context.read<AppChangesValues>();
+      if (!appChanges.isInitialized) {
+        context.read<AuthBloc>().checkSavedUser(
+          onUserFound: (user) {
+            if (!mounted) return;
+            if (user.roles.contains('admin')) {
+              widget.goRoute(context, AppRoutes.welcome, replace: true);
+            }
+          },
+          onUserNotFound: () {},
+        );
+      }
     });
   }
 

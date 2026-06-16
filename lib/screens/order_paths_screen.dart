@@ -1,10 +1,10 @@
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/organization_detail/operations/order_paths/order_paths_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 
@@ -15,10 +15,16 @@ class OrderPathsScreen extends StatefulWidget with AppShellRouterMixin {
   State<OrderPathsScreen> createState() => _OrderPathsScreenState();
 }
 
-class _OrderPathsScreenState extends State<OrderPathsScreen> {
-  String get organizationId {
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
+class _OrderPathsScreenState extends State<OrderPathsScreen>
+    with OrgLifecycleManager {
+  @override
+  void initState() {
+    super.initState();
+    initOrgListener(
+      onOrgChanged: (_) {
+        setState(() {});
+      },
+    );
   }
 
   @override

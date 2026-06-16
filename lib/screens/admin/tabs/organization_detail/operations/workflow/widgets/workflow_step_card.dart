@@ -11,6 +11,7 @@ class WorkflowStepCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onAddAction;
+  final VoidCallback onConfigureTriggers;
 
   const WorkflowStepCard({
     super.key,
@@ -22,6 +23,7 @@ class WorkflowStepCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onAddAction,
+    required this.onConfigureTriggers,
   });
 
   Color _getStepColor(WorkflowStep step) {
@@ -340,6 +342,78 @@ class WorkflowStepCard extends StatelessWidget {
                     else
                       Text(
                         "لا توجد إجراءات مضافة لهذه الخطوة من الـ API حالياً",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade400,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "المحفزات التلقائية (${step.stepTriggers.length}):",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: onConfigureTriggers,
+                          icon: const Icon(Icons.settings_suggest, size: 14, color: Colors.blue),
+                          label: const Text(
+                            "إدارة المحفزات",
+                            style: TextStyle(fontSize: 11, color: Colors.blue),
+                          ),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (step.stepTriggers.isNotEmpty)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: step.stepTriggers.map((trigger) {
+                          String friendlyName = trigger;
+                          if (trigger == 'POST_SALES') {
+                            friendlyName = "ترحيل للمبيعات (POST_SALES)";
+                          }
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.settings_suggest_outlined, size: 12, color: Colors.blue),
+                                const SizedBox(width: 4),
+                                Text(
+                                  friendlyName,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    else
+                      Text(
+                        "لا توجد محفزات تلقائية مضافة لهذه الخطوة حالياً",
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade400,

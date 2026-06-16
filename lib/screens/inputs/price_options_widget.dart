@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/product_unit.dart';
+import 'package:delta_mager_pro_mangement_app/configs/product_input_config.dart';
+
 
 class PriceOptionsWidget extends StatefulWidget {
   final List<PriceOption> initialPriceOptions;
@@ -122,6 +124,8 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
   late TextEditingController _quantityController;
   late TextEditingController _priceController;
   late TextEditingController _oldPriceController;
+  final Map<String, TextEditingController> _customPriceControllers = {};
+  late bool _isCustomPriceEnabled;
 
   @override
   void initState() {
@@ -135,6 +139,16 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
     _oldPriceController = TextEditingController(
       text: _formatNumber(widget.option.oldPrice ?? 0),
     );
+
+    final tiers = ProductInputConfig.priceTiers;
+    for (final tier in tiers) {
+      final code = tier['code'] as String;
+      final existingVal = widget.option.customPrices[code];
+      _customPriceControllers[code] = TextEditingController(
+        text: existingVal != null ? _formatNumber(existingVal) : '',
+      );
+    }
+    _isCustomPriceEnabled = widget.option.customPrices.isNotEmpty;
   }
 
   @override
@@ -159,10 +173,41 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
             (widget.option.oldPrice ?? 0)) {
       _oldPriceController.text = newOldPriceText;
     }
+
+    // Update custom price controllers if they were changed externally
+    final tiers = ProductInputConfig.priceTiers;
+    for (final tier in tiers) {
+      final code = tier['code'] as String;
+      final existingVal = widget.option.customPrices[code];
+      final controller = _customPriceControllers[code];
+      if (controller != null) {
+        final expectedText = existingVal != null ? _formatNumber(existingVal) : '';
+        if (controller.text != expectedText &&
+            double.tryParse(controller.text) != existingVal) {
+          controller.text = expectedText;
+        }
+      }
+    }
+
+    final hasCustomPrices = widget.option.customPrices.isNotEmpty;
+    if (hasCustomPrices != _isCustomPriceEnabled) {
+      _isCustomPriceEnabled = hasCustomPrices;
+    }
   }
 
   String _formatNumber(double value) {
     return value == value.toInt() ? value.toInt().toString() : value.toString();
+  }
+
+  void _onCustomPriceChanged(String code, String value) {
+    final doubleVal = double.tryParse(value) ?? 0.0;
+    final updatedCustomPrices = Map<String, double>.from(widget.option.customPrices);
+    if (doubleVal > 0) {
+      updatedCustomPrices[code] = doubleVal;
+    } else {
+      updatedCustomPrices.remove(code);
+    }
+    widget.onChanged(widget.option.copyWith(customPrices: updatedCustomPrices));
   }
 
   @override
@@ -170,6 +215,9 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
     _quantityController.dispose();
     _priceController.dispose();
     _oldPriceController.dispose();
+    for (final controller in _customPriceControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -182,6 +230,7 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -297,6 +346,67 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
               ],
             ),
             const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text(
+                'تخصيص السعر حسب فئة العميل؟',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              subtitle: const Text(
+                'تحديد أسعار منفصلة للجملة، الموزعين، إلخ.',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              value: _isCustomPriceEnabled,
+              onChanged: (val) {
+                setState(() {
+                  _isCustomPriceEnabled = val;
+                  if (!val) {
+                    widget.onChanged(widget.option.copyWith(customPrices: const {}));
+                    for (final controller in _customPriceControllers.values) {
+                      controller.clear();
+                    }
+                  }
+                });
+              },
+            ),
+            if (_isCustomPriceEnabled) ...[
+              const SizedBox(height: 8),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final tiers = ProductInputConfig.priceTiers;
+                  final isWide = constraints.maxWidth > 500;
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isWide ? 2 : 1,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      mainAxisExtent: 65,
+                    ),
+                    itemCount: tiers.length,
+                    itemBuilder: (context, i) {
+                      final tier = tiers[i];
+                      final code = tier['code'] as String;
+                      final nameMap = tier['name'] as Map<String, dynamic>? ?? {};
+                      final nameAr = nameMap['ar'] as String? ?? code;
+                      final controller = _customPriceControllers[code]!;
+
+                      return TextFormField(
+                        controller: controller,
+                        decoration: InputDecoration(
+                          labelText: 'سعر $nameAr',
+                          border: const OutlineInputBorder(),
+                          suffixText: 'ج.م',
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (v) => _onCustomPriceChanged(code, v),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -326,3 +436,4 @@ class _PriceOptionItemState extends State<_PriceOptionItem> {
     );
   }
 }
+

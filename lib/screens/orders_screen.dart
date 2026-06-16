@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/workflow_management_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/orders_bloc.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/workflow_config_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
@@ -31,42 +31,59 @@ class OrdersScreen extends StatefulWidget with AppShellRouterMixin {
 }
 
 class _OrdersScreenState extends State<OrdersScreen>
-    with TickerProviderStateMixin, SystemManager {
+    with TickerProviderStateMixin, SystemManager, OrgLifecycleManager {
   TabController? _stepTabController;
   int _selectedWorkflowIndex = 0;
+  int _selectedStepIndex = 0;
   late AppChangesValues appChangesValues;
-
-  String get organizationId {
-    final params = widget.getPrams();
-    final orgName = params?['orgName'];
-    if (orgName != null && orgName != "" && orgName != ":orgName") {
-      AppRoutes.activeOrgName = orgName;
-      return orgName;
-    }
-    final user = appChangesValues.user;
-    return user?.organizationId ?? 'shop1';
-  }
+  String? _selectedFilterPathId;
+  final ScrollController _pathScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     appChangesValues = context.read<AppChangesValues>();
-    _loadWorkflows();
-    context.read<OrderPathBloc>().loadOrderPaths(organizationId);
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        _loadWorkflows(orgId);
+        context.read<OrderPathBloc>().loadOrderPaths(orgId);
+        setState(() {});
+      },
+    );
+
+    // إعادة تهيئة الـ TabController والبيانات تلقائياً إذا كان البلوك محملاً بنجاح مسبقاً (عند تكبير/تصغير الشاشة وإعادة بناء الـ State)
+    final bloc = context.read<WorkflowManagementBloc>();
+    bloc.state.listState.maybeWhen(
+      success: (configs) {
+        if (configs != null && configs.isNotEmpty) {
+          final visibleConfigs = _getVisibleConfigs(configs);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _initializeTabController(visibleConfigs);
+            }
+          });
+        }
+      },
+      orElse: () {},
+    );
   }
 
-  void _loadWorkflows() {
+  void _loadWorkflows([String? orgId]) {
     context.read<WorkflowManagementBloc>().loadSpecificConfig(
-      organizationId,
+      orgId ?? organizationId,
       entityType: 'orders',
     );
   }
 
-  List<WorkflowStep> _getVisibleSteps(List<WorkflowStep> originalSteps, String workflowSlug) {
+  List<WorkflowStep> _getVisibleSteps(
+    List<WorkflowStep> originalSteps,
+    String workflowSlug,
+  ) {
     final user = appChangesValues.user;
     final roles = user?.roles ?? [];
 
-    final isExempt = AppShellConfigs.isAdminMode ||
+    final isExempt =
+        AppShellConfigs.isAdminMode ||
         roles.contains('admin') ||
         roles.contains('organizationOwner') ||
         roles.contains('owner') ||
@@ -76,10 +93,11 @@ class _OrdersScreenState extends State<OrdersScreen>
       return originalSteps;
     }
 
-    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
-      success: (data) => data,
-      orElse: () => null,
-    );
+    final orgConfig = context
+        .read<OrganizationConfigBloc>()
+        .state
+        .itemState
+        .maybeWhen(success: (data) => data, orElse: () => null);
 
     if (orgConfig == null) {
       return originalSteps;
@@ -115,8 +133,10 @@ class _OrdersScreenState extends State<OrdersScreen>
       return originalSteps;
     }
 
-    final filtered = originalSteps.where((step) => allowedSteps.contains(step.stepKey)).toList();
-    
+    final filtered = originalSteps
+        .where((step) => allowedSteps.contains(step.stepKey))
+        .toList();
+
     if (filtered.isEmpty) {
       return originalSteps;
     }
@@ -124,11 +144,14 @@ class _OrdersScreenState extends State<OrdersScreen>
     return filtered;
   }
 
-  List<WorkflowConfigModel> _getVisibleConfigs(List<WorkflowConfigModel> originalConfigs) {
+  List<WorkflowConfigModel> _getVisibleConfigs(
+    List<WorkflowConfigModel> originalConfigs,
+  ) {
     final user = appChangesValues.user;
     final roles = user?.roles ?? [];
 
-    final isExempt = AppShellConfigs.isAdminMode ||
+    final isExempt =
+        AppShellConfigs.isAdminMode ||
         roles.contains('admin') ||
         roles.contains('organizationOwner') ||
         roles.contains('owner') ||
@@ -138,10 +161,11 @@ class _OrdersScreenState extends State<OrdersScreen>
       return originalConfigs;
     }
 
-    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
-      success: (data) => data,
-      orElse: () => null,
-    );
+    final orgConfig = context
+        .read<OrganizationConfigBloc>()
+        .state
+        .itemState
+        .maybeWhen(success: (data) => data, orElse: () => null);
 
     if (orgConfig == null) {
       return originalConfigs;
@@ -175,7 +199,9 @@ class _OrdersScreenState extends State<OrdersScreen>
       return originalConfigs;
     }
 
-    final filtered = originalConfigs.where((config) => config.id == selectedWorkflowId).toList();
+    final filtered = originalConfigs
+        .where((config) => config.id == selectedWorkflowId)
+        .toList();
     if (filtered.isEmpty) {
       return originalConfigs;
     }
@@ -202,12 +228,16 @@ class _OrdersScreenState extends State<OrdersScreen>
   int _getActiveAbsoluteStepIndex() {
     final activeConfig = _getActiveConfig();
     if (activeConfig == null) return 0;
-    final visibleSteps = _getVisibleSteps(activeConfig.workflow.steps, activeConfig.workflowSlug);
-    if (_stepTabController == null || visibleSteps.isEmpty) return 0;
-    
-    final currentIndex = _stepTabController!.index;
-    if (currentIndex >= visibleSteps.length) return 0;
-    
+    final visibleSteps = _getVisibleSteps(
+      activeConfig.workflow.steps,
+      activeConfig.workflowSlug,
+    );
+    if (visibleSteps.isEmpty) return 0;
+
+    final currentIndex = _selectedStepIndex < visibleSteps.length
+        ? _selectedStepIndex
+        : 0;
+
     final selectedVisibleStep = visibleSteps[currentIndex];
     final originalSteps = activeConfig.workflow.steps;
     final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
@@ -224,91 +254,18 @@ class _OrdersScreenState extends State<OrdersScreen>
     return absoluteStepIndex + 1;
   }
 
-  List<OrderModel> _filterOrdersByPath(List<OrderModel> originalOrders, int absoluteStepIndex) {
-    final user = appChangesValues.user;
-    final roles = user?.roles ?? [];
-
-    final isExempt = AppShellConfigs.isAdminMode ||
-        roles.contains('admin') ||
-        roles.contains('organizationOwner') ||
-        roles.contains('owner') ||
-        roles.contains('super_admin');
-
-    if (isExempt) {
-      return originalOrders;
-    }
-
-    final orgConfig = context.read<OrganizationConfigBloc>().state.itemState.maybeWhen(
-      success: (data) => data,
-      orElse: () => null,
-    );
-
-    if (orgConfig == null) {
-      return originalOrders;
-    }
-
-    final ordersConfig = orgConfig.ordersConfig;
-    if (ordersConfig == null || ordersConfig is! Map) {
-      return originalOrders;
-    }
-
-    final rolesConfig = ordersConfig['rolesConfig'];
-    if (rolesConfig == null || rolesConfig is! Map) {
-      return originalOrders;
-    }
-
-    bool filterByPath = false;
-    List<String> allowedPaths = [];
-
-    for (final role in roles) {
-      if (rolesConfig.containsKey(role)) {
-        final rConfig = rolesConfig[role];
-        if (rConfig is Map) {
-          final isFilterEnabled = rConfig['filterByPath'] == true || rConfig['filterByPath'] == 'true';
-          if (isFilterEnabled) {
-            filterByPath = true;
-            final paths = rConfig['allowedPaths'];
-            if (paths is List) {
-              allowedPaths.addAll(paths.map((e) => e.toString()));
-            }
-          }
-        }
-      }
-    }
-
-    if (!filterByPath) {
-      return originalOrders;
-    }
-
-    final pathState = context.read<OrderPathBloc>().state;
-    final allPaths = pathState.listState.maybeWhen(
-      success: (list) => list ?? [],
-      orElse: () => <OrderPathModel>[],
-    );
-
-    return originalOrders.where((order) {
-      final orderPathId = order.externalReferences['orderPathId']?.toString();
-      if (orderPathId == null || orderPathId.isEmpty) {
-        return true;
-      }
-
-      final pathObj = allPaths.where((p) => p.id == orderPathId).firstOrNull;
-      if (pathObj == null) {
-        return true;
-      }
-
-      final currentStepNumber = _getActiveStepNumber(absoluteStepIndex);
-      if (pathObj.triggerStepNumber == currentStepNumber) {
-        return allowedPaths.contains(orderPathId);
-      }
-
-      return true;
-    }).toList();
+  List<OrderModel> _filterOrdersByPath(
+    List<OrderModel> originalOrders,
+    int absoluteStepIndex,
+  ) {
+    // الفلترة تتم الآن بالكامل من جهة الـ Backend لزيادة الكفاءة والأمان
+    return originalOrders;
   }
 
   @override
   void dispose() {
     _stepTabController?.dispose();
+    _pathScrollController.dispose();
     super.dispose();
   }
 
@@ -388,7 +345,10 @@ class _OrdersScreenState extends State<OrdersScreen>
 
                   final currentConfig = visibleConfigs[_selectedWorkflowIndex];
                   final originalSteps = currentConfig.workflow.steps;
-                  final visibleSteps = _getVisibleSteps(originalSteps, currentConfig.workflowSlug);
+                  final visibleSteps = _getVisibleSteps(
+                    originalSteps,
+                    currentConfig.workflowSlug,
+                  );
 
                   return Column(
                     children: <Widget>[
@@ -399,7 +359,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                           onSelected: (index) {
                             setState(() {
                               _selectedWorkflowIndex = index;
-                              _initializeTabController(visibleConfigs, forcedIndex: 0);
+                              _selectedFilterPathId = null;
+                              _initializeTabController(
+                                visibleConfigs,
+                                forcedIndex: 0,
+                              );
                             });
                           },
                         ),
@@ -407,29 +371,28 @@ class _OrdersScreenState extends State<OrdersScreen>
                       const Divider(height: 1),
 
                       if (_stepTabController != null)
-                        Container(
-                          height: 60,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                          ),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: visibleSteps.length,
-                            itemBuilder: (context, index) {
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isSmall = constraints.maxWidth < 600;
+
+                            Widget buildStepItem(int index) {
                               final s = visibleSteps[index];
                               final isSelected =
                                   _stepTabController?.index == index;
                               final stepColor = _getStepColor(s);
 
                               return AnimatedContainer(
-                                duration: const Duration(milliseconds: 500),
-                                margin: const EdgeInsets.only(
-                                  left: 10,
-                                  top: 4,
-                                  bottom: 4,
-                                ),
+                                duration: const Duration(milliseconds: 250),
+                                margin: isSmall
+                                    ? const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 4,
+                                      )
+                                    : const EdgeInsets.only(
+                                        left: 10,
+                                        top: 4,
+                                        bottom: 4,
+                                      ),
                                 child: InkWell(
                                   onTap: () {
                                     setState(() {
@@ -438,8 +401,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   },
                                   borderRadius: BorderRadius.circular(25),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isSmall ? 14 : 20,
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
@@ -485,7 +448,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                             fontWeight: isSelected
                                                 ? FontWeight.bold
                                                 : FontWeight.w600,
-                                            fontSize: 13,
+                                            fontSize: isSmall ? 12 : 13,
                                           ),
                                         ),
                                       ],
@@ -493,9 +456,174 @@ class _OrdersScreenState extends State<OrdersScreen>
                                   ),
                                 ),
                               );
-                            },
-                          ),
+                            }
+
+                            if (isSmall) {
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                ),
+                                width: double.infinity,
+                                child: Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  alignment: WrapAlignment.center,
+                                  children: List.generate(
+                                    visibleSteps.length,
+                                    (index) => buildStepItem(index),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return Container(
+                              height: 60,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                              ),
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                itemCount: visibleSteps.length,
+                                itemBuilder: (context, index) =>
+                                    buildStepItem(index),
+                              ),
+                            );
+                          },
                         ),
+
+                      Builder(
+                        builder: (context) {
+                          final orgConfig = context
+                              .watch<OrganizationConfigBloc>()
+                              .state
+                              .itemState
+                              .maybeWhen(
+                                success: (data) => data,
+                                orElse: () => null,
+                              );
+
+                          final pathState = context
+                              .watch<OrderPathBloc>()
+                              .state;
+                          final allPaths = pathState.listState.maybeWhen(
+                            success: (list) => list ?? [],
+                            orElse: () => <OrderPathModel>[],
+                          );
+
+                          final displayPaths = _getDisplayPaths(
+                            currentConfig: currentConfig,
+                            orgConfig: orgConfig,
+                            allPaths: allPaths,
+                          );
+
+                          if (displayPaths.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Container(
+                            height: 52,
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            child: ListView.builder(
+                              controller: _pathScrollController,
+                              physics: const BouncingScrollPhysics(),
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: displayPaths.length + 1,
+                              itemBuilder: (context, index) {
+                                final isAll = index == 0;
+                                final pathObj = isAll
+                                    ? null
+                                    : displayPaths[index - 1];
+                                final isSelected = isAll
+                                    ? _selectedFilterPathId == null
+                                    : _selectedFilterPathId == pathObj?.id;
+
+                                final chipColor = Theme.of(
+                                  context,
+                                ).primaryColor;
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 8,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedFilterPathId = isAll
+                                            ? null
+                                            : pathObj?.id;
+                                        _loadOrders(
+                                          currentConfig.workflowSlug,
+                                          _getActiveAbsoluteStepIndex(),
+                                        );
+                                      });
+                                      _animateScrollToPathIndex(index);
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 250,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: isSelected
+                                            ? chipColor
+                                            : chipColor.withOpacity(0.08),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Colors.transparent
+                                              : chipColor.withOpacity(0.3),
+                                          width: 1.5,
+                                        ),
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: chipColor.withOpacity(
+                                                    0.3,
+                                                  ),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 3),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          isAll
+                                              ? "كل خطوط السير"
+                                              : pathObj!.name,
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : chipColor,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.w600,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
 
                       Expanded(
                         child:
@@ -509,8 +637,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                                     child: CircularProgressIndicator(),
                                   ),
                                   success: (orders) {
-                                    final currentAbsoluteStepIndex = _getActiveAbsoluteStepIndex();
-                                    final filteredOrders = _filterOrdersByPath(orders ?? [], currentAbsoluteStepIndex);
+                                    final currentAbsoluteStepIndex =
+                                        _getActiveAbsoluteStepIndex();
+                                    final filteredOrders = _filterOrdersByPath(
+                                      orders ?? [],
+                                      currentAbsoluteStepIndex,
+                                    );
 
                                     if (filteredOrders.isEmpty) {
                                       return Center(
@@ -539,7 +671,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                                       data: filteredOrders,
                                       listItem: (index, order) {
                                         final stepColor = _getStepColor(
-                                          visibleSteps[_stepTabController?.index ?? 0],
+                                          visibleSteps[_stepTabController
+                                                  ?.index ??
+                                              0],
                                         );
 
                                         return OrderItemCard(
@@ -655,20 +789,95 @@ class _OrdersScreenState extends State<OrdersScreen>
     return activeConfig?.workflowSlug ?? '';
   }
 
+  List<OrderPathModel> _getDisplayPaths({
+    required WorkflowConfigModel currentConfig,
+    required dynamic orgConfig,
+    required List<OrderPathModel> allPaths,
+  }) {
+    final user = appChangesValues.user;
+    final roles = user?.roles ?? [];
+
+    final isExempt =
+        AppShellConfigs.isAdminMode ||
+        roles.contains('admin') ||
+        roles.contains('organizationOwner') ||
+        roles.contains('owner') ||
+        roles.contains('super_admin');
+
+    if (orgConfig == null) return [];
+
+    final ordersConfig = orgConfig.ordersConfig;
+    if (ordersConfig == null || ordersConfig is! Map) return [];
+
+    final rolesConfig = ordersConfig['rolesConfig'];
+    if (rolesConfig == null || rolesConfig is! Map) return [];
+
+    bool showPathFilterBar = false;
+    List<String> allowedPaths = [];
+
+    for (final role in roles) {
+      if (rolesConfig.containsKey(role)) {
+        final rConfig = rolesConfig[role];
+        if (rConfig is Map) {
+          if (rConfig['showPathFilterBar'] == true ||
+              rConfig['showPathFilterBar'] == 'true') {
+            showPathFilterBar = true;
+          }
+          final paths = rConfig['allowedPaths'];
+          if (paths is List) {
+            allowedPaths.addAll(paths.map((e) => e.toString()));
+          }
+        }
+      }
+    }
+
+    if (!showPathFilterBar) return [];
+
+    final currentWorkflowSlug = currentConfig.workflowSlug;
+    final workflowPaths = allPaths
+        .where((p) => p.workflowSlug == currentWorkflowSlug)
+        .toList();
+
+    final activeStepIndex = _getActiveAbsoluteStepIndex();
+    final currentStepNumber = _getActiveStepNumber(activeStepIndex);
+
+    return (isExempt || allowedPaths.isEmpty
+            ? workflowPaths
+            : workflowPaths.where((p) => allowedPaths.contains(p.id)).toList())
+        .where((p) => p.triggerStepNumber == currentStepNumber)
+        .toList();
+  }
+
   void _initializeTabController(
     List<WorkflowConfigModel> configs, {
     int? forcedIndex,
   }) {
+    _selectedFilterPathId = null;
+    if (_pathScrollController.hasClients) {
+      _pathScrollController.jumpTo(0);
+    }
     if (configs.isEmpty) return;
     final currentConfig = configs[_selectedWorkflowIndex];
     final originalSteps = currentConfig.workflow.steps;
-    final visibleSteps = _getVisibleSteps(originalSteps, currentConfig.workflowSlug);
+    final visibleSteps = _getVisibleSteps(
+      originalSteps,
+      currentConfig.workflowSlug,
+    );
 
-    int targetIndex = forcedIndex ?? (_stepTabController?.index ?? 0);
+    if (visibleSteps.isEmpty) {
+      _stepTabController?.dispose();
+      _stepTabController = null;
+      _selectedStepIndex = 0;
+      setState(() {});
+      return;
+    }
+
+    int targetIndex = forcedIndex ?? _selectedStepIndex;
 
     if (targetIndex >= visibleSteps.length) {
       targetIndex = 0;
     }
+    _selectedStepIndex = targetIndex;
 
     if (_stepTabController == null ||
         _stepTabController!.length != visibleSteps.length) {
@@ -676,17 +885,19 @@ class _OrdersScreenState extends State<OrdersScreen>
       _stepTabController = TabController(
         length: visibleSteps.length,
         vsync: this,
-        initialIndex: targetIndex,
+        initialIndex: _selectedStepIndex,
       );
 
       _stepTabController!.addListener(() {
         if (!_stepTabController!.indexIsChanging) {
-          final selectedVisibleStep = visibleSteps[_stepTabController!.index];
-          final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
-          _loadOrders(
-            currentConfig.workflowSlug,
-            absoluteIndex != -1 ? absoluteIndex : 0,
-          );
+          setState(() {
+            _selectedStepIndex = _stepTabController!.index;
+            _selectedFilterPathId = null;
+          });
+          if (_pathScrollController.hasClients) {
+            _pathScrollController.jumpTo(0);
+          }
+          _loadOrders(_getActiveWorkflowSlug(), _getActiveAbsoluteStepIndex());
         }
       });
     } else {
@@ -696,7 +907,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     }
 
     if (visibleSteps.isNotEmpty) {
-      final selectedVisibleStep = visibleSteps[_stepTabController!.index];
+      final selectedVisibleStep = visibleSteps[_selectedStepIndex];
       final absoluteIndex = originalSteps.indexOf(selectedVisibleStep);
       _loadOrders(
         currentConfig.workflowSlug,
@@ -707,10 +918,26 @@ class _OrdersScreenState extends State<OrdersScreen>
     setState(() {});
   }
 
+  void _animateScrollToPathIndex(int index) {
+    if (_pathScrollController.hasClients) {
+      final double targetOffset = (index * 125.0) - 100.0;
+      final double boundedOffset = targetOffset.clamp(
+        0.0,
+        _pathScrollController.position.maxScrollExtent,
+      );
+      _pathScrollController.animateTo(
+        boundedOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
   void _loadOrders(String slug, int currentStepIndex) {
     context.read<OrdersBloc>().loadOrders(
       workflowSlug: slug,
       currentStepIndex: currentStepIndex,
+      orderPathId: _selectedFilterPathId,
     );
   }
 

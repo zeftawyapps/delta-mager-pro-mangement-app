@@ -183,15 +183,81 @@ class _OfferInputFormState extends State<OfferInputForm> {
                     onLoad: (bloc) => bloc.loadDiscountedProducts(),
                     onSearch: (bloc, query) => bloc.loadDiscountedProducts(),
                     itemBuilder: (context, product, isSelected) {
-                      return ListTile(
-                        leading: product.images.isNotEmpty
-                            ? Image.network(product.images.first, width: 40, height: 40, fit: BoxFit.cover)
-                            : const Icon(Icons.image),
-                        title: Text(product.nameAr),
-                        subtitle: Text('${product.price} ر.س'),
-                        trailing: product.discount != null 
-                            ? Text('%${product.discount} خصم', style: const TextStyle(color: Colors.green))
-                            : null,
+                      return Card(
+                        elevation: 1,
+                        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: product.images.isNotEmpty
+                                    ? Image.network(
+                                        product.images.first,
+                                        width: 45,
+                                        height: 45,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: 45,
+                                          height: 45,
+                                          color: Colors.grey[200],
+                                          child: const Icon(Icons.image, size: 20),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 45,
+                                        height: 45,
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.image, size: 20),
+                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      product.nameAr,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${product.price} ر.س',
+                                      style: TextStyle(
+                                        color: Theme.of(context).primaryColor,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (product.discount != null && product.discount! > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '%${product.discount} خصم',
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                     onItemTap: (product) {

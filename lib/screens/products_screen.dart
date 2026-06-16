@@ -3,7 +3,6 @@ import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.
 
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
 import 'package:delta_mager_pro_mangement_app/configs/grid_configs.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,6 +20,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/categories_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
 
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
@@ -88,13 +88,9 @@ class ProductsScreen extends StatefulWidget with AppShellRouterMixin {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
+class _ProductsScreenState extends State<ProductsScreen>
+    with SystemManager, OrgLifecycleManager {
   String? selectedCategoryId;
-
-  String get organizationId {
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
-  }
 
   @override
   void initState() {
@@ -102,19 +98,13 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
     final changesValue = context.read<AppChangesValues>();
     selectedCategoryId = changesValue.selectedCategoryId;
 
-    final categoriesBloc = context.read<CategoriesBloc>();
-
-    // التحقق من وجود بيانات مسبقاً لمنع إعادة التحميل غير الضروري
-    final hasData = categoriesBloc.state.listState.maybeWhen(
-      success: (list) => list != null && list.isNotEmpty,
-      orElse: () => false,
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        context.read<CategoriesBloc>().loadCategories(shopId: orgId);
+        context.read<ProductsBloc>().loadProducts();
+        setState(() {});
+      },
     );
-
-    if (!hasData) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        categoriesBloc.loadCategories(shopId: organizationId);
-      });
-    }
   }
 
   void _addProduct() {
@@ -696,7 +686,14 @@ class _ProductsScreenState extends State<ProductsScreen> with SystemManager {
           _quickChangePrice(product);
         },
         onToggleProperty: (property, value) {
-          if (property == 'isAvailable') {
+          if (property == 'sharingLevel') {
+            final sharingValue = value ? 'public' : 'private';
+            context.read<ProductsBloc>().updateProduct(
+              productId: product.productId,
+              data: {'sharingLevel': sharingValue},
+            );
+            Navigator.pop(context);
+          } else if (property == 'isAvailable') {
             _toggleProductProperty(product, property, value);
           } else {
             if (property == 'isSuperJoker') {

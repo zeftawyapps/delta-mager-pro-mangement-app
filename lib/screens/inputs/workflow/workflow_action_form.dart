@@ -86,6 +86,7 @@ class _WorkflowActionFormState extends State<WorkflowActionForm> {
       statusTag: widget.step.statusTag,
       ableToEditOrderItems: widget.step.ableToEditOrderItems,
       allowDirectAssignment: widget.step.allowDirectAssignment,
+      stepTriggers: widget.step.stepTriggers,
       actions: List<WorkflowAction>.from(widget.step.actions)..add(newAction),
     );
 

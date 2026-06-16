@@ -10,6 +10,8 @@ class RoleOrdersConfig {
   final String? selectedWorkflowId;
   final bool filterByPath;
   final List<String> allowedPaths;
+  final bool showPathFilterBar;
+  final bool filterByAssignedUser;
 
   const RoleOrdersConfig({
     this.showSenderInfo = true,
@@ -23,6 +25,8 @@ class RoleOrdersConfig {
     this.selectedWorkflowId,
     this.filterByPath = false,
     this.allowedPaths = const [],
+    this.showPathFilterBar = false,
+    this.filterByAssignedUser = false,
   });
 
   factory RoleOrdersConfig.defaultConfig() => const RoleOrdersConfig();
@@ -53,6 +57,8 @@ class RoleOrdersConfig {
       allowedPaths: map['allowedPaths'] != null
           ? List<String>.from(map['allowedPaths'])
           : [],
+      showPathFilterBar: _parseBool(map['showPathFilterBar'], false),
+      filterByAssignedUser: _parseBool(map['filterByAssignedUser'], false),
     );
   }
 
@@ -69,6 +75,8 @@ class RoleOrdersConfig {
       'selectedWorkflowId': selectedWorkflowId,
       'filterByPath': filterByPath,
       'allowedPaths': allowedPaths,
+      'showPathFilterBar': showPathFilterBar,
+      'filterByAssignedUser': filterByAssignedUser,
     };
   }
 
@@ -84,6 +92,8 @@ class RoleOrdersConfig {
     String? selectedWorkflowId,
     bool? filterByPath,
     List<String>? allowedPaths,
+    bool? showPathFilterBar,
+    bool? filterByAssignedUser,
   }) {
     return RoleOrdersConfig(
       showSenderInfo: showSenderInfo ?? this.showSenderInfo,
@@ -97,6 +107,8 @@ class RoleOrdersConfig {
       selectedWorkflowId: selectedWorkflowId ?? this.selectedWorkflowId,
       filterByPath: filterByPath ?? this.filterByPath,
       allowedPaths: allowedPaths ?? this.allowedPaths,
+      showPathFilterBar: showPathFilterBar ?? this.showPathFilterBar,
+      filterByAssignedUser: filterByAssignedUser ?? this.filterByAssignedUser,
     );
   }
 }

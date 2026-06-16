@@ -51,6 +51,10 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/order_path_bloc.dart';
 import 'package:matger_pro_core_logic/features/workflow/repo/workflow_repo.dart';
 import 'package:matger_pro_core_logic/features/commrec/repo/order_repo.dart';
 import 'package:matger_pro_core_logic/features/order_path/repo/order_path_repo.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_posts_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_categories_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/analytics_bloc.dart';
+import 'package:matger_pro_core_logic/matger_pro_core_logic.dart' show BlogRepo, AnalyticsRepo;
 
 class AppLouncher extends StatefulWidget {
   const AppLouncher({super.key});
@@ -244,12 +248,30 @@ class _AppLouncherState extends State<AppLouncher> {
                     create: (context) =>
                         OrderPathBloc(repo: sl<OrderPathRepo>()),
                   ),
+                  BlocProvider(
+                    create: (context) =>
+                        BlogPostsBloc(repo: sl<BlogRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) =>
+                        BlogCategoriesBloc(repo: sl<BlogRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) =>
+                        AnalyticsBloc(repo: sl<AnalyticsRepo>()),
+                  ),
                 ],
                 titleApp: AppStrings.appName,
                 sidebarBackgroundColor: AppColors.primary,
                 sidebarTextColor: Colors.white,
-                sidebarHoverColor: Colors.white.withValues(alpha: 0.1),
-                sidebarHoverTextColor: Colors.white,
+                sidebarHoverColor:
+                    (AppShellConfigs.isDarkMode
+                            ? AppColors.darkBackground
+                            : AppColors.background)
+                        .withValues(alpha: 0.7),
+                sidebarHoverTextColor: AppColors.lightText.withValues(
+                  alpha: 0.7,
+                ),
                 sidebarSelectedColor: AppShellConfigs.isDarkMode
                     ? AppColors.darkBackground
                     : AppColors.background,

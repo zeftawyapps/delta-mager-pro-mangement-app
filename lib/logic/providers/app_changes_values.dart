@@ -9,13 +9,51 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:matger_pro_core_logic/core/auth/data/user_model.dart';
+import 'package:matger_pro_core_logic/config/paoject_config.dart';
+import 'package:delta_mager_pro_mangement_app/screens/splash_screen.dart';
 
 class AppChangesValues extends ChangeNotifier {
   String? laseRoute;
+  bool isInitialized = false;
 
   Users? user;
   UserViewProfileModel? userProfile;
-  
+
+  AppChangesValues() {
+    _captureInitialRoute();
+  }
+
+  void _captureInitialRoute() {
+    try {
+      final uri = Uri.base;
+      String currentPath = uri.path;
+
+      // Support hash-based routing in Flutter Web
+      if (uri.fragment.isNotEmpty) {
+        currentPath = uri.fragment;
+      }
+
+      // Strip leading hash character if present in currentPath
+      if (currentPath.startsWith('#')) {
+        currentPath = currentPath.substring(1);
+      }
+
+      final decodedPath = Uri.decodeComponent(currentPath);
+
+      if (decodedPath.isNotEmpty &&
+          decodedPath != '/' &&
+          decodedPath != '/splash' &&
+          !decodedPath.contains('/login') &&
+          !decodedPath.contains('/welcom')) {
+        final fullPath = uri.hasQuery ? '$decodedPath?${uri.query}' : decodedPath;
+        laseRoute = fullPath;
+        debugPrint('Captured initial route on reload: $laseRoute');
+      }
+    } catch (e) {
+      debugPrint('Error capturing initial route: $e');
+    }
+  }
+
   /// حفظ بيانات المستخدم في الكاش المحلي
   Future<void> _saveUserToCache(Users? newUser) async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,6 +73,9 @@ class AppChangesValues extends ChangeNotifier {
       if (userJson != null) {
         final Map<String, dynamic> userData = jsonDecode(userJson);
         user = Users.fromUserModel(UserModel.fromJson(userData));
+        if (user?.token != null && user!.token!.isNotEmpty) {
+          ProjectAPIHeader.setToken(user!.token!);
+        }
         notifyListeners();
       }
     } catch (e) {
@@ -46,6 +87,9 @@ class AppChangesValues extends ChangeNotifier {
     if (user != newUser) {
       user = newUser;
       _saveUserToCache(newUser); // حفظ في الكاش
+      if (newUser?.token != null && newUser!.token!.isNotEmpty) {
+        ProjectAPIHeader.setToken(newUser!.token!);
+      }
       notifyListeners();
     }
   }
@@ -66,17 +110,23 @@ class AppChangesValues extends ChangeNotifier {
     var changvalue = context.read<AppChangesValues>();
     var user = changvalue.user;
 
+    if (!changvalue.isInitialized) {
+      return SplashScreen();
+    }
+
     if (user == null) {
+      // تجنب إعادة توجيه المستخدم لو كان المسار الحالي غير نشط (مثلاً في مرحلة الخروج والانتقال لشاشة الترحيب)
+      final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isCurrent) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+
       Future.delayed(Duration.zero, () {
-        final targetRoute = AppShellConfigs.isAdminMode 
-            ? AppRoutes.loginAdmin 
+        final targetRoute = AppShellConfigs.isAdminMode
+            ? AppRoutes.loginAdmin
             : AppRoutes.loginWithOrgName(AppRoutes.activeOrgName);
-            
-        router.goRoute(
-          context,
-          targetRoute,
-          replace: true,
-        );
+
+        router.goRoute(context, targetRoute, replace: true);
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

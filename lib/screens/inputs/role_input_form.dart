@@ -136,6 +136,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenPolicies,
           SystemFeatures.screenB2bHome,
           SystemFeatures.screenOrderPaths,
+          SystemFeatures.screenBlog,
         ],
       },
       'management': {
@@ -148,6 +149,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.order,
           SystemFeatures.offer,
           SystemFeatures.orderPath,
+          SystemFeatures.blog,
         ],
       },
       'security': {
@@ -850,6 +852,8 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.order,
           SystemFeatures.offer,
           SystemFeatures.organization,
+          SystemFeatures.blog,
+          SystemFeatures.screenBlog,
         ];
         if (!allowedInOrg.contains(r)) return false;
       }

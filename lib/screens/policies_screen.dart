@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/organization_policy_model.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
@@ -18,18 +19,17 @@ class PoliciesScreen extends StatefulWidget with AppShellRouterMixin {
   State<PoliciesScreen> createState() => _PoliciesScreenState();
 }
 
-class _PoliciesScreenState extends State<PoliciesScreen> {
-  String get organizationId {
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
-  }
-
+class _PoliciesScreenState extends State<PoliciesScreen>
+    with OrgLifecycleManager {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrganizationPolicyBloc>().loadPolicy(organizationId);
-    });
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        context.read<OrganizationPolicyBloc>().loadPolicy(orgId);
+        setState(() {});
+      },
+    );
   }
 
   @override

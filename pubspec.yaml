@@ -44,6 +44,7 @@ dependencies:
   google_fonts: ^8.0.2
   flutter_quill: ^11.5.0
   flutter_quill_extensions: ^11.0.0
+  vsc_quill_delta_to_html: ^1.0.2
   flutter_colorpicker: ^1.1.0
   yaml: ^3.1.3
 

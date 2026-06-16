@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:delta_mager_pro_mangement_app/configs/b2b_home_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/mixins/org_lifecycle_manager.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart'
@@ -20,10 +20,7 @@ import 'package:delta_mager_pro_mangement_app/screens/b2b/widgets/b2b_product_ca
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
-import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'b2b_products_screen.dart';
 import 'cart_screen.dart';
 import '../product_details_screen.dart';
@@ -35,35 +32,34 @@ class B2BHomeScreen extends StatefulWidget with AppShellRouterMixin {
   State<B2BHomeScreen> createState() => _B2BHomeScreenState();
 }
 
-class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
+class _B2BHomeScreenState extends State<B2BHomeScreen>
+    with SystemManager, OrgLifecycleManager {
   final TextEditingController _searchController = TextEditingController();
   List<ProductModel> _suggestions = [];
   bool _isSearching = false;
 
-  String get organizationId {
-    final params = (widget as dynamic).getPrams();
-    final orgName = params?['orgName'];
-    if (orgName != null && orgName != "" && orgName != ":orgName") {
-      AppRoutes.activeOrgName = orgName;
-      return orgName;
-    }
-    final user = context.read<AppChangesValues>().user;
-    return user?.organizationId ?? 'shop1';
-  }
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
-    });
+    initOrgListener(
+      onOrgChanged: (orgId) {
+        _loadInitialData(orgId);
+        context.read<OrganizationConfigBloc>().loadConfig(orgId);
+        context.read<AuthBloc>().checkSavedUser(
+          onUserFound: (_) {},
+          onUserNotFound: () {},
+        );
+        setState(() {});
+      },
+    );
   }
 
   void _onOfferTap(OfferModel offer) {
-    if (offer.targetType == OfferTargetType.product && offer.targetId.isNotEmpty) {
+    if (offer.targetType == OfferTargetType.product &&
+        offer.targetId.isNotEmpty) {
       final productsState = context.read<ProductsBloc>().state;
       ProductModel? product;
-      
+
       // Use listState.when to safely extract products if in success state
       productsState.listState.when(
         init: () {},
@@ -100,15 +96,17 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
     );
   }
 
-  void _loadInitialData() {
-    context.read<CategoriesBloc>().loadCategories(shopId: organizationId);
-    context.read<OffersBloc>().loadOffers(organizationId: organizationId);
+  void _loadInitialData([String? orgId]) {
+    final targetOrgId = orgId ?? organizationId;
+    context.read<CategoriesBloc>().loadCategories(shopId: targetOrgId);
+    context.read<OffersBloc>().loadOffers(organizationId: targetOrgId);
     context.read<ProductsBloc>().loadProducts();
   }
 
   Future<void> _handleRefresh() async {
-    _loadInitialData();
-    context.read<OrganizationConfigBloc>().loadConfig(organizationId);
+    final targetOrgId = organizationId;
+    _loadInitialData(targetOrgId);
+    context.read<OrganizationConfigBloc>().loadConfig(targetOrgId);
     context.read<AuthBloc>().checkSavedUser(
       onUserFound: (_) {},
       onUserNotFound: () {},
@@ -243,7 +241,11 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                   return p.isSuperJoker;
                 case B2bHomeConfig.typeOnSaleProducts:
                   return p.isOnSale ||
-                      (p.additionalData['isInsideOffer'] ?? false);
+                      (p.additionalData['isInsideOffer'] == true ||
+                          p.additionalData['isInsideOffer']
+                                  ?.toString()
+                                  .toLowerCase() ==
+                              'true');
                 default:
                   return true;
               }
@@ -577,20 +579,29 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                                       // Background Color / Placeholder
                                       Positioned.fill(
                                         child: Container(
-                                          color: (isDark ? DarkColors.primary : LightColors.primary).withOpacity(0.05),
+                                          color:
+                                              (isDark
+                                                      ? DarkColors.primary
+                                                      : LightColors.primary)
+                                                  .withOpacity(0.05),
                                         ),
                                       ),
                                       // Image
                                       Positioned.fill(
-                                        child: category.imageUrl != null &&
+                                        child:
+                                            category.imageUrl != null &&
                                                 category.imageUrl!.isNotEmpty
                                             ? Image.network(
                                                 category.imageUrl!,
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (_, __, ___) =>
-                                                    _buildCategoryIconPlaceholder(isDark),
+                                                    _buildCategoryIconPlaceholder(
+                                                      isDark,
+                                                    ),
                                               )
-                                            : _buildCategoryIconPlaceholder(isDark),
+                                            : _buildCategoryIconPlaceholder(
+                                                isDark,
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -629,7 +640,9 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
     return Center(
       child: Icon(
         Icons.category_outlined,
-        color: (isDark ? DarkColors.primary : LightColors.primary).withOpacity(0.5),
+        color: (isDark ? DarkColors.primary : LightColors.primary).withOpacity(
+          0.5,
+        ),
         size: 30,
       ),
     );
@@ -695,10 +708,13 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                       final query = value.toLowerCase();
                       setState(() {
                         _isSearching = true;
-                        _suggestions = allProducts.where((p) {
-                          return p.name.ar.toLowerCase().contains(query) ||
-                              p.name.en.toLowerCase().contains(query);
-                        }).take(5).toList();
+                        _suggestions = allProducts
+                            .where((p) {
+                              return p.name.ar.toLowerCase().contains(query) ||
+                                  p.name.en.toLowerCase().contains(query);
+                            })
+                            .take(5)
+                            .toList();
                       });
                     } else {
                       setState(() {
@@ -743,28 +759,30 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _suggestions.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 1,
-                      color: Colors.grey.withOpacity(0.1),
-                    ),
+                    separatorBuilder: (context, index) =>
+                        Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                     itemBuilder: (context, index) {
                       final product = _suggestions[index];
                       return ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
-                          child: product.images.isNotEmpty 
-                            ? Image.network(
-                                product.mainImage,
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                width: 40,
-                                height: 40,
-                                color: Colors.grey[200],
-                                child: const Icon(Icons.image, size: 20, color: Colors.grey),
-                              ),
+                          child: product.images.isNotEmpty
+                              ? Image.network(
+                                  product.mainImage,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: 40,
+                                  height: 40,
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.image,
+                                    size: 20,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                         ),
                         title: Text(
                           product.name.ar,
@@ -774,7 +792,9 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                           '${product.price} ج.م',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? DarkColors.primary : LightColors.primary,
+                            color: isDark
+                                ? DarkColors.primary
+                                : LightColors.primary,
                           ),
                         ),
                         onTap: () {
@@ -786,7 +806,8 @@ class _B2BHomeScreenState extends State<B2BHomeScreen> with SystemManager {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ProductDetailsScreen(product: product),
+                              builder: (_) =>
+                                  ProductDetailsScreen(product: product),
                             ),
                           );
                         },

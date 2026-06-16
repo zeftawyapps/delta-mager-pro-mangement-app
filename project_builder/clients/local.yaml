@@ -1,7 +1,7 @@
 # 📱 إعدادات هوية عميل: دومانسي (Default Domansy Client)
 appBranding:
   appTitle: "Domancy"
-  defaultOrgName: "domancy"
+  defaultOrgName: "deltastore"
 
 # 🚀 توافق الإصدارات الخاص بهذا العميل (رقم البناء)
 appVersion: "1.0.0"

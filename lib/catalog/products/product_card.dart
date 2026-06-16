@@ -105,15 +105,6 @@ class ProductCard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (product.stockQuantity < 10 && product.isAvailable)
-                            Text(
-                              '${AppStrings.remaining}${product.stockQuantity} فقط!',
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                           if (!product.isAvailable)
                             const Text(
                               AppStrings.notAvailable,
@@ -166,7 +157,8 @@ class ProductCard extends StatelessWidget {
                   ProductBadge(text: AppStrings.bestSeller, color: Colors.orange),
                 if (product.isOnSale)
                   ProductBadge(text: AppStrings.onSale, color: Colors.redAccent),
-                if (product.additionalData['isInsideOffer'] == true)
+                if (product.additionalData['isInsideOffer'] == true ||
+                    product.additionalData['isInsideOffer']?.toString().toLowerCase() == 'true')
                   ProductBadge(text: AppStrings.insideOffer, color: Colors.orangeAccent),
               ],
             ),

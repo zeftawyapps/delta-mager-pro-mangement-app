@@ -178,7 +178,8 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         // المستخدم مسجل - قم بتسجيل الدخول تلقائياً
         if (shardUserModel.email != null && shardUserModel.pass != null) {
           final prefs = await SharedPreferences.getInstance();
-          final savedOrgName = prefs.getString('active_org_name') ?? AppRoutes.activeOrgName;
+          final savedOrgName =
+              prefs.getString('active_org_name') ?? AppRoutes.activeOrgName;
           AppRoutes.activeOrgName = savedOrgName;
           AppRoutes.defaultOrgName = savedOrgName;
 
@@ -192,25 +193,41 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
 
           if (result.status == StatusModel.success && result.data != null) {
             final user = Users.fromUserModel(result.data!);
+            if (appChangesValues != null) {
+              appChangesValues!.isInitialized = true;
+            }
             onUserFound(user);
           } else {
+            if (appChangesValues != null) {
+              appChangesValues!.isInitialized = true;
+              appChangesValues!.notifyListeners();
+            }
             onUserNotFound();
           }
         } else {
+          if (appChangesValues != null) {
+            appChangesValues!.isInitialized = true;
+            appChangesValues!.notifyListeners();
+          }
           onUserNotFound();
         }
       },
       NotRegistAction: () {
+        if (appChangesValues != null) {
+          appChangesValues!.isInitialized = true;
+          appChangesValues!.notifyListeners();
+        }
         onUserNotFound();
       },
     );
   }
 
   // إضافة signOut مع مسح البيانات المخزنة وتصفير التوكن
-  void signOut() async {
-    SharedPrefranceChecking().clearDataInShardRefrace();
+  Future<void> signOut() async {
+    SharedPrefranceChecking().clearDataInShardRefrace(); // مسح كاش القالب من المتصفح
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('active_org_name');
+    await prefs.clear(); // مسح كامل كاش SharedPreferences
+    appChangesValues?.clearLastRoute(); // مسح آخر مسار لتجنب حلقات إعادة التوجيه
     ProjectAPIHeader.setToken(''); // تصفير التوكن في الهيدر
     appChangesValues?.setUser(null); // تصفير بيانات المستخدم المشتركة
     emit(FeaturDataSourceState<Users>.defaultState());

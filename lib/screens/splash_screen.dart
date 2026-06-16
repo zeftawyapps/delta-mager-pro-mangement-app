@@ -16,6 +16,8 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/version_check_result.dart';
 import 'package:delta_mager_pro_mangement_app/logic/services/version_check_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
 
 class SplashScreen extends StatefulWidget with AppShellRouterMixin {
   SplashScreen({super.key});
@@ -129,13 +131,37 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _proceedToLogin() {
-    if (mounted) {
-      widget.goRoute(
-        context,
-        AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
-        replace: true,
-      );
-    }
+    if (!mounted) return;
+
+    // Check for saved user first before redirecting to login screen
+    context.read<AuthBloc>().checkSavedUser(
+      onUserFound: (user) {
+        if (mounted) {
+          final appChanges = context.read<AppChangesValues>();
+          final laseRoute = appChanges.laseRoute;
+
+          // If we reloaded a protected page, navigate back to it
+          if (laseRoute != null &&
+              laseRoute != AppRoutes.welcome &&
+              laseRoute != AppRoutes.splash &&
+              !laseRoute.contains('/login') &&
+              !laseRoute.contains('/welcom')) {
+            widget.goRoute(context, laseRoute, replace: true);
+          } else {
+            widget.goRoute(context, AppRoutes.welcome, replace: true);
+          }
+        }
+      },
+      onUserNotFound: () {
+        if (mounted) {
+          widget.goRoute(
+            context,
+            AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
+            replace: true,
+          );
+        }
+      },
+    );
   }
 
   void _showUpdateDialog(VersionCheckResult result) {

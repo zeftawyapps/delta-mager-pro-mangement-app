@@ -202,6 +202,16 @@ class ProductActionsSheet extends StatelessWidget {
                       onToggleProperty('isSuperJoker', val);
                     },
                   ),
+                if (canUpdate)
+                  ToggleOption(
+                    title: 'نشر للعام 🌐',
+                    subtitle: 'نشر المنتج للكتالوج العام للجمهور',
+                    icon: Icons.public_outlined,
+                    value: product.sharingLevel == 'public',
+                    onChanged: (val) {
+                      onToggleProperty('sharingLevel', val);
+                    },
+                  ),
               ],
             ),
           ),

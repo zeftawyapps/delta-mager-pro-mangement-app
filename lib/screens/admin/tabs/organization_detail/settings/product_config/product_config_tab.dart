@@ -43,6 +43,16 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
     }
   }
 
+  bool _getBool(String key, {bool defaultValue = false}) {
+    final val = _data[key];
+    if (val == null) return defaultValue;
+    if (val is bool) return val;
+    if (val is String) {
+      return val.toLowerCase() == 'true';
+    }
+    return defaultValue;
+  }
+
   void _loadData() {
     final defaultValues = ProductInputConfig.defaultValues;
     final existingData = widget.config.productInput;
@@ -121,8 +131,7 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 ProductInputConfig.keyShowImages,
                 defaultValue: true,
                 subtitle: "إظهار أو إخفاء قسم الصور في واجهة المنتج",
-                enabled: !(_data[ProductInputConfig.keyProductImageIsRequired] ??
-                    false),
+                enabled: !_getBool(ProductInputConfig.keyProductImageIsRequired),
               ),
               _buildSwitch(
                 "عرض الوصف المختصر",
@@ -150,6 +159,21 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 "عرض المكونات",
                 ProductInputConfig.keyShowIngredients,
                 subtitle: "إظهار قائمة مكونات المنتج (مفيد للمنتجات الغذائية)",
+              ),
+              _buildSwitch(
+                "عرض وإدخال المتغيرات (Variants)",
+                ProductInputConfig.keyShowVariants,
+                subtitle: "السماح بإضافة متغيرات مثل الألوان والمقاسات للمنتج",
+              ),
+              _buildSwitch(
+                "عرض وإدخال الإضافات (Add-ons)",
+                ProductInputConfig.keyShowAddons,
+                subtitle: "السماح بإضافة خيارات إضافية للمنتج (مثل الصوص، خدمات إضافية)",
+              ),
+              _buildSwitch(
+                "عرض وإدخال الخيارات المخصصة (Options)",
+                ProductInputConfig.keyShowOptions,
+                subtitle: "السماح بإدخال خيارات مخصصة مثل مستوى الحار أو درجة الطهي",
               ),
             ],
           ),
@@ -281,8 +305,7 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 ProductInputConfig.keyShowAddProductInGrid,
                 subtitle:
                     "إظهار مربع 'إضافة جديد' مباشرة داخل شبكة عرض المنتجات",
-                enabled:
-                    _data[ProductInputConfig.keyEnableAddProduct] ?? true,
+                enabled: _getBool(ProductInputConfig.keyEnableAddProduct, defaultValue: true),
               ),
               _buildSwitch(
                 "تفعيل إضافة التصنيفات",
@@ -294,8 +317,7 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 "إظهار زر الإضافة السريع (تصنيفات)",
                 ProductInputConfig.keyShowAddCategoryInGrid,
                 subtitle: "إظهار مربع 'إضافة جديد' داخل شبكة عرض الفئات",
-                enabled:
-                    _data[ProductInputConfig.keyEnableAddCategory] ?? true,
+                enabled: _getBool(ProductInputConfig.keyEnableAddCategory, defaultValue: true),
               ),
               _buildSwitch(
                 "تفعيل إضافة العروض",
@@ -307,7 +329,7 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
                 "إظهار زر الإضافة السريع (عرض)",
                 ProductInputConfig.keyShowAddOfferInGrid,
                 subtitle: "إظهار مربع الإضافة داخل شبكة العروض",
-                enabled: _data[ProductInputConfig.keyEnableAddOffer] ?? true,
+                enabled: _getBool(ProductInputConfig.keyEnableAddOffer, defaultValue: true),
               ),
               _buildSwitch(
                 "تفعيل الإضافة السريعة (مود الـ Turbo)",
@@ -422,7 +444,7 @@ class _ProductConfigSectionTabState extends State<ProductConfigSectionTab> {
           subtitle: subtitle != null
               ? Text(subtitle, style: TextStyle(fontSize: 12, color: subColor))
               : null,
-          value: enabled ? (_data[key] ?? defaultValue) : false,
+          value: enabled ? _getBool(key, defaultValue: defaultValue) : false,
           onChanged: (_isEditing && enabled)
               ? (val) => _updateField(key, val)
               : null,

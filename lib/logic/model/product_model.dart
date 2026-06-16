@@ -4,7 +4,17 @@ import 'package:matger_pro_core_logic/models/localized_string.dart';
 
 // Re-exporting core data structures for application-wide use
 export 'package:matger_pro_core_logic/features/commrec/data/product_model.dart'
-    show LocalizedString, PriceOption, ProductUnit, ProductData;
+    show
+        LocalizedString,
+        PriceOption,
+        ProductUnit,
+        ProductData,
+        ProductVariant,
+        VariantOption,
+        ProductAddonGroup,
+        ProductAddonOption,
+        ProductCustomOptionGroup,
+        ProductCustomOption;
 
 class ProductModel extends ProductData implements BaseViewDataModel {
   ProductModel({
@@ -24,6 +34,9 @@ class ProductModel extends ProductData implements BaseViewDataModel {
     super.discount,
     super.rating = 0.0,
     super.priceOptions = const [],
+    super.variants = const [],
+    super.addons = const [],
+    super.options = const [],
     super.isJoker = false,
     super.isSuperJoker = false,
     super.isOnSale = false,
@@ -50,6 +63,9 @@ class ProductModel extends ProductData implements BaseViewDataModel {
       discount: data.discount,
       rating: data.rating,
       priceOptions: data.priceOptions,
+      variants: data.variants,
+      addons: data.addons,
+      options: data.options,
       isJoker: data.isJoker,
       isSuperJoker: data.isSuperJoker,
       isOnSale: data.isOnSale,

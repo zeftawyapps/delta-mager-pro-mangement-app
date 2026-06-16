@@ -18,6 +18,8 @@ import 'tabs/organization_detail/operations/workflow/workflow_tab.dart';
 import 'tabs/organization_detail/operations/roles/roles_tab.dart';
 import 'tabs/organization_detail/settings/features_tab.dart';
 import 'tabs/organization_detail/settings/b2b_home/b2b_home_tab.dart';
+import 'tabs/organization_detail/settings/website_config/website_config_tab.dart';
+import 'tabs/organization_detail/settings/website_config/website_footer_tab.dart';
 import 'tabs/organization_detail/operations/order_paths/order_paths_tab.dart';
 import 'tabs/organization_detail/operations/order_screen_config/order_screen_config_tab.dart';
 
@@ -45,7 +47,7 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 11,
+      length: 13,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.organization.name),
@@ -83,6 +85,20 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 child: Tab(
                   icon: Icon(Icons.home_outlined),
                   text: "إعدادات B2B Home",
+                ),
+              ),
+              Tooltip(
+                message: "تهيئة وإعداد وتصميم واجهة موقع الويب والمدونة للعملاء.",
+                child: Tab(
+                  icon: Icon(Icons.web),
+                  text: "إعدادات Website",
+                ),
+              ),
+              Tooltip(
+                message: "تهيئة وإعداد بيانات تذييل الصفحة وروابط التواصل الاجتماعي.",
+                child: Tab(
+                  icon: Icon(Icons.vertical_align_bottom),
+                  text: "إعدادات Footer",
                 ),
               ),
               Tooltip(
@@ -238,6 +254,42 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
                 builder: (context, state) {
                   return state.itemState.maybeWhen(
                     success: (config) => B2BHomeConfigTab(
+                      config: config!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    orElse: () => const SizedBox(),
+                  );
+                },
+              ),
+
+              // --- Tab 5: Website Home Configuration ---
+              BlocBuilder<
+                AdminOrganizationConfigBloc,
+                FeaturDataSourceState<OrganizationConfigModel>
+              >(
+                builder: (context, state) {
+                  return state.itemState.maybeWhen(
+                    success: (config) => WebsiteConfigTab(
+                      config: config!,
+                      organizationId: widget.organization.organizationId,
+                      isDark: isDark,
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    orElse: () => const SizedBox(),
+                  );
+                },
+              ),
+
+              // --- Tab 6: Website Footer Configuration ---
+              BlocBuilder<
+                AdminOrganizationConfigBloc,
+                FeaturDataSourceState<OrganizationConfigModel>
+              >(
+                builder: (context, state) {
+                  return state.itemState.maybeWhen(
+                    success: (config) => WebsiteFooterTab(
                       config: config!,
                       organizationId: widget.organization.organizationId,
                       isDark: isDark,

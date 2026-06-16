@@ -31,6 +31,9 @@ class ProductInputConfig {
   static const String keyShowChangePriceInPopup = "showChangePriceInPopup";
   static const String keyShowDeleteInPopup = "showDeleteInPopup";
   static const String keyEnableRichTextEditor = "enableRichTextEditor";
+  static const String keyShowVariants = "showVariants";
+  static const String keyShowAddons = "showAddons";
+  static const String keyShowOptions = "showOptions";
 
   // Image Config Keys (Flat Structure as used in UI)
   static const String keyProductImageIsRequired = "productImage_isRequired";
@@ -45,6 +48,9 @@ class ProductInputConfig {
   static const String keyCategoryImageHeight = "categoryImage_height";
   static const String keyCategoryImageWidth = "categoryImage_width";
   static const String keyCategoryImageMaxSizeMB = "categoryImage_maxSizeMB";
+
+  static const String keyMaxProductImages = "maxProductImages";
+  static const String keyPriceTiers = "priceTiers";
 
   // 🟠 القيم الافتراضية الموحدة للمشروع
   static const Map<String, dynamic> defaultValues = {
@@ -75,6 +81,9 @@ class ProductInputConfig {
     keyShowChangePriceInPopup: true,
     keyShowDeleteInPopup: true,
     keyEnableRichTextEditor: false,
+    keyShowVariants: false,
+    keyShowAddons: false,
+    keyShowOptions: false,
     keyProductImageIsRequired: false,
     keyProductImageEnforceRatio: true,
     keyProductImageHeight: 300,
@@ -85,100 +94,116 @@ class ProductInputConfig {
     keyCategoryImageHeight: 200,
     keyCategoryImageWidth: 200,
     keyCategoryImageMaxSizeMB: 2,
+    keyMaxProductImages: 5,
+    keyPriceTiers: [
+      {
+        "code": "wholesale",
+        "name": {"ar": "جملة", "en": "Wholesale"}
+      },
+      {
+        "code": "distributor",
+        "name": {"ar": "موزع / وكيل", "en": "Distributor"}
+      }
+    ],
   };
 
   // 🔵 Getters
-  static bool get showImages =>
-      _data[keyShowImages] ?? defaultValues[keyShowImages];
-  static bool get showDescription =>
-      _data[keyShowDescription] ?? defaultValues[keyShowDescription];
-  static bool get showDetailedDescription =>
-      _data[keyShowDetailedDescription] ??
-      defaultValues[keyShowDetailedDescription];
-  static bool get showUsage =>
-      _data[keyShowUsage] ?? defaultValues[keyShowUsage];
-  static bool get showBenefits =>
-      _data[keyShowBenefits] ?? defaultValues[keyShowBenefits];
-  static bool get showIngredients =>
-      _data[keyShowIngredients] ?? defaultValues[keyShowIngredients];
-  static bool get showIsInsideOffer =>
-      _data[keyShowIsInsideOffer] ?? defaultValues[keyShowIsInsideOffer];
-  static bool get showDiscount =>
-      _data[keyShowDiscount] ?? defaultValues[keyShowDiscount];
-  static bool get showDiscountPercentage =>
-      _data[keyShowDiscountPercentage] ?? defaultValues[keyShowDiscountPercentage];
-  static bool get showIsNew =>
-      _data[keyShowIsNew] ?? defaultValues[keyShowIsNew];
-  static bool get showIsBestSeller =>
-      _data[keyShowIsBestSeller] ?? defaultValues[keyShowIsBestSeller];
-  static bool get showIsOnSale =>
-      _data[keyShowIsOnSale] ?? defaultValues[keyShowIsOnSale];
-  static bool get showIsJoker =>
-      _data[keyShowIsJoker] ?? defaultValues[keyShowIsJoker];
-  static bool get showIsSuperJoker =>
-      _data[keyShowIsSuperJoker] ?? defaultValues[keyShowIsSuperJoker];
-  static bool get showChangePriceInPopup =>
-      _data[keyShowChangePriceInPopup] ??
-      defaultValues[keyShowChangePriceInPopup];
-  static bool get showDeleteInPopup =>
-      _data[keyShowDeleteInPopup] ?? defaultValues[keyShowDeleteInPopup];
-  static bool get enableQuickAdd =>
-      _data[keyEnableQuickAdd] ?? defaultValues[keyEnableQuickAdd];
-  static bool get enableRichTextEditor =>
-      _data[keyEnableRichTextEditor] ?? defaultValues[keyEnableRichTextEditor];
-  static bool get enableMultiSizePricing =>
-      _data[keyEnableMultiSizePricing] ??
-      defaultValues[keyEnableMultiSizePricing];
-  static bool get defaultToSinglePrice =>
-      _data[keyDefaultToSinglePrice] ?? defaultValues[keyDefaultToSinglePrice];
-  static List<String> get allowedUnits => List<String>.from(
-    _data[keyAllowedUnits] ?? defaultValues[keyAllowedUnits],
-  );
-  static bool get enableAddProduct =>
-      _data[keyEnableAddProduct] ?? defaultValues[keyEnableAddProduct];
-  static bool get showAddProductInGrid =>
-      _data[keyShowAddProductInGrid] ?? defaultValues[keyShowAddProductInGrid];
-  static bool get enableAddCategory =>
-      _data[keyEnableAddCategory] ?? defaultValues[keyEnableAddCategory];
-  static bool get showAddCategoryInGrid =>
-      _data[keyShowAddCategoryInGrid] ??
-      defaultValues[keyShowAddCategoryInGrid];
-  static bool get enableAddOffer =>
-      _data[keyEnableAddOffer] ?? defaultValues[keyEnableAddOffer];
-  static bool get showAddOfferInGrid =>
-      _data[keyShowAddOfferInGrid] ?? defaultValues[keyShowAddOfferInGrid];
+  static bool _getBool(String key) {
+    final defaultValue = defaultValues[key] as bool? ?? false;
+    final val = _data[key];
+    if (val == null) return defaultValue;
+    if (val is bool) return val;
+    if (val is String) {
+      return val.toLowerCase() == 'true';
+    }
+    return defaultValue;
+  }
 
-  static bool get isProductImageRequired =>
-      _data[keyProductImageIsRequired] ??
-      defaultValues[keyProductImageIsRequired];
-  static double get productImageHeight =>
-      (_data[keyProductImageHeight] ?? defaultValues[keyProductImageHeight])
-          .toDouble();
-  static double get productImageWidth =>
-      (_data[keyProductImageWidth] ?? defaultValues[keyProductImageWidth])
-          .toDouble();
-  static bool get isProductImageRatioEnforced =>
-      _data[keyProductImageEnforceRatio] ??
-      defaultValues[keyProductImageEnforceRatio];
-  static int get maxProductImageSizeMB =>
-      (_data[keyProductImageMaxSizeMB] ??
-              defaultValues[keyProductImageMaxSizeMB])
-          .toInt();
+  static double _getDouble(String key) {
+    final defaultValue = (defaultValues[key] as num? ?? 0.0).toDouble();
+    final val = _data[key];
+    if (val == null) return defaultValue;
+    if (val is num) return val.toDouble();
+    if (val is String) {
+      return double.tryParse(val) ?? defaultValue;
+    }
+    return defaultValue;
+  }
 
-  static bool get isCategoryImageRequired =>
-      _data[keyCategoryImageIsRequired] ??
-      defaultValues[keyCategoryImageIsRequired];
-  static double get categoryImageHeight =>
-      (_data[keyCategoryImageHeight] ?? defaultValues[keyCategoryImageHeight])
-          .toDouble();
-  static double get categoryImageWidth =>
-      (_data[keyCategoryImageWidth] ?? defaultValues[keyCategoryImageWidth])
-          .toDouble();
-  static bool get isCategoryImageRatioEnforced =>
-      _data[keyCategoryImageEnforceRatio] ??
-      defaultValues[keyCategoryImageEnforceRatio];
-  static int get maxCategoryImageSizeMB =>
-      (_data[keyCategoryImageMaxSizeMB] ??
-              defaultValues[keyCategoryImageMaxSizeMB])
-          .toInt();
+  static int _getInt(String key) {
+    final defaultValue = (defaultValues[key] as num? ?? 0).toInt();
+    final val = _data[key];
+    if (val == null) return defaultValue;
+    if (val is num) return val.toInt();
+    if (val is String) {
+      return int.tryParse(val) ?? defaultValue;
+    }
+    return defaultValue;
+  }
+
+  static bool get showImages => _getBool(keyShowImages);
+  static bool get showDescription => _getBool(keyShowDescription);
+  static bool get showDetailedDescription => _getBool(keyShowDetailedDescription);
+  static bool get showUsage => _getBool(keyShowUsage);
+  static bool get showBenefits => _getBool(keyShowBenefits);
+  static bool get showIngredients => _getBool(keyShowIngredients);
+  static bool get showIsInsideOffer => _getBool(keyShowIsInsideOffer);
+  static bool get showDiscount => _getBool(keyShowDiscount);
+  static bool get showDiscountPercentage => _getBool(keyShowDiscountPercentage);
+  static bool get showIsNew => _getBool(keyShowIsNew);
+  static bool get showIsBestSeller => _getBool(keyShowIsBestSeller);
+  static bool get showIsOnSale => _getBool(keyShowIsOnSale);
+  static bool get showIsJoker => _getBool(keyShowIsJoker);
+  static bool get showIsSuperJoker => _getBool(keyShowIsSuperJoker);
+  static bool get showChangePriceInPopup => _getBool(keyShowChangePriceInPopup);
+  static bool get showDeleteInPopup => _getBool(keyShowDeleteInPopup);
+  static bool get enableQuickAdd => _getBool(keyEnableQuickAdd);
+  static bool get enableRichTextEditor => _getBool(keyEnableRichTextEditor);
+  static bool get showVariants => _getBool(keyShowVariants);
+  static bool get showAddons => _getBool(keyShowAddons);
+  static bool get showOptions => _getBool(keyShowOptions);
+  static bool get enableMultiSizePricing => _getBool(keyEnableMultiSizePricing);
+  static bool get defaultToSinglePrice => _getBool(keyDefaultToSinglePrice);
+  static List<String> get allowedUnits {
+    final val = _data[keyAllowedUnits];
+    if (val == null) return List<String>.from(defaultValues[keyAllowedUnits]);
+    if (val is List) return List<String>.from(val);
+    return List<String>.from(defaultValues[keyAllowedUnits]);
+  }
+  static bool get enableAddProduct => _getBool(keyEnableAddProduct);
+  static bool get showAddProductInGrid => _getBool(keyShowAddProductInGrid);
+  static bool get enableAddCategory => _getBool(keyEnableAddCategory);
+  static bool get showAddCategoryInGrid => _getBool(keyShowAddCategoryInGrid);
+  static bool get enableAddOffer => _getBool(keyEnableAddOffer);
+  static bool get showAddOfferInGrid => _getBool(keyShowAddOfferInGrid);
+
+  static bool get isProductImageRequired => _getBool(keyProductImageIsRequired);
+  static double get productImageHeight => _getDouble(keyProductImageHeight);
+  static double get productImageWidth => _getDouble(keyProductImageWidth);
+  static bool get isProductImageRatioEnforced => _getBool(keyProductImageEnforceRatio);
+  static int get maxProductImageSizeMB => _getInt(keyProductImageMaxSizeMB);
+
+  static bool get isCategoryImageRequired => _getBool(keyCategoryImageIsRequired);
+  static double get categoryImageHeight => _getDouble(keyCategoryImageHeight);
+  static double get categoryImageWidth => _getDouble(keyCategoryImageWidth);
+  static bool get isCategoryImageRatioEnforced => _getBool(keyCategoryImageEnforceRatio);
+  static int get maxCategoryImageSizeMB => _getInt(keyCategoryImageMaxSizeMB);
+
+  static int get maxProductImages => _getInt(keyMaxProductImages);
+  static List<Map<String, dynamic>> get priceTiers {
+    final val = _data[keyPriceTiers];
+    if (val == null) {
+      return List<Map<String, dynamic>>.from(
+        (defaultValues[keyPriceTiers] as List).map((e) => Map<String, dynamic>.from(e))
+      );
+    }
+    if (val is List) {
+      return List<Map<String, dynamic>>.from(
+        val.map((e) => Map<String, dynamic>.from(e as Map))
+      );
+    }
+    return List<Map<String, dynamic>>.from(
+      (defaultValues[keyPriceTiers] as List).map((e) => Map<String, dynamic>.from(e))
+    );
+  }
 }

@@ -32,36 +32,23 @@ class OrderItemCard extends StatelessWidget {
         ],
       ),
       child: ExpansionTile(
-        shape: const RoundedRectangleBorder(
-          side: BorderSide.none,
-        ),
-        collapsedShape: const RoundedRectangleBorder(
-          side: BorderSide.none,
-        ),
-        tilePadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        shape: const RoundedRectangleBorder(side: BorderSide.none),
+        collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: stepColor.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            Icons.shopping_bag_outlined,
-            color: stepColor,
-          ),
+          child: Icon(Icons.shopping_bag_outlined, color: stepColor),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               "طلب #${order.id.substring(order.id.length - 5).toUpperCase()}",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             Text(
               "${order.totalOrderPrice} ج.م",
@@ -79,11 +66,7 @@ class OrderItemCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(
-                  Icons.person_outline,
-                  size: 14,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.person_outline, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
                   sender?.name ?? "عميل غير معروف",
@@ -97,29 +80,18 @@ class OrderItemCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(
-                  Icons.phone_outlined,
-                  size: 14,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.phone_outlined, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
                   sender?.phone ?? "بدون هاتف",
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
           ],
         ),
         children: [
-          const Divider(
-            height: 1,
-            indent: 16,
-            endIndent: 16,
-          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -136,9 +108,7 @@ class OrderItemCard extends StatelessWidget {
                 ...items
                     .map(
                       (item) => Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 8.0,
-                        ),
+                        padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           children: [
                             Container(
@@ -154,9 +124,7 @@ class OrderItemCard extends StatelessWidget {
                                 color: Colors.grey,
                               ),
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,6 +135,19 @@ class OrderItemCard extends StatelessWidget {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
+                                  if (item.description != null &&
+                                      item.description!.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.description!,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 4),
                                   Text(
                                     "${item.quantity} × ${item.unitPrice} ج.م",
                                     style: const TextStyle(
@@ -193,19 +174,12 @@ class OrderItemCard extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: onManageOrder,
-                    icon: const Icon(
-                      Icons.settings_suggest_outlined,
-                      size: 20,
-                    ),
-                    label: const Text(
-                      "إدارة الطلب",
-                    ),
+                    icon: const Icon(Icons.settings_suggest_outlined, size: 20),
+                    label: const Text("إدارة الطلب"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: stepColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -224,9 +198,7 @@ class OrderItemCard extends StatelessWidget {
                     children: [
                       const Text(
                         "إجمالي الطلب النهائي",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         "${order.totalOrderPrice} ج.م",

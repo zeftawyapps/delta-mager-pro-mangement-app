@@ -10,6 +10,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/workflow/workflow_step_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/workflow/workflow_action_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/workflow/create_workflow_form.dart';
+import 'package:delta_mager_pro_mangement_app/screens/inputs/workflow/workflow_triggers_form.dart';
 
 import 'widgets/workflow_step_card.dart';
 
@@ -274,6 +275,7 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
               onEdit: () => _showEditStepDialog(config, step),
               onDelete: () => _showDeleteStepDialog(config, step),
               onAddAction: () => _showAddActionDialog(config, step),
+              onConfigureTriggers: () => _showConfigureTriggersDialog(config, step),
             );
           }),
           const SizedBox(height: 40),
@@ -420,6 +422,28 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 550),
             child: WorkflowActionForm(
+              config: config,
+              step: step,
+              organizationId: widget.organizationId,
+              isDark: widget.isDark,
+            ),
+          ),
+        );
+      },
+    ).then((_) {
+      _loadData();
+    });
+  }
+
+  void _showConfigureTriggersDialog(WorkflowConfigModel config, WorkflowStep step) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 550),
+            child: WorkflowTriggersForm(
               config: config,
               step: step,
               organizationId: widget.organizationId,

@@ -46,7 +46,9 @@ class AppBarConfigs {
     );
 
     final String title =
-        config?.layout?.appTitle ?? systemInfo?.appName ?? AppShellConfigs.titleApp;
+        config?.layout?.appTitle ??
+        systemInfo?.appName ??
+        AppShellConfigs.titleApp;
 
     return AppBarConfig(title: title, actions: [_buildUserMenu(context)]);
   }
@@ -65,7 +67,8 @@ class AppBarConfigs {
 
     final String title = config?.layout?.appTitle != null
         ? "${config!.layout!.appTitle} - نظام الإدارة"
-        : systemInfo?.appName ?? '${AppShellConfigs.titleApp} Management System';
+        : systemInfo?.appName ??
+              '${AppShellConfigs.titleApp} Management System';
 
     return AppBarConfig(title: title, actions: [_buildUserMenu(context)]);
   }
@@ -221,7 +224,7 @@ class AppBarConfigs {
   /// إظهار نافذة الملف الشخصي
   static void _showProfileDialog(BuildContext context, Users user) {
     final appChanges = context.read<AppChangesValues>();
-    
+
     // إذا كان لدينا ملف شخصي محمل بالفعل في الحالة العالمية، نستخدمه
     if (appChanges.userProfile != null) {
       showCustomInputDialog(
@@ -258,7 +261,7 @@ class AppBarConfigs {
       userId: user.id ?? '',
       username: user.username,
       email: user.email,
-      phone: phone, 
+      phone: phone,
       roles: user.roles,
       address: address,
       countryId: countryId,
@@ -303,22 +306,25 @@ class AppBarConfigs {
   static void _handleLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد أنك تريد تسجيل الخروج؟'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: () {
-              context.read<AuthBloc>().signOut();
-              AppShellRoutes().goRoute(
-                context,
-                AppRoutes.welcome,
-                replace: true,
-              );
+            onPressed: () async {
+              Navigator.pop(dialogCtx); // إغلاق صندوق الحوار أولاً
+              await context.read<AuthBloc>().signOut();
+              if (context.mounted) {
+                AppShellRoutes().goRoute(
+                  context,
+                  AppRoutes.welcome,
+                  replace: true,
+                );
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('تسجيل الخروج'),

@@ -22,6 +22,7 @@ class OrganizationConfigModel extends OrganizationConfig
     super.productInput,
     super.b2bHomeLayout,
     super.ordersConfig,
+    super.website,
   });
 
   factory OrganizationConfigModel.fromData(OrganizationConfig data) {
@@ -35,6 +36,7 @@ class OrganizationConfigModel extends OrganizationConfig
       productInput: data.productInput,
       b2bHomeLayout: data.b2bHomeLayout,
       ordersConfig: data.ordersConfig,
+      website: data.website,
     );
   }
 

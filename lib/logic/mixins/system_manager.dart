@@ -76,15 +76,17 @@ mixin SystemManager {
         context.read<AppChangesValues>().setLastRoute(mainPath);
         
         // تحديث العنصر المختار في القائمة الجانبية بشكل آمن
-        try {
-          // التأكد من وجود الـ Provider قبل الاستخدام لتجنب الـ null error
-          final hasSidebarProvider = context.read<AppShellRouterProvider?>() != null;
-          if (hasSidebarProvider) {
-            final router = context.widget as AppShellRouterMixin;
-            router.goRouterInSidBar(context, mainPath);
+        if (user != null) {
+          try {
+            // التأكد من وجود الـ Provider قبل الاستخدام لتجنب الـ null error
+            final hasSidebarProvider = context.read<AppShellRouterProvider?>() != null;
+            if (hasSidebarProvider) {
+              final router = context.widget as AppShellRouterMixin;
+              router.goRouterInSidBar(context, mainPath);
+            }
+          } catch (e) {
+            debugPrint("Sidebar update skipped: $e");
           }
-        } catch (e) {
-          debugPrint("Sidebar update skipped: $e");
         }
       });
     }
