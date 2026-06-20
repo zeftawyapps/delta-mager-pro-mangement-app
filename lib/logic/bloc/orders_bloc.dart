@@ -21,11 +21,12 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
     String? orderPathId,
   }) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    final finalSlug = (workflowSlug == null || workflowSlug.isEmpty) ? 'default' : workflowSlug;
     final result = await repo.getOrganizationOrders(
       page: page,
       limit: limit,
       currentStepIndex: currentStepIndex,
-      workflowSlug: workflowSlug,
+      workflowSlug: finalSlug,
       orderPathId: orderPathId,
     );
 

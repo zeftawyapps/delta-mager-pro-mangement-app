@@ -1,3 +1,4 @@
+import 'package:delta_mager_pro_mangement_app/logic/bloc/locations_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
@@ -33,6 +34,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
   void initState() {
     super.initState();
     _editingPolicy = widget.policy;
+    // Load governorates systematically on start
+    context.read<LocationsBloc>().loadGovernorates('EG');
   }
 
   @override
@@ -47,9 +50,9 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       context.read<OrganizationPolicyBloc>().updatePolicy(
-            widget.organizationId,
-            _editingPolicy,
-          );
+        widget.organizationId,
+        _editingPolicy,
+      );
       setState(() => _isEditing = false);
     }
   }
@@ -94,7 +97,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
         salesRules: _editingPolicy.salesRules,
         shipping: ShippingPolicy(
           defaultFee: defaultFee ?? current.defaultFee,
-          freeShippingEnabled: freeShippingEnabled ?? current.freeShippingEnabled,
+          freeShippingEnabled:
+              freeShippingEnabled ?? current.freeShippingEnabled,
           feesByGovernorate: feesByGovernorate ?? current.feesByGovernorate,
         ),
       );
@@ -179,7 +183,10 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
           labelText: label,
           labelStyle: const TextStyle(fontSize: 13),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
           filled: !enabled,
           fillColor: Colors.grey.withOpacity(0.05),
         ),
@@ -218,8 +225,10 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
         },
         backgroundColor: _isEditing ? Colors.green : LightColors.primary,
         icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
-        label: Text(_isEditing ? "حفظ التغييرات" : "تعديل السياسات",
-            style: const TextStyle(color: Colors.white)),
+        label: Text(
+          _isEditing ? "حفظ التغييرات" : "تعديل السياسات",
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -238,7 +247,9 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                       const Text(
                         "أنت الآن في وضع التعديل",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.orange),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
                       ),
                       const Spacer(),
                       TextButton(
@@ -273,17 +284,21 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                   if (_editingPolicy.logistics?.enableVat ?? false)
                     _buildTextField(
                       label: "نسبة الضريبة (%)",
-                      initialValue:
-                          _editingPolicy.logistics?.taxPercentage?.toString(),
-                      onSaved: (val) =>
-                          _updateLogistics(taxPercentage: num.tryParse(val ?? '')),
+                      initialValue: _editingPolicy.logistics?.taxPercentage
+                          ?.toString(),
+                      onSaved: (val) => _updateLogistics(
+                        taxPercentage: num.tryParse(val ?? ''),
+                      ),
                       enabled: _isEditing,
                       keyboardType: TextInputType.number,
                     ),
                   _buildSwitchTile(
                     label: "إدارة المخزون",
-                    value: _editingPolicy.logistics?.enableStockManagement ?? false,
-                    onChanged: (val) => _updateLogistics(enableStockManagement: val),
+                    value:
+                        _editingPolicy.logistics?.enableStockManagement ??
+                        false,
+                    onChanged: (val) =>
+                        _updateLogistics(enableStockManagement: val),
                     enabled: _isEditing,
                   ),
                   _buildTextField(
@@ -295,7 +310,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                   UnitsFieldEditor(
                     allowedUnits: _editingPolicy.logistics?.allowedUnits ?? [],
                     isEditing: _isEditing,
-                    onUnitsChanged: (units) => _updateLogistics(allowedUnits: units),
+                    onUnitsChanged: (units) =>
+                        _updateLogistics(allowedUnits: units),
                     isDark: widget.isDark,
                   ),
                 ],
@@ -310,7 +326,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                 children: [
                   _buildTextField(
                     label: "تكلفة الشحن الافتراضية",
-                    initialValue: _editingPolicy.shipping?.defaultFee?.toString(),
+                    initialValue: _editingPolicy.shipping?.defaultFee
+                        ?.toString(),
                     onSaved: (val) =>
                         _updateShipping(defaultFee: num.tryParse(val ?? '')),
                     enabled: _isEditing,
@@ -318,15 +335,19 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                   ),
                   _buildSwitchTile(
                     label: "تفعيل الشحن المجاني",
-                    value: _editingPolicy.shipping?.freeShippingEnabled ?? false,
-                    onChanged: (val) => _updateShipping(freeShippingEnabled: val),
+                    value:
+                        _editingPolicy.shipping?.freeShippingEnabled ?? false,
+                    onChanged: (val) =>
+                        _updateShipping(freeShippingEnabled: val),
                     enabled: _isEditing,
                   ),
                   GovernorateFeesEditor(
-                    feesByGovernorate: _editingPolicy.shipping?.feesByGovernorate ?? {},
+                    feesByGovernorate:
+                        _editingPolicy.shipping?.feesByGovernorate ?? {},
                     currency: _editingPolicy.logistics?.currency ?? '',
                     isEditing: _isEditing,
-                    onFeesChanged: (fees) => _updateShipping(feesByGovernorate: fees),
+                    onFeesChanged: (fees) =>
+                        _updateShipping(feesByGovernorate: fees),
                     isDark: widget.isDark,
                   ),
                 ],
@@ -347,26 +368,30 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                   ),
                   _buildTextField(
                     label: "نسبة خصم الجملة (%)",
-                    initialValue:
-                        _editingPolicy.salesRules?.wholesaleDiscount?.toString(),
-                    onSaved: (val) =>
-                        _updateSalesRules(wholesaleDiscount: num.tryParse(val ?? '')),
+                    initialValue: _editingPolicy.salesRules?.wholesaleDiscount
+                        ?.toString(),
+                    onSaved: (val) => _updateSalesRules(
+                      wholesaleDiscount: num.tryParse(val ?? ''),
+                    ),
                     enabled: _isEditing,
                     keyboardType: TextInputType.number,
                   ),
                   _buildTextField(
                     label: "نسبة خصم الوكلاء (%)",
-                    initialValue:
-                        _editingPolicy.salesRules?.agentDiscount?.toString(),
-                    onSaved: (val) =>
-                        _updateSalesRules(agentDiscount: num.tryParse(val ?? '')),
+                    initialValue: _editingPolicy.salesRules?.agentDiscount
+                        ?.toString(),
+                    onSaved: (val) => _updateSalesRules(
+                      agentDiscount: num.tryParse(val ?? ''),
+                    ),
                     enabled: _isEditing,
                     keyboardType: TextInputType.number,
                   ),
                   InvoiceSlicesEditor(
-                    invoiceSlices: _editingPolicy.salesRules?.invoiceSlices ?? [],
+                    invoiceSlices:
+                        _editingPolicy.salesRules?.invoiceSlices ?? [],
                     isEditing: _isEditing,
-                    onSlicesChanged: (slices) => _updateSalesRules(invoiceSlices: slices),
+                    onSlicesChanged: (slices) =>
+                        _updateSalesRules(invoiceSlices: slices),
                     isDark: widget.isDark,
                   ),
                 ],

@@ -6,18 +6,38 @@ appBranding:
 # 🚀 توافق الإصدارات الخاص بهذا العميل (رقم البناء)
 appVersion: "1.0.0"
 appBuildIndex: 1
+env: "local"
 
 # 🔗 روابط الخادم الخاص بهذا العميل (Custom Backend Base URLs)
 baseUrl: "http://localhost:8080/api/v1"
 imageUrl: "http://localhost:8080"
 physicalDeviceIp: "192.168.1.31"
+envUrls:
+  local:
+    baseUrl: "http://localhost:8080/api/v1"
+    imageUrl: "http://localhost:8080"
+  dev:
+    baseUrl: "http://localhost:8080/api/v1"
+    imageUrl: "http://localhost:8080"
+  prod:
+    baseUrl: "http://localhost:8080/api/v1"
+    imageUrl: "http://localhost:8080"
 
 # 🔥 إعدادات استضافة Firebase الخاصة بهذا العميل
 firebase:
   project: "domansy-dev"
   hosting:
-    admin: "local-admin"
     dashboard: "local-orgs"
+    admin: "local-admin"
+
+# 🧱 البناء والرفع لكل تطبيق
+apps:
+  dashboard:
+    buildTarget: "lib/main_dashboard.dart"
+    hostingSite: "local-orgs"
+  admin:
+    buildTarget: "lib/main_admin.dart"
+    hostingSite: "local-admin"
 
 # 📱 وسائل التواصل الاجتماعي والفوتر
 socialMedia:

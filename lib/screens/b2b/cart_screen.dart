@@ -33,7 +33,7 @@ class _CartScreenState extends State<CartScreen> {
     // Load User Profile, Policy and Locations
     context.read<UsersBloc>().loadMyProfile();
     context.read<OrganizationPolicyBloc>().loadPolicy(widget.organizationId);
-    context.read<LocationsBloc>().loadGovernorates();
+    context.read<LocationsBloc>().loadGovernorates('EG');
   }
 
   @override
@@ -435,7 +435,7 @@ class _CartScreenState extends State<CartScreen> {
               items: governorates
                   .map<DropdownMenuItem<String>>(
                     (g) => DropdownMenuItem<String>(
-                      value: g.code ?? '',
+                      value: g.code ?? g.id.toString(),
                       child: Text(
                         g.name.ar,
                         style: const TextStyle(fontSize: 14),

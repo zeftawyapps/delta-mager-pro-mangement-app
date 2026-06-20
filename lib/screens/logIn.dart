@@ -19,6 +19,7 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
+import 'package:JoDija_reposatory/constes/api_urls.dart';
 
 // ignore: must_be_immutable
 class LoginScreen extends StatefulWidget with AppShellRouterMixin {
@@ -72,6 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
       _updateTheme(config);
     }
   }
+
+  String? _errorMessage; // رسالة الخطأ لعرضها بشكل جمالي بدلاً من الـ SnackBar
 
   // ======================== متغيرات النموذج (Form) ========================
   final _formKey = GlobalKey<FormState>(); // مفتاح النموذج للتحقق من صحة الحقول
@@ -127,6 +130,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void onSubmitted() {
+    setState(() {
+      _errorMessage = null;
+    });
     if (form.form.currentState!.validate()) {
       form.form.currentState!.save();
       var data = form.getInputData();
@@ -182,6 +188,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withOpacity(0.05),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -150,
+              left: -150,
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withOpacity(0.08),
+                ),
+              ),
+            ),
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
@@ -193,47 +223,53 @@ class _LoginScreenState extends State<LoginScreen> {
                         margin: const EdgeInsets.only(bottom: 40),
                         child: Column(
                           children: [
-                            context.read<SystemBloc>().systemInfo?.logo !=
-                                        null &&
-                                    context
-                                        .read<SystemBloc>()
-                                        .systemInfo!
-                                        .logo!
-                                        .isNotEmpty
-                                ? Image.network(
-                                    context
-                                        .read<SystemBloc>()
-                                        .systemInfo!
-                                        .logo!,
+                            Builder(
+                              builder: (context) {
+                                final orgLogo = context
+                                    .read<OrganizationConfigBloc>()
+                                    .organizationConfig
+                                    ?.visual
+                                    ?.logoUrl;
+                                final systemLogo = context.read<SystemBloc>().systemInfo?.logo;
+                                final rawLogo = (orgLogo != null && orgLogo.isNotEmpty)
+                                    ? orgLogo
+                                    : ((systemLogo != null && systemLogo.isNotEmpty) ? systemLogo : null);
+
+                                final activeLogo = (rawLogo != null && rawLogo.isNotEmpty)
+                                    ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
+                                    : null;
+
+                                if (activeLogo != null) {
+                                  return Image.network(
+                                    activeLogo,
                                     width: size.width > 600 ? 300 : 250,
                                     height: size.width > 600 ? 200 : 150,
                                     fit: BoxFit.contain,
-                                    errorBuilder:
-                                        (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) => Image.asset(
-                                          AppAsset.logo,
-                                          width: size.width > 600 ? 300 : 250,
-                                          height: size.width > 600 ? 200 : 150,
-                                          fit: BoxFit.contain,
-                                        ),
-                                  )
-                                : Image.asset(
-                                        AppAsset.logo,
-                                        width: size.width > 600 ? 300 : 250,
-                                        height: size.width > 600 ? 200 : 150,
-                                        fit: BoxFit.contain,
-                                      )
-                                      .animate()
-                                      .fadeIn(duration: 600.ms)
-                                      .scale(
-                                        begin: const Offset(0.8, 0.8),
-                                        end: const Offset(1.0, 1.0),
-                                        duration: 600.ms,
-                                        curve: Curves.easeOutBack,
-                                      ),
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Image.asset(
+                                      AppAsset.logo,
+                                      width: size.width > 600 ? 300 : 250,
+                                      height: size.width > 600 ? 200 : 150,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  );
+                                }
+                                return Image.asset(
+                                  AppAsset.logo,
+                                  width: size.width > 600 ? 300 : 250,
+                                  height: size.width > 600 ? 200 : 150,
+                                  fit: BoxFit.contain,
+                                );
+                              },
+                            )
+                            .animate()
+                            .fadeIn(duration: 600.ms)
+                            .scale(
+                              begin: const Offset(0.8, 0.8),
+                              end: const Offset(1.0, 1.0),
+                              duration: 600.ms,
+                              curve: Curves.easeOutBack,
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               'لوحة التحكم الإدارية',
@@ -277,14 +313,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                 },
                                 failure: (error, reload) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        error.message ?? "خطأ في تسجيل الدخول",
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                                  setState(() {
+                                    _errorMessage = error.message ?? "خطأ في تسجيل الدخول";
+                                  });
                                   AppRoutes.defaultOrgName =
                                       AppRoutes.activeOrgName;
 
@@ -320,6 +351,57 @@ class _LoginScreenState extends State<LoginScreen> {
                                         textAlign: TextAlign.center,
                                       ).animate().fadeIn(delay: 200.ms),
                                       const SizedBox(height: 32),
+                                      if (_errorMessage != null) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.error.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: AppColors.error.withOpacity(0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.error_outline_rounded,
+                                                color: AppColors.error,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  _errorMessage!,
+                                                  style: TextStyle(
+                                                    color: AppColors.error,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.close_rounded,
+                                                  color: AppColors.error,
+                                                  size: 16,
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _errorMessage = null;
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ).animate().fade(duration: 300.ms).slideY(begin: -0.1, end: 0),
+                                        const SizedBox(height: 20),
+                                      ],
                                       form.buildChildrenWithColumn(
                                         context: context,
                                         children: [

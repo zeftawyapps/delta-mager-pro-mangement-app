@@ -130,7 +130,7 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                       child: Column(
                         children: [
                           Image.asset(
-                                AppAsset.imgplaceholder,
+                                AppAsset.logo,
                                 width: size.width > 600 ? 300 : 250,
                                 height: size.width > 600 ? 200 : 150,
                                 fit: BoxFit.contain,

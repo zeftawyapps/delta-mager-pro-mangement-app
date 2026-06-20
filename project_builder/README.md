@@ -26,6 +26,29 @@ activeClient: "domansy"  # اسم العميل النشط
 > [!NOTE]
 > يجب أن يطابق الاسم المكتوب اسم ملف التكوين الخاص به والموجود في مجلد `project_builder/clients/<client>.yaml`.
 
+### 🧩 بنية ملف العميل (`clients/<client>.yaml`)
+كل عميل يجب أن يحتوي على تعريف التطبيقين بشكل صريح:
+
+```yaml
+firebase:
+  project: "domansy-dev"
+  hosting:
+    dashboard: "domancy-orgs"
+    admin: "domancy-admin"
+
+apps:
+  dashboard:
+    buildTarget: "lib/main_dashboard.dart"
+    hostingSite: "domancy-orgs"
+  admin:
+    buildTarget: "lib/main_admin.dart"
+    hostingSite: "domancy-admin"
+```
+
+بهذه الطريقة السكربت يعرف بدقة:
+- سيتم البناء من أي `main` لكل تطبيق.
+- سيتم الرفع على أي Firebase Hosting site لكل تطبيق.
+
 ---
 
 ## 🏃 2. تشغيل السكريبت والأوامر المتاحة
@@ -48,18 +71,23 @@ activeClient: "domansy"  # اسم العميل النشط
 ### ⚡ ب. وضع الاختصار السريع (Direct Commands)
 لتخطي القائمة التفاعلية والبدء فوراً، يمكنك كتابة الإجراء المطلوب مباشرة بجانب اسم السكريبت كمعامل:
 
-#### 1. التشغيل المحلي الفوري والسريع (للعميل النشط في الـ Config):
-يقوم بتشغيل خادم محلي فوراً على منفذ **8085** لعرض آخر نسخة تم بناؤها (دون إضاعة وقت في إعادة التهيئة أو إعادة البناء):
+#### 1. التشغيل المحلي الفوري (Serve only):
+يشغل آخر ناتج تم بناؤه مسبقاً:
 ```bash
-./project_builder/build_client.sh run
+./project_builder/build_client.sh run dashboard
+./project_builder/build_client.sh run admin
+./project_builder/build_client.sh run both
 ```
 > [!NOTE]
-> هذا الأمر مصمم للتشغيل السريع الفوري (**Serve Only**). لكي يعمل، يجب أن تكون قد قمت بالبناء مرة واحدة على الأقل مسبقاً.
+> `dashboard` يعمل على المنفذ `8085` و`admin` على `8086`.
+> لكي يعمل `run` يجب أن تكون قد بنيت التطبيق المطلوب مسبقاً.
 
 #### 2. البناء والرفع المباشر للاستضافة (للعميل النشط في الـ Config):
-يقوم بتهيئة الإعدادات وبناء التطبيق للويب ورفعه فوراً لمشروع Firebase الصحيح المخصص للعميل:
+يقوم بتهيئة الإعدادات، البناء، ثم الرفع حسب التطبيق المختار:
 ```bash
-./project_builder/build_client.sh deploy
+./project_builder/build_client.sh deploy dashboard
+./project_builder/build_client.sh deploy admin
+./project_builder/build_client.sh deploy both
 ```
 > [!IMPORTANT]
 > **ذكاء فحص الإصدارات:** عند تشغيل الرفع (`deploy`) أو التهيئة (`config`)، يقوم النظام بفحص رقم الإصدار الحالي في الـ `pubspec.yaml` ومقارنته بالإصدار الجديد في ملف تكوين العميل المختار. إذا كانا مختلفين، سيظهر لك **تنبيه أصفر تحذيري** يوضح ذلك، ثم يقوم النظام تلقائياً بمزامنتهم وتحديثهم في الـ `pubspec.yaml` ويكمل عملية البناء والرفع بنجاح دون أي توقف!
@@ -68,6 +96,13 @@ activeClient: "domansy"  # اسم العميل النشط
 يقوم بتحديث إعدادات التطبيق وتوليد ملفات `.firebaserc` و `firebase.json` فوراً للعميل النشط دون بناء:
 ```bash
 ./project_builder/build_client.sh config
+```
+
+#### 4. البناء ثم التشغيل المحلي:
+```bash
+./project_builder/build_client.sh build-run dashboard
+./project_builder/build_client.sh build-run admin
+./project_builder/build_client.sh build-run both
 ```
 
 ### 🏷️ 3. نظام مزامنة الإصدارات وسجل التحديثات (Version Sync & Logs)

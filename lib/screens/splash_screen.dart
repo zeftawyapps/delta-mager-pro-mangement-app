@@ -7,7 +7,6 @@ import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.
 import 'package:delta_mager_pro_mangement_app/consts/constants/views/assets.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_model.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
-import 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
@@ -18,6 +17,7 @@ import 'package:delta_mager_pro_mangement_app/logic/services/version_check_servi
 import 'package:url_launcher/url_launcher.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
+import 'package:JoDija_reposatory/constes/api_urls.dart';
 
 class SplashScreen extends StatefulWidget with AppShellRouterMixin {
   SplashScreen({super.key});
@@ -167,14 +167,19 @@ class _SplashScreenState extends State<SplashScreen> {
   void _showUpdateDialog(VersionCheckResult result) {
     showDialog(
       context: context,
-      barrierDismissible: !result.forceUpdate, // منع الإغلاق إذا كان التحديث إجبارياً
+      barrierDismissible:
+          !result.forceUpdate, // منع الإغلاق إذا كان التحديث إجبارياً
       builder: (BuildContext context) {
         final primaryColor = AppColors.primary;
         return WillPopScope(
-          onWillPop: () async => !result.forceUpdate, // منع زر الرجوع في الأندرويد
+          onWillPop: () async =>
+              !result.forceUpdate, // منع زر الرجوع في الأندرويد
           child: Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 24,
+            ),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -214,7 +219,9 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            result.forceUpdate ? "تحديث إجباري جديد" : "يتوفر تحديث جديد",
+                            result.forceUpdate
+                                ? "تحديث إجباري جديد"
+                                : "يتوفر تحديث جديد",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -232,7 +239,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ],
                       ),
                     ),
-                    
+
                     // Content body
                     Padding(
                       padding: const EdgeInsets.all(24),
@@ -266,16 +273,26 @@ class _SplashScreenState extends State<SplashScreen> {
                                 child: Column(
                                   children: result.releaseNotes.map((note) {
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
                                       child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Icon(Icons.check_circle_rounded, color: primaryColor, size: 18),
+                                          Icon(
+                                            Icons.check_circle_rounded,
+                                            color: primaryColor,
+                                            size: 18,
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
                                               note,
-                                              style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black54,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -289,7 +306,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ],
                       ),
                     ),
-                    
+
                     // Actions
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -303,7 +320,9 @@ class _SplashScreenState extends State<SplashScreen> {
                                   _proceedToLogin();
                                 },
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   side: BorderSide(color: primaryColor),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -323,14 +342,19 @@ class _SplashScreenState extends State<SplashScreen> {
                                 if (result.downloadUrl.isNotEmpty) {
                                   final uri = Uri.parse(result.downloadUrl);
                                   if (await canLaunchUrl(uri)) {
-                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    );
                                   }
                                 }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -432,45 +456,73 @@ class _SplashScreenState extends State<SplashScreen> {
               colors: [AppColors.primary, AppColors.darkBackground],
             ),
           ),
-          child: BlocBuilder<SystemBloc, FeaturDataSourceState<SystemInfoModel>>(
-            builder: (context, systemState) {
-              return BlocBuilder<
-                OrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, configState) {
-                  // التحقق من وجود أخطاء في أي من الـ Blocs
-                  String? errorMessage;
-                  VoidCallback? onRetry;
+          child: Stack(
+            children: [
+              Positioned(
+                top: -100,
+                right: -100,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -150,
+                left: -150,
+                child: Container(
+                  width: 400,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+              BlocBuilder<SystemBloc, FeaturDataSourceState<SystemInfoModel>>(
+                builder: (context, systemState) {
+                  return BlocBuilder<
+                    OrganizationConfigBloc,
+                    FeaturDataSourceState<OrganizationConfigModel>
+                  >(
+                    builder: (context, configState) {
+                      // التحقق من وجود أخطاء في أي من الـ Blocs
+                      String? errorMessage;
+                      VoidCallback? onRetry;
 
-                  systemState.itemState.maybeWhen(
-                    failure: (error, retry) {
-                      errorMessage = error.message;
-                      onRetry = retry;
+                      systemState.itemState.maybeWhen(
+                        failure: (error, retry) {
+                          errorMessage = error.message;
+                          onRetry = retry;
+                        },
+                        orElse: () {},
+                      );
+
+                      // إذا لم يكن هناك خطأ في SystemBloc، نتحقق من OrganizationConfigBloc
+                      if (errorMessage == null) {
+                        configState.itemState.maybeWhen(
+                          failure: (error, retry) {
+                            errorMessage = error.message;
+                            onRetry = retry;
+                          },
+                          orElse: () {},
+                        );
+                      }
+
+                      if (errorMessage != null) {
+                        return _buildErrorUI(errorMessage!, onRetry);
+                      }
+
+                      // العرض الافتراضي (التحميل)
+                      return _buildSplashUI(AppStrings.appName, "جاري البدء...");
                     },
-                    orElse: () {},
                   );
-
-                  // إذا لم يكن هناك خطأ في SystemBloc، نتحقق من OrganizationConfigBloc
-                  if (errorMessage == null) {
-                    configState.itemState.maybeWhen(
-                      failure: (error, retry) {
-                        errorMessage = error.message;
-                        onRetry = retry;
-                      },
-                      orElse: () {},
-                    );
-                  }
-
-                  if (errorMessage != null) {
-                    return _buildErrorUI(errorMessage!, onRetry);
-                  }
-
-                  // العرض الافتراضي (التحميل)
-                  return _buildSplashUI(AppStrings.appName, "جاري البدء...");
                 },
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),
@@ -478,14 +530,27 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Widget _buildSplashUI(String title, String status) {
+    final orgLogo = context
+        .read<OrganizationConfigBloc>()
+        .organizationConfig
+        ?.visual
+        ?.logoUrl;
+    final systemLogo = context.read<SystemBloc>().systemInfo?.logo;
+    final rawLogo = (orgLogo != null && orgLogo.isNotEmpty)
+        ? orgLogo
+        : ((systemLogo != null && systemLogo.isNotEmpty) ? systemLogo : null);
+
+    final activeLogo = (rawLogo != null && rawLogo.isNotEmpty)
+        ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
+        : null;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          context.read<SystemBloc>().systemInfo?.logo != null &&
-                  context.read<SystemBloc>().systemInfo!.logo!.isNotEmpty
+          activeLogo != null
               ? Image.network(
-                  context.read<SystemBloc>().systemInfo!.logo!,
+                  activeLogo,
                   width: 120,
                   errorBuilder: (context, error, stackTrace) =>
                       Image.asset(AppAsset.logo, width: 120),

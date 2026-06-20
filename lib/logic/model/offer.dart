@@ -22,6 +22,8 @@ class OfferModel extends OfferData implements BaseViewDataModel {
     super.isActive = true,
     super.sortOrder = 0,
     super.meta,
+    super.isMasterProduct = true,
+    super.sharingLevel = 'private',
   });
 
   factory OfferModel.fromData(OfferData data) {
@@ -41,6 +43,8 @@ class OfferModel extends OfferData implements BaseViewDataModel {
       isActive: data.isActive,
       sortOrder: data.sortOrder,
       meta: data.meta,
+      isMasterProduct: data.isMasterProduct,
+      sharingLevel: data.sharingLevel,
     );
   }
 

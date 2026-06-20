@@ -12,6 +12,7 @@ class CategoryCard extends StatelessWidget {
   final bool canDelete;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onTogglePublish;
 
   const CategoryCard({
     super.key,
@@ -21,6 +22,7 @@ class CategoryCard extends StatelessWidget {
     required this.canDelete,
     required this.onEdit,
     required this.onDelete,
+    required this.onTogglePublish,
   });
 
   @override
@@ -95,6 +97,17 @@ class CategoryCard extends StatelessWidget {
                     icon: Icons.edit,
                     value: 1,
                     onTap: onEdit,
+                  ),
+                if (canUpdate && category.isMasterProduct)
+                  pubMenuItems(
+                    title: category.sharingLevel == 'public'
+                        ? 'إلغاء النشر للعام 🌐'
+                        : 'نشر للعام 🌐',
+                    icon: category.sharingLevel == 'public'
+                        ? Icons.public_off
+                        : Icons.public,
+                    value: 3,
+                    onTap: onTogglePublish,
                   ),
                 if (canDelete)
                   pubMenuItems(

@@ -36,6 +36,7 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     WebsiteConfig.typeCustomBanner: "بانر إعلاني مخصص",
     WebsiteConfig.typeIntroSlides: "الشرائح التعريفية (Intro Slides)",
     WebsiteConfig.typeMostReadBlogPosts: "المقالات الأكثر قراءة/رواجاً",
+    WebsiteConfig.typeJockerPost: "Jocker Post",
   };
 
   final Map<String, String> _modeOptions = {
@@ -62,6 +63,8 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
         return Icons.slideshow;
       case WebsiteConfig.typeMostReadBlogPosts:
         return Icons.trending_up;
+      case WebsiteConfig.typeJockerPost:
+        return Icons.image;
       default:
         return Icons.grid_view;
     }
@@ -253,6 +256,104 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     );
   }
 
+  Widget _buildJockerPostConfig(Map<String, dynamic> section) {
+    if (section['config'] == null) section['config'] = {};
+    final imageCount = section['config']['imageCount'] ?? 1;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // اختيار صورة واحدة أو صورتين
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "عدد الصور",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 1, label: Text("صورة واحدة")),
+                ButtonSegment(value: 2, label: Text("صورتين")),
+              ],
+              selected: {imageCount},
+              onSelectionChanged: widget.isEditing
+                  ? (newSelection) {
+                      final newSection = Map<String, dynamic>.from(widget.section);
+                      if (newSection['config'] == null) newSection['config'] = {};
+                      newSection['config']['imageCount'] = newSelection.first;
+                      widget.onSectionChanged(newSection);
+                    }
+                  : null,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Full Screen toggle
+        SwitchListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            "عرض كامل (Full Screen)",
+            style: TextStyle(fontSize: 13),
+          ),
+          subtitle: const Text(
+            "عند التفعيل، الصورة تأخذ كامل عرض الشاشة بدون هوامش",
+            style: TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          value: section['config']['fullScreen'] ?? false,
+          onChanged: widget.isEditing
+              ? (val) {
+                  final newSection = Map<String, dynamic>.from(widget.section);
+                  if (newSection['config'] == null) newSection['config'] = {};
+                  newSection['config']['fullScreen'] = val;
+                  if (val) {
+                    newSection['config']['margin'] = 0;
+                  }
+                  widget.onSectionChanged(newSection);
+                }
+              : null,
+        ),
+
+        // Margin reduction (فقط لو fullScreen = false)
+        if (!(section['config']['fullScreen'] ?? false)) ...[
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "تقليل المسافة (Margin Reduction)",
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 0, label: Text("0")),
+                  ButtonSegment(value: 8, label: Text("8")),
+                  ButtonSegment(value: 16, label: Text("16")),
+                  ButtonSegment(value: 24, label: Text("24")),
+                  ButtonSegment(value: 32, label: Text("32")),
+                ],
+                selected: {section['config']['margin'] ?? 16},
+                onSelectionChanged: widget.isEditing
+                    ? (newSelection) {
+                        final newSection = Map<String, dynamic>.from(widget.section);
+                        if (newSection['config'] == null) newSection['config'] = {};
+                        newSection['config']['margin'] = newSelection.first;
+                        widget.onSectionChanged(newSection);
+                      }
+                    : null,
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final section = widget.section;
@@ -355,23 +456,29 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                   _buildCustomBannerConfig(section),
                   const SizedBox(height: 12),
                 ],
+                if (section['type'] == WebsiteConfig.typeJockerPost) ...[
+                  _buildJockerPostConfig(section),
+                  const SizedBox(height: 12),
+                ],
                 if (section['type'] == WebsiteConfig.typeOffers ||
                     section['type'] == WebsiteConfig.typeIntroSlides ||
                     section['displayMode'] == WebsiteConfig.modeSlider) ...[
                   _buildAutoPlayToggle(section),
                   const SizedBox(height: 12),
                 ],
-                _buildDropdown(
-                  "طريقة العرض",
-                  section['displayMode'],
-                  _modeOptions,
-                  (val) {
-                    if (val == null) return;
-                    final newSection = Map<String, dynamic>.from(section);
-                    newSection['displayMode'] = val;
-                    widget.onSectionChanged(newSection);
-                  },
-                ),
+                if (section['type'] != WebsiteConfig.typeJockerPost) ...[
+                  _buildDropdown(
+                    "طريقة العرض",
+                    section['displayMode'],
+                    _modeOptions,
+                    (val) {
+                      if (val == null) return;
+                      final newSection = Map<String, dynamic>.from(section);
+                      newSection['displayMode'] = val;
+                      widget.onSectionChanged(newSection);
+                    },
+                  ),
+                ],
               ],
             ),
           ),

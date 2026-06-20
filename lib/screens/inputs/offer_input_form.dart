@@ -42,6 +42,7 @@ class _OfferInputFormState extends State<OfferInputForm> {
   DateTime? endDate;
   bool isActive = true;
   ImageFileModel? selectedImage;
+  late String sharingLevel;
 
   ValidationsForm form = ValidationsForm();
   bool _isDialogShowing = false;
@@ -64,6 +65,8 @@ class _OfferInputFormState extends State<OfferInputForm> {
       text: widget.offer?.sortOrder.toString() ?? '0',
     );
     productNameController = TextEditingController();
+
+    sharingLevel = widget.offer?.sharingLevel ?? 'private';
 
     if (widget.offer != null) {
       selectedTargetType = widget.offer!.targetType;
@@ -130,6 +133,7 @@ class _OfferInputFormState extends State<OfferInputForm> {
         sortOrder: int.tryParse(sortOrderController.text),
         imageBytes: selectedImage?.bytes,
         imageName: selectedImage?.file?.path.split('/').last,
+        sharingLevel: sharingLevel,
       );
     } else {
       bloc.createOffer(
@@ -145,6 +149,7 @@ class _OfferInputFormState extends State<OfferInputForm> {
         sortOrder: int.tryParse(sortOrderController.text),
         imageBytes: selectedImage?.bytes,
         imageName: selectedImage?.file?.path.split('/').last,
+        sharingLevel: sharingLevel,
       );
     }
   }
@@ -481,6 +486,20 @@ class _OfferInputFormState extends State<OfferInputForm> {
                     value: isActive,
                     onChanged: (val) => setState(() => isActive = val),
                   ),
+
+                  if (widget.offer?.isMasterProduct ?? true) ...[
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: const Text('نشر للعام 🌐'),
+                      subtitle: const Text('نشر العرض للكتالوج العام للجمهور'),
+                      value: sharingLevel == 'public',
+                      onChanged: (val) {
+                        setState(() {
+                          sharingLevel = val ? 'public' : 'private';
+                        });
+                      },
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
                   SizedBox(

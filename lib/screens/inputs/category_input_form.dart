@@ -27,20 +27,22 @@ class CategoryInputFormState extends State<CategoryInputForm> {
   ImageFileModel? _selectedImage;
   ValidationsForm form = ValidationsForm();
   bool _isDialogShowing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    nameArController = TextEditingController(
-      text: widget.category?.nameAr ?? '',
-    );
-    nameEnController = TextEditingController(
-      text: widget.category?.name.en ?? '',
-    );
-    descriptionController = TextEditingController(
-      text: widget.category?.descriptionAr ?? '',
-    );
-  }
+  late String sharingLevel;
+ 
+   @override
+   void initState() {
+     super.initState();
+     nameArController = TextEditingController(
+       text: widget.category?.nameAr ?? '',
+     );
+     nameEnController = TextEditingController(
+       text: widget.category?.name.en ?? '',
+     );
+     descriptionController = TextEditingController(
+       text: widget.category?.descriptionAr ?? '',
+     );
+     sharingLevel = widget.category?.sharingLevel ?? 'private';
+   }
 
   @override
   void dispose() {
@@ -77,27 +79,31 @@ class CategoryInputFormState extends State<CategoryInputForm> {
     // 2️⃣ التحقق من صحة النموذج
     if (!form.form.currentState!.validate()) return;
     form.form.currentState!.save();
-
+ 
     final bloc = context.read<CategoriesBloc>();
     final nameAr = nameArController.text.trim();
-
-    if (widget.category != null) {
-      bloc.updateCategory(
-        categoryId: widget.category!.categoryId,
-        name: nameAr,
-        isActive: true,
-        imageBytes: _selectedImage?.bytes,
-        imageName: _selectedImage?.file?.path.split('/').last,
-      );
-    } else {
-      bloc.createCategory(
-        name: nameAr,
-        shopId: context.read<AppChangesValues>().user!.organizationId!,
-        description: descriptionController.text.trim(),
-        imageBytes: _selectedImage?.bytes,
-        imageName: _selectedImage?.file?.path.split('/').last,
-      );
-    }
+    final shopId = context.read<AppChangesValues>().user!.organizationId!;
+ 
+     if (widget.category != null) {
+       bloc.updateCategory(
+         categoryId: widget.category!.categoryId,
+         shopId: shopId,
+         name: nameAr,
+         isActive: true,
+         imageBytes: _selectedImage?.bytes,
+         imageName: _selectedImage?.file?.path.split('/').last,
+         sharingLevel: sharingLevel,
+       );
+     } else {
+       bloc.createCategory(
+         name: nameAr,
+         shopId: shopId,
+         description: descriptionController.text.trim(),
+         imageBytes: _selectedImage?.bytes,
+         imageName: _selectedImage?.file?.path.split('/').last,
+         sharingLevel: sharingLevel,
+       );
+     }
   }
 
   @override
@@ -266,7 +272,22 @@ class CategoryInputFormState extends State<CategoryInputForm> {
                     labalText: 'وصف الفئة',
                     keyData: "description",
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
+
+                  if (widget.category?.isMasterProduct ?? true) ...[
+                    SwitchListTile(
+                      title: const Text('نشر للعام 🌐'),
+                      subtitle: const Text('نشر الفئة للكتالوج العام للجمهور'),
+                      value: sharingLevel == 'public',
+                      onChanged: (val) {
+                        setState(() {
+                          sharingLevel = val ? 'public' : 'private';
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  const SizedBox(height: 12),
 
                   // زر الحفظ
                   SizedBox(

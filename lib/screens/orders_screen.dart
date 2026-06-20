@@ -786,7 +786,8 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   String _getActiveWorkflowSlug() {
     final activeConfig = _getActiveConfig();
-    return activeConfig?.workflowSlug ?? '';
+    final slug = activeConfig?.workflowSlug;
+    return (slug == null || slug.isEmpty) ? 'default' : slug;
   }
 
   List<OrderPathModel> _getDisplayPaths({
@@ -934,8 +935,9 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   void _loadOrders(String slug, int currentStepIndex) {
+    final finalSlug = slug.isEmpty ? 'default' : slug;
     context.read<OrdersBloc>().loadOrders(
-      workflowSlug: slug,
+      workflowSlug: finalSlug,
       currentStepIndex: currentStepIndex,
       orderPathId: _selectedFilterPathId,
     );

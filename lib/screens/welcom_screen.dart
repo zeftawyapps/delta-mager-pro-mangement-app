@@ -13,6 +13,9 @@ import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values
 import 'package:delta_mager_pro_mangement_app/configs/sidbarItmes.dart';
 import 'package:delta_mager_pro_mangement_app/configs/cp_screens_config.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
+import 'package:JoDija_reposatory/constes/api_urls.dart';
 
 // ignore: must_be_immutable
 class WelcomScreen extends StatefulWidget with AppShellRouterMixin {
@@ -171,19 +174,52 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
                       margin: const EdgeInsets.only(bottom: 40),
                       child: Column(
                         children: [
-                          Image.asset(
-                                AppAsset.imgplaceholder,
+                          Builder(
+                            builder: (context) {
+                              final orgLogo = context
+                                  .read<OrganizationConfigBloc>()
+                                  .organizationConfig
+                                  ?.visual
+                                  ?.logoUrl;
+                              final systemLogo = context.read<SystemBloc>().systemInfo?.logo;
+                              final rawLogo = (orgLogo != null && orgLogo.isNotEmpty)
+                                  ? orgLogo
+                                  : ((systemLogo != null && systemLogo.isNotEmpty) ? systemLogo : null);
+
+                              final activeLogo = (rawLogo != null && rawLogo.isNotEmpty)
+                                  ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
+                                  : null;
+
+                              if (activeLogo != null) {
+                                return Image.network(
+                                  activeLogo,
+                                  width: size.width > 600 ? 300 : 250,
+                                  height: size.width > 600 ? 200 : 150,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Image.asset(
+                                    AppAsset.logo,
+                                    width: size.width > 600 ? 300 : 250,
+                                    height: size.width > 600 ? 200 : 150,
+                                    fit: BoxFit.contain,
+                                  ),
+                                );
+                              }
+                              return Image.asset(
+                                AppAsset.logo,
                                 width: size.width > 600 ? 300 : 250,
                                 height: size.width > 600 ? 200 : 150,
                                 fit: BoxFit.contain,
-                              )
-                              .animate()
-                              .fadeIn(duration: 600.ms)
-                              .scale(
-                                begin: const Offset(0.8, 0.8),
-                                end: const Offset(1.0, 1.0),
-                                curve: Curves.easeOutBack,
-                              ),
+                              );
+                            }
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms)
+                          .scale(
+                            begin: const Offset(0.8, 0.8),
+                            end: const Offset(1.0, 1.0),
+                            curve: Curves.easeOutBack,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'لوحة التحكم الإدارية',

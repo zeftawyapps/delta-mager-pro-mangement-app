@@ -45,7 +45,9 @@ class AppChangesValues extends ChangeNotifier {
           decodedPath != '/splash' &&
           !decodedPath.contains('/login') &&
           !decodedPath.contains('/welcom')) {
-        final fullPath = uri.hasQuery ? '$decodedPath?${uri.query}' : decodedPath;
+        final fullPath = uri.hasQuery
+            ? '$decodedPath?${uri.query}'
+            : decodedPath;
         laseRoute = fullPath;
         debugPrint('Captured initial route on reload: $laseRoute');
       }

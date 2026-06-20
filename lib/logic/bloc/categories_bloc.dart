@@ -87,6 +87,8 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
     String? description,
     Uint8List? imageBytes,
     String? imageName,
+    bool? isMasterProduct,
+    String? sharingLevel,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.createCategory(
@@ -95,6 +97,8 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
       description: description,
       imageBytes: imageBytes,
       imageName: imageName,
+      isMasterProduct: isMasterProduct,
+      sharingLevel: sharingLevel,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -105,12 +109,21 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
           ),
         ),
       );
+      loadCategories(shopId: shopId);
     } else {
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () {},
+            () => createCategory(
+              name: name,
+              shopId: shopId,
+              description: description,
+              imageBytes: imageBytes,
+              imageName: imageName,
+              isMasterProduct: isMasterProduct,
+              sharingLevel: sharingLevel,
+            ),
           ),
         ),
       );
@@ -119,10 +132,13 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
 
   Future<void> updateCategory({
     required String categoryId,
+    required String shopId,
     String? name,
     bool? isActive,
     Uint8List? imageBytes,
     String? imageName,
+    bool? isMasterProduct,
+    String? sharingLevel,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateCategory(
@@ -131,6 +147,8 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
       isActive: isActive,
       imageBytes: imageBytes,
       imageName: imageName,
+      isMasterProduct: isMasterProduct,
+      sharingLevel: sharingLevel,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -141,6 +159,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
           ),
         ),
       );
+      loadCategories(shopId: shopId);
     } else {
       emit(
         state.copyWith(
@@ -148,10 +167,13 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
             ErrorStateModel(message: result.message ?? "Error"),
             () => updateCategory(
               categoryId: categoryId,
+              shopId: shopId,
               name: name,
               isActive: isActive,
               imageBytes: imageBytes,
               imageName: imageName,
+              isMasterProduct: isMasterProduct,
+              sharingLevel: sharingLevel,
             ),
           ),
         ),

@@ -40,6 +40,7 @@ import 'configs/ui_configs.dart';
 import 'consts/constants/theme/app_theme.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
+import 'package:JoDija_reposatory/constes/api_urls.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_bloc.dart';
 
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
@@ -54,7 +55,8 @@ import 'package:matger_pro_core_logic/features/order_path/repo/order_path_repo.d
 import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_posts_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_categories_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/analytics_bloc.dart';
-import 'package:matger_pro_core_logic/matger_pro_core_logic.dart' show BlogRepo, AnalyticsRepo;
+import 'package:matger_pro_core_logic/matger_pro_core_logic.dart'
+    show BlogRepo, AnalyticsRepo;
 
 class AppLouncher extends StatefulWidget {
   const AppLouncher({super.key});
@@ -65,19 +67,12 @@ class AppLouncher extends StatefulWidget {
 
 class _AppLouncherState extends State<AppLouncher> {
   @override
-  void initState() {
-    super.initState();
-    // تحميل بيانات المستخدم من الكاش عند بدء التطبيق
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppChangesValues>().loadUserFromCache();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AppChangesValues()),
+        ChangeNotifierProvider(
+          create: (context) => AppChangesValues()..loadUserFromCache(),
+        ),
         ChangeNotifierProvider(create: (context) => CartProvider()),
         BlocProvider(
           create: (context) =>
@@ -104,6 +99,22 @@ class _AppLouncherState extends State<AppLouncher> {
                 orElse: () =>
                     context.read<OrganizationConfigBloc>().organizationConfig,
               );
+              final rawSidebarLogoUrl =
+                  (config?.visual?.logoUrl != null &&
+                      config!.visual!.logoUrl!.isNotEmpty)
+                  ? config.visual!.logoUrl
+                  : ((context.read<SystemBloc>().systemInfo?.logo != null &&
+                            context
+                                .read<SystemBloc>()
+                                .systemInfo!
+                                .logo!
+                                .isNotEmpty)
+                        ? context.read<SystemBloc>().systemInfo!.logo
+                        : null);
+
+              final sidebarLogoUrl = (rawSidebarLogoUrl != null && rawSidebarLogoUrl.isNotEmpty)
+                  ? (rawSidebarLogoUrl.contains('http') ? rawSidebarLogoUrl : '${ApiUrls.IMAGE_BASE_URL}$rawSidebarLogoUrl')
+                  : null;
 
               state.itemState.maybeWhen(
                 success: (configData) {
@@ -191,6 +202,10 @@ class _AppLouncherState extends State<AppLouncher> {
 
               return AdaptiveAppShell(
                 initRouter: AppShellConfigs.initRouter,
+                shouldShowSidebar: (context) {
+                  final appChanges = context.watch<AppChangesValues>();
+                  return appChanges.isInitialized && appChanges.user != null;
+                },
                 extraProvidersAndBlocs: [
                   BlocProvider(
                     create: (context) => RolesBloc(repo: sl<RoleRepo>()),
@@ -249,8 +264,7 @@ class _AppLouncherState extends State<AppLouncher> {
                         OrderPathBloc(repo: sl<OrderPathRepo>()),
                   ),
                   BlocProvider(
-                    create: (context) =>
-                        BlogPostsBloc(repo: sl<BlogRepo>()),
+                    create: (context) => BlogPostsBloc(repo: sl<BlogRepo>()),
                   ),
                   BlocProvider(
                     create: (context) =>
@@ -283,8 +297,8 @@ class _AppLouncherState extends State<AppLouncher> {
                 // إضافة الشعار والاسم الديناميكي في الـ Sidebar
                 sidebarHeader: SidebarHeaderConfig(
                   backgroundColor: Colors.transparent,
-                  // استخدام لوجو المنظمة من الرابط إذا وجد، وإلا اللوجو الافتراضي
-                  logoAssetPath: AppAsset.logo,
+                  logoAssetPath: sidebarLogoUrl == null ? AppAsset.logo : null,
+                  logoNetworkUrl: sidebarLogoUrl,
                   direction: Axis.horizontal,
                   title:
                       config?.layout?.appTitle ??

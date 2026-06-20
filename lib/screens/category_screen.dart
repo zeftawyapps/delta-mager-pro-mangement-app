@@ -188,6 +188,14 @@ class _CategoryScreenState extends State<CategoryScreen>
           canDelete: canDelete,
           onEdit: () => _editCategory(category),
           onDelete: () => _deleteCategory(category),
+          onTogglePublish: () {
+            final newLevel = category.sharingLevel == 'public' ? 'private' : 'public';
+            context.read<CategoriesBloc>().updateCategory(
+                  categoryId: category.categoryId,
+                  shopId: organizationId,
+                  sharingLevel: newLevel,
+                );
+          },
         ),
         multiSelectActions: (selectedItems) => [
           IconButton(

@@ -21,43 +21,51 @@ class GovernorateFeesEditor extends StatelessWidget {
   void _showAddFeeDialog(BuildContext context) {
     String? selectedGovCode;
     final feeController = TextEditingController();
+    final locationsBloc = context.read<LocationsBloc>();
 
-    // Ensure governorates are loaded
-    context.read<LocationsBloc>().loadGovernorates();
+    // Ensure governorates are loaded systematically
+    locationsBloc.loadGovernorates('EG');
 
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text("إضافة سعر شحن لمحافظة"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BlocBuilder<LocationsBloc, LocationsState>(
-                builder: (context, state) {
-                  return state.governoratesState.when(
-                    init: () => const Text("جاري التهيئة..."),
-                    loading: () => const CircularProgressIndicator(),
-                    success: (governorates) {
-                      final validGovernorates = (governorates ?? [])
-                          .where((g) => g.code != null && g.code!.isNotEmpty)
-                          .toList();
-                      return DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: "اختر المحافظة"),
-                        items: validGovernorates.map((g) => DropdownMenuItem(
-                          value: g.code, 
-                          child: Text("${g.name.ar} (${g.code})"),
-                        )).toList(),
-                        onChanged: (val) => setDialogState(() => selectedGovCode = val),
-                      );
-                    },
-                    failure: (error, reload) => TextButton(
-                      onPressed: reload,
-                      child: const Text("خطأ في التحميل، اضغط للإعادة"),
-                    ),
-                  );
-                },
-              ),
+      builder: (dialogContext) => BlocProvider.value(
+        value: locationsBloc,
+        child: StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text("إضافة سعر شحن لمحافظة"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BlocBuilder<LocationsBloc, LocationsState>(
+                  builder: (context, state) {
+                    return state.governoratesState.when(
+                      init: () => const Text("جاري التهيئة..."),
+                      loading: () => const CircularProgressIndicator(),
+                      success: (governorates) {
+                        final validGovernorates = (governorates ?? [])
+                            .where((g) => (g.code ?? g.id.toString()).isNotEmpty)
+                            .toList();
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(labelText: "اختر المحافظة"),
+                          items: validGovernorates.map((g) {
+                            final val = g.code ?? g.id.toString();
+                            return DropdownMenuItem(
+                              value: val, 
+                              child: Text(g.code != null && g.code!.isNotEmpty 
+                                  ? "${g.name.ar} (${g.code})" 
+                                  : g.name.ar),
+                            );
+                          }).toList(),
+                          onChanged: (val) => setDialogState(() => selectedGovCode = val),
+                        );
+                      },
+                      failure: (error, reload) => TextButton(
+                        onPressed: reload,
+                        child: const Text("خطأ في التحميل، اضغط للإعادة"),
+                      ),
+                    );
+                  },
+                ),
               const SizedBox(height: 16),
               TextField(
                 controller: feeController,
@@ -85,8 +93,9 @@ class GovernorateFeesEditor extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +113,10 @@ class GovernorateFeesEditor extends StatelessWidget {
             const SizedBox(height: 8),
             ...feesByGovernorate.entries.map((e) {
               final g = governorates
-                  .where((item) => item.code == e.key || item.name.ar == e.key)
+                  .where((item) =>
+                      item.code == e.key ||
+                      item.name.ar == e.key ||
+                      item.id.toString() == e.key)
                   .firstOrNull;
               final displayName = g?.name.ar ?? e.key;
 

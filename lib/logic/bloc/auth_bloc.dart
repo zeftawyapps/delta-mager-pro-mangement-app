@@ -15,6 +15,7 @@ import 'package:JoDija_tamplites/util/shardeprefrance/shard_check.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 
 class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   final AuthRepo authRepo;
@@ -224,12 +225,15 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
 
   // إضافة signOut مع مسح البيانات المخزنة وتصفير التوكن
   Future<void> signOut() async {
-    SharedPrefranceChecking().clearDataInShardRefrace(); // مسح كاش القالب من المتصفح
+    SharedPrefranceChecking()
+        .clearDataInShardRefrace(); // مسح كاش القالب من المتصفح
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear(); // مسح كامل كاش SharedPreferences
-    appChangesValues?.clearLastRoute(); // مسح آخر مسار لتجنب حلقات إعادة التوجيه
+    appChangesValues
+        ?.clearLastRoute(); // مسح آخر مسار لتجنب حلقات إعادة التوجيه
     ProjectAPIHeader.setToken(''); // تصفير التوكن في الهيدر
     appChangesValues?.setUser(null); // تصفير بيانات المستخدم المشتركة
+    AppColors.useDynamicTheme = false; // تصفير الثيم الديناميكي للمؤسسة
     emit(FeaturDataSourceState<Users>.defaultState());
   }
 
