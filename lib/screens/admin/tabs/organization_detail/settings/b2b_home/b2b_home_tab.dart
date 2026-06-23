@@ -37,8 +37,10 @@ class _B2BHomeConfigTabState extends State<B2BHomeConfigTab> {
 
   void _loadData() {
     final layout = widget.config.b2bHomeLayout;
-    if (layout != null && layout[B2bHomeConfig.keySections] != null) {
-      setState(() {
+
+    // دمج كل التحديثات في setState واحدة لتجنب الـ rebuild المزدوج
+    setState(() {
+      if (layout != null && layout[B2bHomeConfig.keySections] != null) {
         _sections = List<Map<String, dynamic>>.from(
           (layout[B2bHomeConfig.keySections] as List).map((e) {
             final map = Map<String, dynamic>.from(e);
@@ -48,30 +50,24 @@ class _B2BHomeConfigTabState extends State<B2BHomeConfigTab> {
             return map;
           }),
         );
-      });
-    } else {
-      setState(() {
+      } else {
         _sections = List<Map<String, dynamic>>.from(
           B2bHomeConfig.defaultValues[B2bHomeConfig.keySections].map(
             (e) => Map<String, dynamic>.from(e),
           ),
         );
-      });
-    }
+      }
 
-    final orderSettings =
-        widget.config.b2bHomeLayout?[B2bHomeConfig.keyOrderSettings];
-    if (orderSettings != null) {
-      setState(() {
+      final orderSettings =
+          widget.config.b2bHomeLayout?[B2bHomeConfig.keyOrderSettings];
+      if (orderSettings != null) {
         _orderSettings = Map<String, dynamic>.from(orderSettings);
-      });
-    } else {
-      setState(() {
+      } else {
         _orderSettings = Map<String, dynamic>.from(
           B2bHomeConfig.defaultValues[B2bHomeConfig.keyOrderSettings],
         );
-      });
-    }
+      }
+    });
   }
 
   @override

@@ -175,51 +175,66 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
                       child: Column(
                         children: [
                           Builder(
-                            builder: (context) {
-                              final orgLogo = context
-                                  .read<OrganizationConfigBloc>()
-                                  .organizationConfig
-                                  ?.visual
-                                  ?.logoUrl;
-                              final systemLogo = context.read<SystemBloc>().systemInfo?.logo;
-                              final rawLogo = (orgLogo != null && orgLogo.isNotEmpty)
-                                  ? orgLogo
-                                  : ((systemLogo != null && systemLogo.isNotEmpty) ? systemLogo : null);
+                                builder: (context) {
+                                  final orgLogo = context
+                                      .read<OrganizationConfigBloc>()
+                                      .organizationConfig
+                                      ?.visual
+                                      ?.logoUrl;
+                                  final systemLogo = context
+                                      .read<SystemBloc>()
+                                      .systemInfo
+                                      ?.logo;
+                                  final rawLogo =
+                                      (orgLogo != null && orgLogo.isNotEmpty)
+                                      ? orgLogo
+                                      : ((systemLogo != null &&
+                                                systemLogo.isNotEmpty)
+                                            ? systemLogo
+                                            : null);
 
-                              final activeLogo = (rawLogo != null && rawLogo.isNotEmpty)
-                                  ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
-                                  : null;
+                                  final activeLogo =
+                                      (rawLogo != null && rawLogo.isNotEmpty)
+                                      ? (rawLogo.contains('http')
+                                            ? rawLogo
+                                            : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
+                                      : null;
 
-                              if (activeLogo != null) {
-                                return Image.network(
-                                  activeLogo,
-                                  width: size.width > 600 ? 300 : 250,
-                                  height: size.width > 600 ? 200 : 150,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Image.asset(
+                                  if (activeLogo != null) {
+                                    return Image.network(
+                                      activeLogo,
+                                      width: size.width > 600 ? 300 : 250,
+                                      height: size.width > 600 ? 200 : 150,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Image.asset(
+                                                AppAsset.logo,
+                                                width: size.width > 600
+                                                    ? 300
+                                                    : 250,
+                                                height: size.width > 600
+                                                    ? 200
+                                                    : 150,
+                                                fit: BoxFit.contain,
+                                              ),
+                                    );
+                                  }
+                                  return Image.asset(
                                     AppAsset.logo,
                                     width: size.width > 600 ? 300 : 250,
                                     height: size.width > 600 ? 200 : 150,
                                     fit: BoxFit.contain,
-                                  ),
-                                );
-                              }
-                              return Image.asset(
-                                AppAsset.logo,
-                                width: size.width > 600 ? 300 : 250,
-                                height: size.width > 600 ? 200 : 150,
-                                fit: BoxFit.contain,
-                              );
-                            }
-                          )
-                          .animate()
-                          .fadeIn(duration: 600.ms)
-                          .scale(
-                            begin: const Offset(0.8, 0.8),
-                            end: const Offset(1.0, 1.0),
-                            curve: Curves.easeOutBack,
-                          ),
+                                  );
+                                },
+                              )
+                              .animate()
+                              .fadeIn(duration: 600.ms)
+                              .scale(
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1.0, 1.0),
+                                curve: Curves.easeOutBack,
+                              ),
                           const SizedBox(height: 16),
                           Text(
                             'لوحة التحكم الإدارية',
@@ -268,6 +283,31 @@ class _WelcomScreenState extends State<WelcomScreen> with AppShellRouteManager {
                   ],
                 ),
               ),
+            ),
+          ),
+          Positioned(
+            bottom: 24,
+            left: 0,
+            right: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "الإصدار ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
+                  style: TextStyle(
+                    color: Colors.grey.shade600.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "جميع الحقوق محفوظة © ${DateTime.now().year}",
+                  style: TextStyle(
+                    color: Colors.grey.shade500.withOpacity(0.8),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

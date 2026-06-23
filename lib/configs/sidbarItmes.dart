@@ -33,14 +33,7 @@ class SidebarItemsConfig {
       isVisableInSideBar: true,
       prams: {"orgName": AppRoutes.activeOrgName},
     ),
-    RouteItem(
-      id: AppRouteIds.b2bHome,
-      path: AppRoutes.b2bHome,
-      label: 'الرئيسية (الطلبات)',
-      icon: Icons.storefront,
-      content: B2BHomeScreen(),
-      prams: {"orgName": AppRoutes.activeOrgName},
-    ),
+
     RouteItem(
       id: "blog",
       path: AppRoutes.cpBlogs,

@@ -522,6 +522,31 @@ class _SplashScreenState extends State<SplashScreen> {
                   );
                 },
               ),
+              Positioned(
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "الإصدار ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "جميع الحقوق محفوظة © ${DateTime.now().year}",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

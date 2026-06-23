@@ -119,6 +119,8 @@ class OrderSettingsCard extends StatelessWidget {
               WorkflowManagementBloc,
               FeaturDataSourceState<WorkflowConfigModel>
             >(
+              // لا تُعيد البناء إلا لو تغيرت بيانات قائمة الـ Workflows فعلاً
+              buildWhen: (prev, next) => prev.listState != next.listState,
               builder: (context, state) {
                 final workflows = state.listState.maybeWhen(
                   success: (data) => data ?? [],

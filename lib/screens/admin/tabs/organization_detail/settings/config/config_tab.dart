@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:matger_pro_core_logic/core/orgnization/data/organization_config.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/theme/app_colors.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
+import 'package:JoDija_reposatory/constes/api_urls.dart';
+import 'package:JoDija_tamplites/util/widgits/images_widgets/image_picker_widget.dart';
+import 'package:delta_mager_pro_mangement_app/consts/constants/views/assets.dart';
 
 import 'widgets/json_import_card.dart';
 import 'widgets/theme_subsection.dart';
@@ -40,6 +45,15 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
   Map<String, dynamic>? _websiteThemeMap;
   Map<String, dynamic>? _fixedThemeMap;
 
+  ImageFileModel? _selectedLogo;
+
+  String? get _logoNetworkUrl {
+    final url = _logoUrlController.text;
+    if (url.isEmpty) return null;
+    if (url.startsWith('http')) return url;
+    return '${ApiUrls.IMAGE_BASE_URL}$url';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +71,30 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
     _showSearchLocal = widget.config.layout?.showSearch ?? false;
 
     if (widget.config.themes != null) {
+      _lightThemeMap = widget.config.themes!.light?.toJson();
+      _darkThemeMap = widget.config.themes!.dark?.toJson();
+      _websiteThemeMap = widget.config.themes!.website?.toJson();
+      try {
+        final Map<String, dynamic> rawThemes = widget.config.themes!.toJson();
+        _fixedThemeMap = rawThemes['fixed'] as Map<String, dynamic>?;
+      } catch (_) {}
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ConfigSectionTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.config.visual != oldWidget.config.visual) {
+      _fontFamilyController.text = widget.config.visual?.fontFamily ?? "";
+      _logoUrlController.text = widget.config.visual?.logoUrl ?? "";
+      _selectedLogo = null;
+    }
+    if (widget.config.layout != oldWidget.config.layout) {
+      _appTitleController.text = widget.config.layout?.appTitle ?? "";
+      _showCartLocal = widget.config.layout?.showCart ?? false;
+      _showSearchLocal = widget.config.layout?.showSearch ?? false;
+    }
+    if (widget.config.themes != oldWidget.config.themes && widget.config.themes != null) {
       _lightThemeMap = widget.config.themes!.light?.toJson();
       _darkThemeMap = widget.config.themes!.dark?.toJson();
       _websiteThemeMap = widget.config.themes!.website?.toJson();
@@ -100,18 +138,56 @@ class _ConfigSectionTabState extends State<ConfigSectionTab> {
             isEditing: _isEditingVisual,
             onEditPressed: () => setState(() => _isEditingVisual = true),
             onSavePressed: () async {
+              Uint8List? bytes;
+              if (_selectedLogo != null) {
+                if (_selectedLogo!.bytes != null) {
+                  bytes = _selectedLogo!.bytes;
+                } else if (_selectedLogo!.file != null) {
+                  bytes = await _selectedLogo!.file!.readAsBytes();
+                }
+              }
+
               final payload = {
                 "fontFamily": _fontFamilyController.text,
                 "logoUrl": _logoUrlController.text,
               };
-              context.read<AdminOrganizationConfigBloc>().updateConfigSection(
-                organizationId: widget.organizationId,
-                section: "visual",
-                sectionData: payload,
-              );
+
+              if (context.mounted) {
+                context.read<AdminOrganizationConfigBloc>().updateConfigSection(
+                  organizationId: widget.organizationId,
+                  section: "visual",
+                  sectionData: payload,
+                  logoBytes: bytes,
+                  logoName: _selectedLogo?.xFile?.name,
+                );
+              }
               setState(() => _isEditingVisual = false);
             },
             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: IgnorePointer(
+                    ignoring: !_isEditingVisual,
+                    child: ImagePecker(
+                      placeholderAsset: AppAsset.imgplaceholder,
+                      networkImage: _logoNetworkUrl,
+                      height: 120,
+                      width: 120,
+                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(60),
+                      helperText: _isEditingVisual
+                          ? 'اضغط لتغيير شعار المنظمة'
+                          : 'شعار المنظمة الحالي',
+                      onImageSelected: (imageModel) {
+                        setState(() {
+                          _selectedLogo = imageModel;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
               _buildEditableTile(
                 "الخط الفرعي",
                 _fontFamilyController,

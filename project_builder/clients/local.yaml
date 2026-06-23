@@ -5,7 +5,7 @@ appBranding:
 
 # 🚀 توافق الإصدارات الخاص بهذا العميل (رقم البناء)
 appVersion: "1.0.0"
-appBuildIndex: 1
+appBuildIndex: 3
 env: "local"
 
 # 🔗 روابط الخادم الخاص بهذا العميل (Custom Backend Base URLs)

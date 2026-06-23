@@ -17,7 +17,7 @@ enum ProductUnit {
   jar('برطمان', 'jar', 'عد', false),
   pack('عبوة', 'pack', 'عد', false),
   box('علبة', 'box', 'عد', false),
-  galon('غالون', 'gal', 'سوائل', true),
+  galon('جالون', 'gal', 'سوائل', true),
   sachet('كيس', 'sachet', 'عد', false),
   mm('ملم', 'mm', 'قياس', true);
 
@@ -138,7 +138,7 @@ enum ProductUnit {
         if (this == ProductUnit.sachet) pluralLabel = 'أكياس';
         if (this == ProductUnit.box) pluralLabel = 'علب';
         if (this == ProductUnit.pack) pluralLabel = 'عبوات';
-        if (this == ProductUnit.galon) pluralLabel = 'غالونات';
+        if (this == ProductUnit.galon) pluralLabel = 'جالونات';
 
         return [
           QuickSize('1 $unitLabel', 1),

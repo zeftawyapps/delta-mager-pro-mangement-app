@@ -10,6 +10,15 @@ class AppBackendEnv {
   static AppEnvType get currentEnv => _currentEnv;
 
   String get baseUrl {
+    final envName = _currentEnv.name;
+    final envUrls = JsonConfigService().envUrls;
+    if (envUrls[envName] is Map) {
+      final envConfig = envUrls[envName] as Map;
+      if (envConfig['baseUrl'] != null && envConfig['baseUrl'].toString().isNotEmpty) {
+        return envConfig['baseUrl'].toString();
+      }
+    }
+
     final customUrl = JsonConfigService().clientBaseUrl;
     if (customUrl.isNotEmpty) {
       return customUrl;
@@ -26,6 +35,15 @@ class AppBackendEnv {
   }
 
   String get imageUrl {
+    final envName = _currentEnv.name;
+    final envUrls = JsonConfigService().envUrls;
+    if (envUrls[envName] is Map) {
+      final envConfig = envUrls[envName] as Map;
+      if (envConfig['imageUrl'] != null && envConfig['imageUrl'].toString().isNotEmpty) {
+        return envConfig['imageUrl'].toString();
+      }
+    }
+
     final customImageUrl = JsonConfigService().clientImageUrl;
     if (customImageUrl.isNotEmpty) {
       return customImageUrl;

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:JoDija_tamplites/util/data_souce_bloc/base_state.dart';
 import 'package:bloc/bloc.dart';
@@ -70,11 +71,15 @@ class AdminOrganizationConfigBloc
     required String organizationId,
     required String section,
     required Map<String, dynamic> sectionData,
+    Uint8List? logoBytes,
+    String? logoName,
   }) async {
     final result = await repo.updateOrganizationConfigSection(
       organizationId: organizationId,
       section: section,
       sectionData: sectionData,
+      logoBytes: logoBytes,
+      logoName: logoName,
     );
 
     if (result.status == StatusModel.success && result.data != null) {

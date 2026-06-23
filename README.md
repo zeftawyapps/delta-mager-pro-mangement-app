@@ -1,16 +1,99 @@
-# delta_mager_pro_mangement_app
+# 🚀 تطبيق الإدارة واللوحات الذكية - Delta Matger Pro (Management Web App)
 
-A new Flutter project.
+مرحباً بك في مستودع **تطبيق الإدارة لـ Delta Matger Pro**. هو تطبيق ويب متقدم ومتكامل، مبني باستخدام إطار العمل **Flutter** ومخصص لإدارة النظام متعدد المستأجرين للشركات والتجار، ويحتوي على تطبيقين رئيسيين مدمجين:
+1. **💻 لوحة تحكم المؤسسات (Dashboard):** المخصصة للتجار وأصحاب العمل لإدارة متاجرهم وفروعهم والطلبات والكتالوجات.
+2. **⚙️ لوحة المدير العام (Admin Panel):** المخصصة لإدارة النظام الكلي، الاشتراكات، العملاء، ومراقبة الحالة العامة للمستأجرين.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🔗 روابط الوصول السريع للتطبيقات محلياً (Localhost Quick Access Links)
 
-A few resources to get you started if this is your first Flutter project:
+لتسهيل تجربة التطبيقات وعرضها للعملاء عند تشغيلها محلياً، يمكنك استخدام الروابط المباشرة التالية للوصول السريع:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+| التطبيق / الخدمة | الرابط المحلي (Localhost Link) | المنفذ (Port) | الوصف |
+| :--- | :--- | :---: | :--- |
+| 📱 **تطبيق العميل (Client App)** | [http://localhost:8980](http://localhost:8980) | `8980` | واجهة المتجر الخاصة بالعملاء للشراء وتصفح المنتجات. |
+| 💻 **لوحة تحكم المؤسسات (Dashboard)** | [http://localhost:8085](http://localhost:8085) | `8085` | لوحة التحكم الخاصة بالتجار لإدارة متاجرهم وفروعهم. |
+| ⚙️ **لوحة المدير العام (Admin Panel)** | [http://localhost:8086](http://localhost:8086) | `8086` | لوحة التحكم الرئيسية لإدارة النظام العام والمستأجرين. |
+| 🌐 **الموقع التعريفي (React Website)** | [http://localhost:8090](http://localhost:8090) | `8090` | الموقع التسويقي والمدونة الخاصة بـ Delta Matger Pro. |
+| 🔌 **خادم الباك إند (Backend API)** | [http://localhost:8080/api/v1](http://localhost:8080/api/v1) | `8080` | خادم الـ API الرئيسي وقاعدة البيانات لتغذية التطبيقات. |
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+> [!TIP]
+> تأكد من تشغيل التطبيق أو الخدمة المطلوبة أولاً عبر سكريبت التشغيل المخصص لها قبل فتح الرابط.
+
+---
+
+## 📁 الهيكل التنظيمي للمشروع (Project Structure)
+
+تم تنظيم الكود البرمجي وتخصيص الأهداف لسهولة الصيانة والتطوير:
+
+```text
+├── assets/                     # الأصول الاستاتيكية كالصور والأيقونات المخصصة للوحات التحكم
+├── lib/
+│   ├── configs/                # إعدادات الواجهات، البيئات، والسمات العامة للتطبيق
+│   ├── consts/                 # الثوابت العامة والنصوص ومسارات الأصول الافتراضية
+│   ├── logic/
+│   │   ├── bloc/               # منطق التحكم بالحالات لإدارة المستأجرين والطلبات والمنتجات
+│   │   ├── di/                 # حاويات حقن التبعيات (Dependency Injection Container)
+│   │   ├── model/              # نماذج البيانات (Data Models / POJOs)
+│   │   └── services/           # الخدمات البرمجية كمزود إعدادات العميل النشط
+│   ├── screens/
+│   │   ├── dashboard/          # واجهات لوحة تحكم المؤسسات والتجار لإدارة متاجرهم
+│   │   └── admin/              # واجهات لوحة التحكم للمدير العام لإدارة النظام
+│   ├── main_dashboard.dart     # نقطة الدخول الرئيسية للوحة تحكم المؤسسات والتجار
+│   └── main_admin.dart         # نقطة الدخول الرئيسية للوحة المدير العام (Management)
+├── project_builder/            # 🛠️ أدوات البناء الذكية متعددة المستأجرين (Whitelabel Builder)
+│   ├── clients/                # ملفات تعريف وإعدادات الهوية والتواصل الخاصة بكل عميل (YAML)
+│   ├── firebase/               # قوالب ملفات ربط الاستضافة والـ Firebase الخاصة بالعملاء
+│   ├── build_client.sh         # سكريبت البناء الذكي التفاعلي والمباشر للـ Terminal
+│   ├── configure.py            # العقل المفكر لتوليد ملفات التكوين ومزامنة الـ pubspec.yaml
+│   └── version_history.md      # 📜 السجل التاريخي الكامل لعمليات البناء والنشر لكل عميل
+└── pubspec.yaml                # ملف إدارة التبعيات والإصدار القياسي للتطبيق
+```
+
+---
+
+## 🚀 التشغيل المباشر والبناء (Quick Start Guide)
+
+لتشغيل أو بناء أو رفع التطبيق لأي عميل، تأكد أولاً من إعطاء صلاحية التشغيل لسكريبت البناء:
+```bash
+chmod +x ./project_builder/build_client.sh
+```
+
+**اكتب أحد الأوامر التالية بالـ Terminal لتنفيذ الإجراء للعميل النشط المكتوب في الـ config:**
+
+* **💻 لتجربة لوحة تحكم المؤسسات (Dashboard) محلياً على منفذ 8085:**
+  ```bash
+  ./project_builder/build_client.sh run dashboard
+  ```
+  *(يفتح مباشرة على: [http://localhost:8085](http://localhost:8085))*
+
+* **💻 لتجربة لوحة المدير العام (Admin Panel) محلياً على منفذ 8086:**
+  ```bash
+  ./project_builder/build_client.sh run admin
+  ```
+  *(يفتح مباشرة على: [http://localhost:8086](http://localhost:8086))*
+
+* **💻 لتجربة اللوحتين معاً (Both) في نفس الوقت:**
+  ```bash
+  ./project_builder/build_client.sh run both
+  ```
+
+* **🚀 لبناء التطبيقات ورفعها مباشرة لاستضافة الـ Firebase للعميل النشط:**
+  ```bash
+  ./project_builder/build_client.sh deploy both
+  ```
+
+* **⚙️ لتهيئة وتوليد ملفات التكوين والربط محلياً فقط وبسرعة:**
+  ```bash
+  ./project_builder/build_client.sh config
+  ```
+
+* **📱 للتشغيل التفاعلي واختيار الإجراء من قائمة خيارات مرئية بالـ Terminal:**
+  ```bash
+  ./project_builder/build_client.sh
+  ```
+
+> [!IMPORTANT]
+> **إذا كنت ترغب في بناء وتكوين التطبيق وتخصيص إعدادات العملاء بالكامل، يجب الانتقال مباشرة والرجوع إلى الدليل التفصيلي الشامل لنظام البناء في:**
+> 👉 **[دليل نظام البناء والتهيئة التفصيلي (project_builder/README.md)](file:///Users/moaz/Desktop/delta/products/under%20process/matger-pro/delta-mager-pro-mangement-app/project_builder/README.md)**

@@ -430,9 +430,7 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
           ),
         );
       },
-    ).then((_) {
-      _loadData();
-    });
+    );
   }
 
   void _showConfigureTriggersDialog(WorkflowConfigModel config, WorkflowStep step) {
@@ -452,9 +450,7 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
           ),
         );
       },
-    ).then((_) {
-      _loadData();
-    });
+    );
   }
 
   void _showAddStepDialog(WorkflowConfigModel config) {
@@ -530,9 +526,7 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
           ),
         );
       },
-    ).then((_) {
-      _loadData();
-    });
+    );
   }
 
   void _showCreateWorkflowDialog() {
@@ -550,8 +544,6 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
           ),
         );
       },
-    ).then((_) {
-      _loadData();
-    });
+    );
   }
 }

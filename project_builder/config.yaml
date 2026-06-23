@@ -4,7 +4,7 @@
 activeClient: "local"
 
 appVersion: "1.0.0"
-appBuildIndex: 1
+appBuildIndex: 3
 
 # 🌍 Active environment (local, dev, prod)
 env: "local"

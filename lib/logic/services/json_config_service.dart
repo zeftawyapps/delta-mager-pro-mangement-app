@@ -68,8 +68,33 @@ class JsonConfigService {
   String get appVersion => _config['appVersion'] ?? '1.0.0';
   int get appBuildIndex => _config['appBuildIndex'] ?? 100;
   String get activeClient => _config['activeClient'] ?? 'domansy';
-  String get clientBaseUrl => _config['baseUrl'] ?? '';
-  String get clientImageUrl => _config['imageUrl'] ?? '';
+  String get clientBaseUrl {
+    final rootUrl = _config['baseUrl'];
+    if (rootUrl != null && rootUrl.toString().isNotEmpty) {
+      return rootUrl.toString();
+    }
+    final env = _config['env'] ?? 'prod';
+    final envUrls = _config['envUrls'];
+    if (envUrls != null && envUrls[env] != null) {
+      return envUrls[env]['baseUrl'] ?? '';
+    }
+    return '';
+  }
+
+  String get clientImageUrl {
+    final rootUrl = _config['imageUrl'];
+    if (rootUrl != null && rootUrl.toString().isNotEmpty) {
+      return rootUrl.toString();
+    }
+    final env = _config['env'] ?? 'prod';
+    final envUrls = _config['envUrls'];
+    if (envUrls != null && envUrls[env] != null) {
+      return envUrls[env]['imageUrl'] ?? '';
+    }
+    return '';
+  }
+  Map<String, dynamic> get envUrls => _config['envUrls'] ?? {};
+  String get env => _config['env'] ?? 'prod';
   bool get isAdminMode => _config['isAdminMode'] ?? true;
 
   // 🟢 تحديث الإعدادات برمجياً لمزامنتها مع الـ Bloc فور التحميل أو الحفظ

@@ -112,8 +112,11 @@ class _AppLouncherState extends State<AppLouncher> {
                         ? context.read<SystemBloc>().systemInfo!.logo
                         : null);
 
-              final sidebarLogoUrl = (rawSidebarLogoUrl != null && rawSidebarLogoUrl.isNotEmpty)
-                  ? (rawSidebarLogoUrl.contains('http') ? rawSidebarLogoUrl : '${ApiUrls.IMAGE_BASE_URL}$rawSidebarLogoUrl')
+              final sidebarLogoUrl =
+                  (rawSidebarLogoUrl != null && rawSidebarLogoUrl.isNotEmpty)
+                  ? (rawSidebarLogoUrl.contains('http')
+                        ? rawSidebarLogoUrl
+                        : '${ApiUrls.IMAGE_BASE_URL}$rawSidebarLogoUrl')
                   : null;
 
               state.itemState.maybeWhen(

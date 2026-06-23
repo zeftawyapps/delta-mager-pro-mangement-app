@@ -145,6 +145,7 @@ DASHBOARD_SITE="$(yaml_read "apps.dashboard.hostingSite")"
 ADMIN_SITE="$(yaml_read "apps.admin.hostingSite")"
 TARGET_VERSION="$(yaml_read "appVersion")"
 TARGET_BUILD="$(yaml_read "appBuildIndex")"
+FIREBASE_PROJECT="$(yaml_read "firebase.project")"
 
 if [ -z "$DASHBOARD_TARGET" ]; then DASHBOARD_TARGET="lib/main_dashboard.dart"; fi
 if [ -z "$ADMIN_TARGET" ]; then ADMIN_TARGET="lib/main_admin.dart"; fi
@@ -255,6 +256,32 @@ build_app() {
 
     echo -e "\n${BLUE}📦 Building ${app_name} using target [${target_path}]...${NC}"
     cd "$CLIENT_APP_DIR" || exit 1
+    
+    # ⚙️ Update config.yaml with correct isAdminMode for target app
+    if [ "$app_name" == "admin" ]; then
+        python3 -c "
+with open('project_builder/config.yaml', 'r') as f:
+    content = f.read()
+import re
+content = re.sub(r'^isAdminMode:\s*.*$', 'isAdminMode: true', content, flags=re.MULTILINE)
+with open('project_builder/config.yaml', 'w') as f:
+    f.write(content)
+"
+    else
+        python3 -c "
+with open('project_builder/config.yaml', 'r') as f:
+    content = f.read()
+import re
+content = re.sub(r'^isAdminMode:\s*.*$', 'isAdminMode: false', content, flags=re.MULTILINE)
+with open('project_builder/config.yaml', 'w') as f:
+    f.write(content)
+"
+    fi
+
+    # 🧹 Clear build output and compiler cache to prevent cross-target caching issues
+    rm -rf "$CLIENT_APP_DIR/build/web"
+    rm -rf "$CLIENT_APP_DIR/.dart_tool/flutter_build"
+    
     flutter build web --release --target "$target_path"
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Build failed for ${app_name}!${NC}"
@@ -297,7 +324,11 @@ EOF
 
     echo -e "\n${YELLOW}🚀 Deploying ${app_name} to Firebase site [${hosting_site}]...${NC}"
     cd "$CLIENT_APP_DIR" || exit 1
-    firebase deploy --only hosting --config "$tmp_firebase_json"
+    if [ -n "$FIREBASE_PROJECT" ]; then
+        firebase deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT"
+    else
+        firebase deploy --only hosting --config "$tmp_firebase_json"
+    fi
     local deploy_exit_code=$?
     rm -f "$tmp_firebase_json"
     if [ $deploy_exit_code -ne 0 ]; then

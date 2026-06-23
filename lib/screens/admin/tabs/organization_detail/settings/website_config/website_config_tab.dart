@@ -24,6 +24,12 @@ class WebsiteConfigTab extends StatefulWidget {
 }
 
 class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
+  bool _isEditingHeader = false;
+  String _appMode = WebsiteConfig.appModeHybrid;
+  String _logoStyle = WebsiteConfig.logoStyleSolid;
+  List<String> _navbarOrder = List.from(WebsiteConfig.defaultNavbarOrder);
+
+  // Sections (body)
   List<Map<String, dynamic>> _sections = [];
   bool _isEditing = false;
   bool _isEditingFooter = false;
@@ -36,7 +42,6 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
   late TextEditingController _emailController;
   late TextEditingController _trustBadgeController;
   late TextEditingController _copyrightController;
-
   late TextEditingController _facebookController;
   late TextEditingController _telegramController;
   late TextEditingController _whatsappController;
@@ -46,6 +51,37 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     super.initState();
     _loadData();
     _initFooterControllers();
+    _initHeaderData();
+  }
+
+  void _initHeaderData() {
+    final website = widget.config.website ?? {};
+    _appMode =
+        (website[WebsiteConfig.keyAppMode] as String?) ??
+        WebsiteConfig.appModeHybrid;
+    _logoStyle =
+        (website[WebsiteConfig.keyLogoStyle] as String?) ??
+        WebsiteConfig.logoStyleSolid;
+    final savedOrder = website[WebsiteConfig.keyNavbarOrder];
+    if (savedOrder is List) {
+      _navbarOrder = List<String>.from(savedOrder);
+    } else {
+      _navbarOrder = List.from(WebsiteConfig.defaultNavbarOrder);
+    }
+  }
+
+  Future<void> _saveHeader() async {
+    final websiteData = Map<String, dynamic>.from(widget.config.website ?? {});
+    websiteData[WebsiteConfig.keyAppMode] = _appMode;
+    websiteData[WebsiteConfig.keyLogoStyle] = _logoStyle;
+    websiteData[WebsiteConfig.keyNavbarOrder] = _navbarOrder;
+
+    context.read<AdminOrganizationConfigBloc>().updateConfigSection(
+      organizationId: widget.organizationId,
+      section: "website",
+      sectionData: websiteData,
+    );
+    setState(() => _isEditingHeader = false);
   }
 
   void _initFooterControllers() {
@@ -114,6 +150,7 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.config != widget.config && !_isEditing) {
       _loadData();
+      if (!_isEditingHeader) _initHeaderData();
     }
   }
 
@@ -289,9 +326,196 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
                   title: const Text("إعدادات  (header)"),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(children: [
-                                                ],
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── وضع التطبيق ─────────────────────────────────────
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "وضع الموقع (App Mode)",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              TextButton.icon(
+                                icon: Icon(
+                                  _isEditingHeader ? Icons.save : Icons.edit,
+                                  size: 18,
+                                  color: _isEditingHeader
+                                      ? Colors.green
+                                      : primaryColor,
+                                ),
+                                label: Text(
+                                  _isEditingHeader ? "حفظ" : "تعديل",
+                                  style: TextStyle(
+                                    color: _isEditingHeader
+                                        ? Colors.green
+                                        : primaryColor,
+                                  ),
+                                ),
+                                onPressed: _isEditingHeader
+                                    ? _saveHeader
+                                    : () => setState(
+                                        () => _isEditingHeader = true,
+                                      ),
+                              ),
+                            ],
+                          ),
+                          const Text(
+                            "حدد ما إذا كان الموقع يعرض مدونة، متجراً، أم الاثنين معاً",
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 12),
+                          SegmentedButton<String>(
+                            style: SegmentedButton.styleFrom(
+                              selectedBackgroundColor: primaryColor,
+                              selectedForegroundColor: Colors.white,
+                            ),
+                            segments: const [
+                              ButtonSegment(
+                                value: WebsiteConfig.appModeBlog,
+                                label: Text("🗞️ مدونة فقط"),
+                                icon: Icon(Icons.article_outlined, size: 16),
+                              ),
+                              ButtonSegment(
+                                value: WebsiteConfig.appModeHybrid,
+                                label: Text("🔀 الهجين"),
+                                icon: Icon(Icons.join_full, size: 16),
+                              ),
+                              ButtonSegment(
+                                value: WebsiteConfig.appModeStore,
+                                label: Text("🛍️ متجر فقط"),
+                                icon: Icon(Icons.storefront_outlined, size: 16),
+                              ),
+                            ],
+                            selected: {_appMode},
+                            onSelectionChanged: _isEditingHeader
+                                ? (val) => setState(() => _appMode = val.first)
+                                : null,
+                          ),
+
+                          const Divider(height: 28),
+
+                          // ── تنسيق اللوجو ────────────────────────────────────
+                          const Text(
+                            "تنسيق الشعار في النافبار (Logo Style)",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            "هل لون الشعار يكون صريحاً أم بتدرج لوني؟",
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _LogoStyleChip(
+                                label: "لون صريح (Solid)",
+                                icon: Icons.format_color_fill,
+                                value: WebsiteConfig.logoStyleSolid,
+                                selected:
+                                    _logoStyle == WebsiteConfig.logoStyleSolid,
+                                enabled: _isEditingHeader,
+                                primaryColor: primaryColor,
+                                onTap: () => setState(
+                                  () =>
+                                      _logoStyle = WebsiteConfig.logoStyleSolid,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              _LogoStyleChip(
+                                label: "تدرج (Gradient)",
+                                icon: Icons.gradient,
+                                value: WebsiteConfig.logoStyleGradient,
+                                selected:
+                                    _logoStyle ==
+                                    WebsiteConfig.logoStyleGradient,
+                                enabled: _isEditingHeader,
+                                primaryColor: primaryColor,
+                                onTap: () => setState(
+                                  () => _logoStyle =
+                                      WebsiteConfig.logoStyleGradient,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const Divider(height: 28),
+
+                          // ── ترتيب عناصر النافبار ────────────────────────────
+                          const Text(
+                            "ترتيب عناصر شريط التنقل (Navbar Order)",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            "اسحب العناصر لإعادة ترتيبها في شريط التنقل",
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          ReorderableListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _navbarOrder.length,
+                            onReorder: _isEditingHeader
+                                ? (oldIdx, newIdx) {
+                                    setState(() {
+                                      if (newIdx > oldIdx) newIdx -= 1;
+                                      final item = _navbarOrder.removeAt(
+                                        oldIdx,
+                                      );
+                                      _navbarOrder.insert(newIdx, item);
+                                    });
+                                  }
+                                : (_, __) {},
+                            itemBuilder: (ctx, idx) {
+                              final key = _navbarOrder[idx];
+                              final label =
+                                  WebsiteConfig.navbarOrderLabels[key] ?? key;
+                              return ListTile(
+                                key: ValueKey(key),
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                leading: CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: primaryColor.withOpacity(
+                                    0.15,
+                                  ),
+                                  child: Text(
+                                    "${idx + 1}",
+                                    style: TextStyle(
+                                      color: primaryColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  label,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                trailing: _isEditingHeader
+                                    ? Icon(
+                                        Icons.drag_handle,
+                                        color: Colors.grey.shade400,
+                                      )
+                                    : null,
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -533,6 +757,69 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Helper Widget: Logo Style Chip ────────────────────────────────────────
+class _LogoStyleChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String value;
+  final bool selected;
+  final bool enabled;
+  final Color primaryColor;
+  final VoidCallback onTap;
+
+  const _LogoStyleChip({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.selected,
+    required this.enabled,
+    required this.primaryColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected ? primaryColor : Colors.grey.shade300,
+              width: selected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(10),
+            color: selected
+                ? primaryColor.withOpacity(0.1)
+                : Colors.transparent,
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: selected ? primaryColor : Colors.grey,
+                size: 22,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: selected ? primaryColor : Colors.grey,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

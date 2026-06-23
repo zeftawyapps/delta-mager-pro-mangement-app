@@ -354,6 +354,179 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     );
   }
 
+  Widget _buildIntroSlidesConfig(Map<String, dynamic> section) {
+    if (section['config'] == null) section['config'] = {};
+
+    const tabs = [
+      {'key': WebsiteConfig.keyIntroHybrid, 'label': '🔀 الهجين', 'icon': Icons.join_full},
+      {'key': WebsiteConfig.keyIntroBlog,   'label': '🗞️ مدونة',   'icon': Icons.article_outlined},
+      {'key': WebsiteConfig.keyIntroStore,  'label': '🛍️ متجر',   'icon': Icons.storefront_outlined},
+    ];
+
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "اعدادات السلايدر لكل وضع",
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          TabBar(
+            isScrollable: true,
+            labelColor: widget.primaryColor,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: widget.primaryColor,
+            tabs: tabs.map((t) => Tab(
+              icon: Icon(t['icon'] as IconData, size: 16),
+              text: t['label'] as String,
+            )).toList(),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 360,
+            child: TabBarView(
+              children: tabs.map((t) {
+                final key = t['key'] as String;
+                final subConfig = Map<String, dynamic>.from(
+                  section['config'][key] ?? {},
+                );
+
+                void updateSub(String field, dynamic val) {
+                  final newSection = Map<String, dynamic>.from(widget.section);
+                  if (newSection['config'] == null) newSection['config'] = {};
+                  newSection['config'] = Map<String, dynamic>.from(newSection['config']);
+                  final sub = Map<String, dynamic>.from(newSection['config'][key] ?? {});
+                  sub[field] = val;
+                  newSection['config'][key] = sub;
+                  widget.onSectionChanged(newSection);
+                }
+
+                final currentStyle = subConfig['displayStyle'] ?? WebsiteConfig.introDisplayAppleFullscreen;
+                final bgType = subConfig['backgroundType'] ?? WebsiteConfig.bgTypeSolid;
+                final autoPlay = subConfig['autoPlay'] ?? true;
+                final duration = ((subConfig['duration'] ?? 4000) as num).toDouble();
+                final indicator = subConfig['indicatorType'] ?? WebsiteConfig.indicatorDots;
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // displayStyle
+                      DropdownButtonFormField<String>(
+                        value: WebsiteConfig.introDisplayStyleLabels.containsKey(currentStyle)
+                            ? currentStyle
+                            : WebsiteConfig.introDisplayAppleFullscreen,
+                        items: WebsiteConfig.introDisplayStyleLabels.entries.map((e) =>
+                          DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 13))),
+                        ).toList(),
+                        onChanged: widget.isEditing ? (v) => updateSub('displayStyle', v) : null,
+                        decoration: const InputDecoration(
+                          labelText: "شكل العرض (Display Style)",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // backgroundType
+                      const Text("نوع الخلفية", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 6),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: WebsiteConfig.bgTypeSolid, label: Text("لون صريح")),
+                          ButtonSegment(value: WebsiteConfig.bgTypeGradient, label: Text("تدرج")),
+                        ],
+                        selected: {bgType},
+                        onSelectionChanged: widget.isEditing
+                            ? (v) => updateSub('backgroundType', v.first)
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // customBg
+                      TextFormField(
+                        initialValue: subConfig['customBg'] ?? '',
+                        enabled: widget.isEditing,
+                        decoration: const InputDecoration(
+                          labelText: "لون/تدرج الخلفية (customBg) — hex أو CSS gradient",
+                          hintText: "مثال: #1A2332 أو linear-gradient(135deg,#100C1C,#1A2332)",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          prefixIcon: Icon(Icons.palette_outlined, size: 18),
+                        ),
+                        onChanged: (v) => updateSub('customBg', v),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // textColor
+                      TextFormField(
+                        initialValue: subConfig['textColor'] ?? '',
+                        enabled: widget.isEditing,
+                        decoration: const InputDecoration(
+                          labelText: "لون النص (textColor) — hex",
+                          hintText: "مثال: #FFFFFF",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          prefixIcon: Icon(Icons.text_fields, size: 18),
+                        ),
+                        onChanged: (v) => updateSub('textColor', v),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // autoPlay
+                      SwitchListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text("تدوير تلقائي (Auto Play)", style: TextStyle(fontSize: 13)),
+                        value: autoPlay,
+                        onChanged: widget.isEditing ? (v) => updateSub('autoPlay', v) : null,
+                      ),
+
+                      // duration slider
+                      if (autoPlay) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text("مدة كل شريحة (ms)", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            Text("${duration.round()} ms", style: TextStyle(color: widget.primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                          ],
+                        ),
+                        Slider(
+                          value: duration,
+                          min: 2000,
+                          max: 8000,
+                          divisions: 12,
+                          activeColor: widget.primaryColor,
+                          onChanged: widget.isEditing ? (v) => updateSub('duration', v.round()) : null,
+                        ),
+                      ],
+
+                      // indicatorType
+                      const Text("مؤشر الشرائح (Indicator)", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 6),
+                      SegmentedButton<String>(
+                        segments: WebsiteConfig.indicatorTypeLabels.entries.map((e) =>
+                          ButtonSegment(value: e.key, label: Text(e.value, style: const TextStyle(fontSize: 11))),
+                        ).toList(),
+                        selected: {indicator},
+                        onSelectionChanged: widget.isEditing
+                            ? (v) => updateSub('indicatorType', v.first)
+                            : null,
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final section = widget.section;
@@ -447,9 +620,13 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                   const SizedBox(height: 12),
                 ],
                 if (section['type'] == WebsiteConfig.typeBlogPosts ||
-                    section['type'] == WebsiteConfig.typeMostReadBlogPosts ||
-                    section['type'] == WebsiteConfig.typeIntroSlides) ...[
+                    section['type'] == WebsiteConfig.typeMostReadBlogPosts) ...[
                   _buildBlogLimitSelector(section),
+                  const SizedBox(height: 12),
+                ],
+                // 🖼️ Intro Slides — 3 تبويبات منفصلة للهجين والمدونة والمتجر
+                if (section['type'] == WebsiteConfig.typeIntroSlides) ...[
+                  _buildIntroSlidesConfig(section),
                   const SizedBox(height: 12),
                 ],
                 if (section['type'] == WebsiteConfig.typeCustomBanner) ...[
@@ -461,7 +638,6 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                   const SizedBox(height: 12),
                 ],
                 if (section['type'] == WebsiteConfig.typeOffers ||
-                    section['type'] == WebsiteConfig.typeIntroSlides ||
                     section['displayMode'] == WebsiteConfig.modeSlider) ...[
                   _buildAutoPlayToggle(section),
                   const SizedBox(height: 12),

@@ -340,7 +340,30 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
                                             .animate()
                                             .fadeIn(delay: 600.ms)
                                             .slideY(begin: 0.2, end: 0),
-                                      ],
+                                            const SizedBox(height: 24),
+                                            Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  "الإصدار ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade800,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  "جميع الحقوق محفوظة © ${DateTime.now().year}",
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ).animate().fadeIn(delay: 700.ms),
+                                       ],
                                     ),
                                   ],
                                 ),

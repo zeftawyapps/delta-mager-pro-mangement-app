@@ -5,7 +5,7 @@ appBranding:
 
 # 🚀 توافق الإصدارات
 appVersion: "1.0.0"
-appBuildIndex: 1
+appBuildIndex: 3
 env: "prod"
 
 # 🔗 روابط API

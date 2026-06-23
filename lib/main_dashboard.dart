@@ -21,8 +21,12 @@ void main() async {
   AppShellLocalConfigs.appVersion = configService.appVersion;
   AppShellLocalConfigs.appBuildIndex = configService.appBuildIndex;
 
-  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر
-  AppBackendEnv().initConfigration(AppEnvType.prod);
+  // 🌍 تحديد بيئة التشغيل للاتصال بالسيرفر ديناميكياً من ملف الـ YAML
+  final envType = AppEnvType.values.firstWhere(
+    (e) => e.name == configService.env,
+    orElse: () => AppEnvType.prod,
+  );
+  AppBackendEnv().initConfigration(envType);
 
   runApp(const AppLouncher());
 }
