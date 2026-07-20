@@ -49,6 +49,4 @@ assets/json_config/config.yaml
 assets/json_config/clients/
 project_builder/config.yaml
 project_builder/clients/
-project_builder/
-test/
 
