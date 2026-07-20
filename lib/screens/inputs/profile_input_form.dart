@@ -44,10 +44,8 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
     _selectedCity = widget.user.cityId;
     _selectedCountry = widget.user.countryId ?? 'EG';
 
-    // Load governorates for the country
     context.read<LocationsBloc>().loadGovernorates(_selectedCountry);
 
-    // Load cities if governorate is already selected
     if (_selectedGovernorate != null) {
       context.read<LocationsBloc>().loadCities(_selectedGovernorate!);
     }
@@ -203,15 +201,22 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
           orElse: () => <GovernorateModel>[],
         );
 
-        final isLoading = state.governoratesState.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.governoratesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
 
-        // التأكد من أن القيمة المختارة موجودة في القائمة ومطابقتها بشكل مرن
         String? currentValue;
         try {
           if (_selectedGovernorate != null && governorates.isNotEmpty) {
-            currentValue = governorates.firstWhere(
-              (g) => g.id.toString().trim() == _selectedGovernorate?.toString().trim()
-            ).id.toString();
+            currentValue = governorates
+                .firstWhere(
+                  (g) =>
+                      g.id.toString().trim() ==
+                      _selectedGovernorate?.toString().trim(),
+                )
+                .id
+                .toString();
           }
         } catch (_) {}
 
@@ -231,7 +236,7 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
           onChanged: (String? value) {
             setState(() {
               _selectedGovernorate = value;
-              _selectedCity = null; // Reset city when governorate changes
+              _selectedCity = null;
             });
             if (value != null) {
               context.read<LocationsBloc>().loadCities(value);
@@ -251,15 +256,22 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
           orElse: () => <CityModel>[],
         );
 
-        final isLoading = state.citiesState.maybeWhen(loading: () => true, orElse: () => false);
+        final isLoading = state.citiesState.maybeWhen(
+          loading: () => true,
+          orElse: () => false,
+        );
 
-        // التأكد من أن القيمة المختارة موجودة في القائمة
         String? currentValue;
         try {
           if (_selectedCity != null && cities.isNotEmpty) {
-             currentValue = cities.firstWhere(
-              (c) => c.id.toString().trim() == _selectedCity?.toString().trim()
-            ).id.toString();
+            currentValue = cities
+                .firstWhere(
+                  (c) =>
+                      c.id.toString().trim() ==
+                      _selectedCity?.toString().trim(),
+                )
+                .id
+                .toString();
           }
         } catch (_) {}
 

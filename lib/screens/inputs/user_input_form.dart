@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
@@ -19,11 +21,13 @@ import 'package:delta_mager_pro_mangement_app/logic/model/location_models.dart';
 class UserInputForm extends StatefulWidget {
   final UserViewProfileModel? user;
   final String? organizationId;
+  final bool isCustomer;
 
   const UserInputForm({
     super.key,
     this.user,
     this.organizationId,
+    this.isCustomer = false,
   });
 
   @override
@@ -120,12 +124,13 @@ class _UserInputFormState extends State<UserInputForm> {
         state.itemState.maybeWhen(
           orElse: () {},
           success: (data) {
+            final isCustomer = widget.isCustomer;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
                   widget.user != null
-                      ? 'تم تحديث المستخدم بنجاح'
-                      : 'تم إضافة المستخدم بنجاح',
+                      ? (isCustomer ? 'تم تحديث الزبون بنجاح' : 'تم تحديث المستخدم بنجاح')
+                      : (isCustomer ? 'تم إضافة الزبون بنجاح' : 'تم إضافة المستخدم بنجاح'),
                 ),
               ),
             );
@@ -159,7 +164,9 @@ class _UserInputFormState extends State<UserInputForm> {
                 children: [
                   const CloseButton(),
                   Text(
-                    widget.user != null ? "تعديل مستخدم" : "إضافة مستخدم جديد",
+                    widget.user != null 
+                        ? (widget.isCustomer ? "تعديل بيانات الزبون" : "تعديل مستخدم")
+                        : (widget.isCustomer ? "إضافة زبون" : "إضافة مستخدم جديد"),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -169,6 +176,7 @@ class _UserInputFormState extends State<UserInputForm> {
                 ],
               ),
               const SizedBox(height: 16),
+              if (widget.isCustomer) _buildUpgradeRequestSection(),
               form.buildChildrenWithColumn(
                 context: context,
                 children: [
@@ -238,7 +246,7 @@ class _UserInputFormState extends State<UserInputForm> {
                     keyData: "address",
                   ),
                   const SizedBox(height: 24),
-                  Row(
+                    Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
@@ -248,11 +256,13 @@ class _UserInputFormState extends State<UserInputForm> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: _createNewCustomRole,
-                        icon: const Icon(Icons.add),
-                        label: const Text("دور جديد"),
-                      ),
+                      // 🔒 إخفاء زر إنشاء دور جديد للزبائن
+                      if (!widget.isCustomer)
+                        TextButton.icon(
+                          onPressed: _createNewCustomRole,
+                          icon: const Icon(Icons.add),
+                          label: const Text("دور جديد"),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -339,14 +349,25 @@ class _UserInputFormState extends State<UserInputForm> {
               return const Text("لا توجد أدوار متاحة");
             }
 
-            // Filter roles if not in admin mode
+            // Filter roles based on whether we are in customer context or staff context
             final isAdminMode = AppShellConfigs.isAdminMode;
-            final filteredRoles = isAdminMode
-                ? roles
-                : roles.where((role) {
-                    final name = role.name.toLowerCase();
-                    return name != 'admin' && name != 'organizationowner';
-                  }).toList();
+            final isTargetCustomer = widget.isCustomer;
+
+            final filteredRoles = roles.where((role) {
+              if (isTargetCustomer) {
+                // 🛡️ للزبائن: فقط الأدوار التي تم تعليمها كأدوار زبائن
+                return role.isCustomerRole == true;
+              } else {
+                // 🛡️ للموظفين: الأدوار التي ليست للزبائن
+                if (!isAdminMode) {
+                  final name = role.name.toLowerCase();
+                  if (name == 'admin' || name == 'organizationowner') {
+                    return false;
+                  }
+                }
+                return role.isCustomerRole == false;
+              }
+            }).toList();
 
             if (filteredRoles.isEmpty) {
               return const Text("لا توجد أدوار متاحة للتخصيص");
@@ -379,8 +400,6 @@ class _UserInputFormState extends State<UserInputForm> {
     );
   }
 
-
-
   Widget _buildGovernorateDropdown() {
     return BlocBuilder<LocationsBloc, LocationsState>(
       builder: (context, state) {
@@ -398,9 +417,14 @@ class _UserInputFormState extends State<UserInputForm> {
         String? currentValue;
         try {
           if (_selectedGovernorate != null && governorates.isNotEmpty) {
-            currentValue = governorates.firstWhere(
-              (g) => g.id.toString().trim() == _selectedGovernorate?.toString().trim()
-            ).id.toString();
+            currentValue = governorates
+                .firstWhere(
+                  (g) =>
+                      g.id.toString().trim() ==
+                      _selectedGovernorate?.toString().trim(),
+                )
+                .id
+                .toString();
           }
         } catch (_) {}
 
@@ -449,9 +473,12 @@ class _UserInputFormState extends State<UserInputForm> {
         String? currentValue;
         try {
           if (cityController.text.isNotEmpty && cities.isNotEmpty) {
-            currentValue = cities.firstWhere(
-              (c) => c.id.toString().trim() == cityController.text.trim()
-            ).id.toString();
+            currentValue = cities
+                .firstWhere(
+                  (c) => c.id.toString().trim() == cityController.text.trim(),
+                )
+                .id
+                .toString();
           }
         } catch (_) {}
 
@@ -475,7 +502,8 @@ class _UserInputFormState extends State<UserInputForm> {
                     cityController.text = value ?? '';
                   });
                 },
-          validator: (value) => value == null || value.isEmpty ? 'يرجى اختيار المدينة' : null,
+          validator: (value) =>
+              value == null || value.isEmpty ? 'يرجى اختيار المدينة' : null,
           disabledHint: const Text('يرجى اختيار المحافظة أولاً'),
         );
       },
@@ -495,5 +523,319 @@ class _UserInputFormState extends State<UserInputForm> {
         );
       },
     );
+  }
+
+  Widget _buildUpgradeRequestSection() {
+    if (widget.user == null) return const SizedBox.shrink();
+    final additionalInfo = widget.user!.additionalInfo ?? {};
+    final status = additionalInfo['wholesalerUpgradeStatus']?.toString();
+    if (status != 'pending' && status != 'approved_pending_code') {
+      return const SizedBox.shrink();
+    }
+
+    final shopName = additionalInfo['wholesalerShopName']?.toString() ?? '';
+    final taxId = additionalInfo['wholesalerTaxId']?.toString() ?? '';
+    final requestedRole = additionalInfo['requestedUpgradeRole']?.toString() ?? 'wholesaler';
+    final code = additionalInfo['wholesalerRequestCode']?.toString();
+
+    final isPending = status == 'pending';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isPending ? Colors.amber.withOpacity(0.3) : Colors.green.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      color: isPending ? Colors.amber.withOpacity(0.04) : Colors.green.withOpacity(0.04),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.storefront_rounded,
+                  color: isPending ? Colors.amber : Colors.green,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isPending ? 'طلب ترقية معلق' : 'طلب مقبول وبانتظار التفعيل',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isPending ? Colors.amber.shade900 : Colors.green.shade900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildUpgradeInfoRow("الدور المطلوب:", requestedRole),
+            _buildUpgradeInfoRow("اسم المحل/المنشأة:", shopName),
+            if (taxId.isNotEmpty) _buildUpgradeInfoRow("السجل التجاري/الرقم الضريبي:", taxId),
+            if (code != null) _buildUpgradeInfoRow("رمز التفعيل المولد:", code),
+            const SizedBox(height: 16),
+            if (isPending)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _approveUpgradeRequest,
+                  icon: const Icon(Icons.check),
+                  label: const Text('قبول الطلب وتوليد كود التفعيل'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        if (code != null) {
+                          _sendWhatsApp(widget.user!.phone, widget.user!.username ?? 'تاجر', code);
+                        }
+                      },
+                      icon: const Icon(Icons.message, color: Colors.green),
+                      label: const Text('إرسال بالواتساب', style: TextStyle(color: Colors.green)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.green),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _activateUpgradeRequest,
+                      icon: const Icon(Icons.verified_user),
+                      label: const Text('تفعيل الترقية'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUpgradeInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _approveUpgradeRequest() {
+    final user = widget.user!;
+    final random = Random();
+    final generatedCode = (1000 + random.nextInt(9000)).toString();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          title: const Text('قبول الطلب وتوليد كود التفعيل'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('المستخدم: ${user.username ?? user.email}'),
+              const SizedBox(height: 8),
+              Text(
+                'كود التفعيل المقترح: $generatedCode',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'سيتم تحديث حالة المستخدم إلى "مقبول بانتظار التفعيل" وفتح محادثة الواتساب تلقائياً لإرسال الكود.',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+
+                context.read<UsersBloc>().updateUser(
+                  userId: user.userId,
+                  username: user.username,
+                  email: user.email,
+                  phone: user.phone,
+                  address: user.address,
+                  isActive: user.isActiveProfile,
+                  roles: user.roles,
+                  organizationId: user.organizationId,
+                  countryId: user.countryId,
+                  governorateId: user.governorateId,
+                  cityId: user.cityId,
+                  additionalFields: {
+                    ...user.additionalInfo ?? {},
+                    'wholesalerUpgradeStatus': 'approved_pending_code',
+                    'wholesalerRequestCode': generatedCode,
+                  },
+                );
+
+                await _sendWhatsApp(
+                  user.phone,
+                  user.username ?? 'تاجر',
+                  generatedCode,
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text(
+                'تأكيد وإرسال بالواتساب',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _activateUpgradeRequest() {
+    final user = widget.user!;
+    final additionalInfo = user.additionalInfo ?? {};
+    final requestedRole = additionalInfo['requestedUpgradeRole']?.toString() ?? 'wholesaler';
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          title: const Text('تفعيل الحساب والترقية'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('المستخدم: ${user.username ?? user.email}'),
+              const SizedBox(height: 8),
+              Text(
+                'الدور المطلوب الترقية إليه: $requestedRole',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const Text('هل أنت متأكد من تفعيل هذا الحساب وترقيته إلى الدور المطلوب مباشرة؟'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+
+                final currentRoles = List<String>.from(user.roles);
+                if (!currentRoles.contains(requestedRole)) {
+                  currentRoles.add(requestedRole);
+                }
+
+                context.read<UsersBloc>().updateUser(
+                  userId: user.userId,
+                  username: user.username,
+                  email: user.email,
+                  phone: user.phone,
+                  address: user.address,
+                  isActive: user.isActiveProfile,
+                  roles: currentRoles,
+                  organizationId: user.organizationId,
+                  countryId: user.countryId,
+                  governorateId: user.governorateId,
+                  cityId: user.cityId,
+                  additionalFields: {
+                    ...additionalInfo,
+                    'wholesalerUpgradeStatus': 'activated',
+                  },
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '✅ تم تفعيل حساب العميل وترقيته لدور ($requestedRole) بنجاح!',
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: const Text(
+                'تأكيد التفعيل',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _sendWhatsApp(String phone, String name, String code) async {
+    var formattedPhone = phone.trim();
+    if (!formattedPhone.startsWith('+') && !formattedPhone.startsWith('00')) {
+      if (formattedPhone.startsWith('01')) {
+        formattedPhone = '+20$formattedPhone';
+      }
+    }
+
+    final message =
+        'مرحباً $name، تم قبول طلب الترقية لحساب الجملة الخاص بك. رمز التفعيل لتأكيد الحساب هو: $code';
+    final url = Uri.parse(
+      'https://wa.me/${formattedPhone.replaceAll('+', '')}?text=${Uri.encodeComponent(message)}',
+    );
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تعذر فتح الواتساب للرقم: $formattedPhone. الكود هو: $code',
+            ),
+          ),
+        );
+      }
+    }
   }
 }

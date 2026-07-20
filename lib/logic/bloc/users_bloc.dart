@@ -5,7 +5,6 @@ import 'package:bloc/bloc.dart';
 import 'package:matger_pro_core_logic/features/users/repo/user_repo.dart';
 import 'package:JoDija_reposatory/utilis/models/staus_model.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import '../model/user_profile.dart';
 
 class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
@@ -295,6 +294,60 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error searching users"),
             () => searchUsers(term, organizationId: organizationId),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> loadExternalCustomers({String? organizationId}) async {
+    emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    final result = await repo.searchExternalCustomers(
+      organizationId: organizationId,
+    );
+
+    if (result.status == StatusModel.success) {
+      final users =
+          result.data?.map((e) => UserViewProfileModel.fromData(e)).toList() ??
+          [];
+      emit(state.copyWith(listState: DataSourceBaseState.success(users)));
+    } else {
+      emit(
+        state.copyWith(
+          listState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "Error loading customers",
+            ),
+            () => loadExternalCustomers(organizationId: organizationId),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> searchExternalCustomers(
+    String? term, {
+    String? organizationId,
+  }) async {
+    emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    final result = await repo.searchExternalCustomers(
+      term: term,
+      organizationId: organizationId,
+    );
+
+    if (result.status == StatusModel.success) {
+      final users =
+          result.data?.map((e) => UserViewProfileModel.fromData(e)).toList() ??
+          [];
+      emit(state.copyWith(listState: DataSourceBaseState.success(users)));
+    } else {
+      emit(
+        state.copyWith(
+          listState: DataSourceBaseState.failure(
+            ErrorStateModel(
+              message: result.message ?? "Error searching customers",
+            ),
+            () => searchExternalCustomers(term, organizationId: organizationId),
           ),
         ),
       );

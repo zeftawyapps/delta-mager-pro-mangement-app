@@ -38,6 +38,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
     required List<String> permissions,
     bool allowAuthLogin = false,
     String? organizationId,
+    bool? isCustomerRole,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.createRole(
@@ -47,6 +48,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
       permissions: permissions,
       allowAuthLogin: allowAuthLogin,
       organizationId: organizationId,
+      isCustomerRole: isCustomerRole,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -70,6 +72,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
               permissions: permissions,
               allowAuthLogin: allowAuthLogin,
               organizationId: organizationId,
+              isCustomerRole: isCustomerRole,
             ),
           ),
         ),
@@ -86,6 +89,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
     bool? isActive,
     bool? allowAuthLogin,
     String? organizationId,
+    bool? isCustomerRole,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateRole(
@@ -96,6 +100,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
       permissions: permissions,
       isActive: isActive,
       allowAuthLogin: allowAuthLogin,
+      isCustomerRole: isCustomerRole,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -120,6 +125,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
               permissions: permissions,
               allowAuthLogin: allowAuthLogin,
               organizationId: organizationId,
+              isCustomerRole: isCustomerRole,
             ),
           ),
         ),

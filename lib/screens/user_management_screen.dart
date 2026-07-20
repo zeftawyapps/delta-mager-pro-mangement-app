@@ -1,5 +1,7 @@
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/general/users_tab.dart';
+import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/general/wholesaler_requests_tab.dart';
+import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
@@ -30,6 +32,7 @@ class _UserManagementScreenState extends State<UserManagementScreen>
 
     final bool isDark = sys.isDark;
     final appBarConfig = sys.appBarConfig;
+    final primaryColor = isDark ? DarkColors.primary : LightColors.primary;
 
     return Scaffold(
       appBar: appBarConfig.buildAppBar(
@@ -40,7 +43,46 @@ class _UserManagementScreenState extends State<UserManagementScreen>
       ),
       body: Container(
         color: isDark ? DarkColors.background : LightColors.background,
-        child: UsersTab(isDark: isDark),
+        child: DefaultTabController(
+          length: 3,
+          child: Column(
+            children: [
+              TabBar(
+                labelColor: primaryColor,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: primaryColor,
+                indicatorSize: TabBarIndicatorSize.tab,
+                tabs: const [
+                  Tab(
+                    icon: Icon(Icons.admin_panel_settings),
+                    text: "المستخدمين (الإداريين/الموظفين)",
+                  ),
+                  Tab(icon: Icon(Icons.people), text: "العملاء"),
+                  Tab(icon: Icon(Icons.storefront), text: "طلبات الجملة"),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    UsersTab(
+                      isDark: isDark,
+                      // 🛡️ للموظفين: نستبعد من يحمل صفة زبون فقط
+                      where: (u) => !u.isCustomer,
+                      searchHint: "بحث في المستخدمين الإداريين...",
+                    ),
+                    UsersTab(
+                      isDark: isDark,
+                      // 🚀 للعملاء: لا نحتاج لفلترة (where) لأن الـ API يتكفل بذلك
+                      searchHint: "بحث في العملاء...",
+                      isCustomer: true,
+                    ),
+                    WholesalerRequestsTab(isDark: isDark),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

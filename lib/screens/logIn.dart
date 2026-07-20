@@ -20,6 +20,7 @@ import 'package:delta_mager_pro_mangement_app/logic/model/organization_config_mo
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
 import 'package:JoDija_reposatory/constes/api_urls.dart';
+import 'package:JoDija_tamplites/util/localization/loclization/app_localizations.dart';
 
 // ignore: must_be_immutable
 class LoginScreen extends StatefulWidget with AppShellRouterMixin {
@@ -52,7 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
         context.read<AuthBloc>().checkSavedUser(
           onUserFound: (user) {
             if (!mounted) return;
-            widget.goRoute(context, AppRoutes.welcome, replace: true);
+            widget.goRoute(
+              context,
+              AppRoutes.welcomWithOrgName(AppRoutes.activeOrgName),
+              replace: true,
+            );
           },
           onUserNotFound: () {
             // لا يوجد مستخدم → يبقى في صفحة تسجيل الدخول
@@ -157,6 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final tr = Translation().appLocal.values;
 
     return BlocListener<
       OrganizationConfigBloc,
@@ -239,28 +245,40 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
                                     : null;
 
+                                final double logoSize = size.width > 600 ? 150 : 120;
+                                Widget logoWidget;
                                 if (activeLogo != null) {
-                                  return Image.network(
+                                  logoWidget = Image.network(
                                     activeLogo,
-                                    width: size.width > 600 ? 300 : 250,
-                                    height: size.width > 600 ? 200 : 150,
-                                    fit: BoxFit.contain,
+                                    width: logoSize,
+                                    height: logoSize,
+                                    fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) =>
                                         Image.asset(
                                       AppAsset.logo,
-                                      width: size.width > 600 ? 300 : 250,
-                                      height: size.width > 600 ? 200 : 150,
-                                      fit: BoxFit.contain,
+                                      width: logoSize,
+                                      height: logoSize,
+                                      fit: BoxFit.cover,
                                     ),
                                   );
+                                } else {
+                                  logoWidget = Image.asset(
+                                    AppAsset.logo,
+                                    width: logoSize,
+                                    height: logoSize,
+                                    fit: BoxFit.cover,
+                                  );
                                 }
-                                return Image.asset(
-                                  AppAsset.logo,
-                                  width: size.width > 600 ? 300 : 250,
-                                  height: size.width > 600 ? 200 : 150,
-                                  fit: BoxFit.contain,
-                                );
-                              },
+                                 return Container(
+                                   width: logoSize,
+                                   height: logoSize,
+                                   decoration: const BoxDecoration(
+                                     shape: BoxShape.circle,
+                                   ),
+                                   clipBehavior: Clip.antiAlias,
+                                   child: logoWidget,
+                                 );
+                               },
                             )
                             .animate()
                             .fadeIn(duration: 600.ms)
@@ -272,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'لوحة التحكم الإدارية',
+                              tr['admin_dashboard']!,
                               style: TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 18,
@@ -314,7 +332,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 failure: (error, reload) {
                                   setState(() {
-                                    _errorMessage = error.message ?? "خطأ في تسجيل الدخول";
+                                    _errorMessage =
+                                        error.message ?? tr['login_error']!;
                                   });
                                   AppRoutes.defaultOrgName =
                                       AppRoutes.activeOrgName;
@@ -342,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Text(
-                                        'تسجيل الدخول',
+                                        tr['login_title']!,
                                         style: theme.textTheme.headlineSmall
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
@@ -416,9 +435,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 Icons.email,
                                                 color: AppColors.primary,
                                               ),
-                                              labelText: 'البريد الإلكتروني',
+                                              labelText: tr['email']!,
                                             ),
-                                            labalText: 'البريد الإلكتروني',
+                                            labalText: tr['email']!,
                                             keyData: "email",
                                           ).animate().fadeIn(delay: 400.ms),
                                           const SizedBox(height: 20),
@@ -435,7 +454,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 Icons.lock,
                                                 color: AppColors.primary,
                                               ),
-                                              labelText: 'كلمة المرور',
+                                              labelText: tr['password']!,
                                               suffixIcon: IconButton(
                                                 icon: Icon(
                                                   isPass
@@ -450,7 +469,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 ),
                                               ),
                                             ),
-                                            labalText: 'كلمة المرور',
+                                            labalText: tr['password']!,
                                             keyData: "pass",
                                             isPssword: isPass,
                                           ).animate().fadeIn(delay: 500.ms),
@@ -482,9 +501,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                             strokeWidth: 2.5,
                                                           ),
                                                     )
-                                                  : const Text(
-                                                      'تسجيل الدخول',
-                                                      style: TextStyle(
+                                                  : Text(
+                                                      tr['login_title']!,
+                                                      style: const TextStyle(
                                                         fontSize: 18,
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -497,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
-                                                "الإصدار ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
+                                                "${tr['version']} ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
                                                 style: TextStyle(
                                                   color: Colors.grey.shade800,
                                                   fontSize: 12,
@@ -506,7 +525,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                "جميع الحقوق محفوظة © ${DateTime.now().year}",
+                                                "${tr['all_rights_reserved']} © ${DateTime.now().year}",
                                                 style: TextStyle(
                                                   color: Colors.grey.shade700,
                                                   fontSize: 10,

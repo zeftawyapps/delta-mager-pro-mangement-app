@@ -88,16 +88,20 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
     final isEditing = widget.step != null;
     final reqApprovals =
         int.tryParse(approvalsCountController.text.trim()) ?? 1;
+    final stepKeyVal = keyController.text.trim();
+    final formattedStepRole = stepKeyVal.startsWith('order:workflowAction.')
+        ? stepKeyVal
+        : 'order:workflowAction.$stepKeyVal';
 
     final newStep = WorkflowStep(
       id: widget.step?.id ?? 'step_${DateTime.now().millisecondsSinceEpoch}',
-      stepKey: keyController.text.trim(),
+      stepKey: stepKeyVal,
       stepNumber: stepNumber,
       stepName: LocalizedString({
         'ar': nameArController.text.trim(),
         'en': nameEnController.text.trim(),
       }),
-      stepRole: stepRole,
+      stepRole: formattedStepRole,
       stepColor: stepColor,
       selectionMode: selectionMode,
       targetType: targetType,
@@ -139,6 +143,7 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
       WorkflowManagementBloc,
       FeaturDataSourceState<WorkflowConfigModel>
     >(
+      listenWhen: (previous, current) => previous.itemState != current.itemState,
       listener: (context, state) {
         state.itemState.maybeWhen(
           success: (data) {
@@ -149,7 +154,11 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
                 ),
               ),
             );
-            Navigator.of(context).pop(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(data);
+              }
+            });
           },
           failure: (error, reload) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -299,68 +308,16 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
                   ),
                   const SizedBox(height: 16),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                            BlocBuilder<
-                              RolesBloc,
-                              FeaturDataSourceState<RoleModel>
-                            >(
-                              builder: (context, rolesState) {
-                                final roles = rolesState.listState.maybeWhen(
-                                  success: (list) => list ?? <RoleModel>[],
-                                  orElse: () => <RoleModel>[],
-                                );
-
-                                String? selectedValue;
-                                if (roles.any((r) => r.name == stepRole)) {
-                                  selectedValue = stepRole;
-                                }
-
-                                return DropdownButtonFormField<String>(
-                                  value: selectedValue,
-                                  decoration: InputDecoration(
-                                    prefixIcon: Icon(
-                                      Icons.security,
-                                      color: primaryColor,
-                                    ),
-                                    labelText: "دور منفذ الخطوة (Role)",
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  items: roles
-                                      .map(
-                                        (r) => DropdownMenuItem(
-                                          value: r.name,
-                                          child: Text(r.displayName ?? r.name),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (val) {
-                                    if (val != null) {
-                                      setState(() => stepRole = val);
-                                    }
-                                  },
-                                  validator: (value) =>
-                                      value == null || value.isEmpty
-                                      ? "هذا الحقل مطلوب"
-                                      : null,
-                                );
-                              },
-                            ),
+                  DropdownButtonFormField<String>(
+                    value: stepColor,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.palette,
+                        color: primaryColor,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: stepColor,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(
-                              Icons.palette,
-                              color: primaryColor,
-                            ),
-                            labelText: "اللون المميز (Color)",
-                            border: const OutlineInputBorder(),
-                          ),
+                      labelText: "اللون المميز (Color)",
+                      border: const OutlineInputBorder(),
+                    ),
                           items: const [
                             DropdownMenuItem(
                               value: '#2196F3',
@@ -467,9 +424,6 @@ class _WorkflowStepFormState extends State<WorkflowStepForm> {
                             }
                           },
                         ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 16),
 
                   Row(

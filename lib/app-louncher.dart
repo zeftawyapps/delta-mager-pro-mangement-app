@@ -46,6 +46,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_blo
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organizations_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/roles_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/role_requests_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/workflow_management_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/orders_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/order_path_bloc.dart';
@@ -55,6 +56,7 @@ import 'package:matger_pro_core_logic/features/order_path/repo/order_path_repo.d
 import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_posts_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/blog_categories_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/analytics_bloc.dart';
+import 'package:delta_mager_pro_mangement_app/logic/bloc/system_monitoring_bloc.dart';
 import 'package:matger_pro_core_logic/matger_pro_core_logic.dart'
     show BlogRepo, AnalyticsRepo;
 
@@ -210,15 +212,18 @@ class _AppLouncherState extends State<AppLouncher> {
                   return appChanges.isInitialized && appChanges.user != null;
                 },
                 extraProvidersAndBlocs: [
-                  BlocProvider(
-                    create: (context) => RolesBloc(repo: sl<RoleRepo>()),
-                  ),
-                  BlocProvider(
-                    create: (context) => UsersBloc(
-                      repo: sl<UserRepo>(),
-                      appChangesValues: context.read<AppChangesValues>(),
+                   BlocProvider(
+                     create: (context) => RolesBloc(repo: sl<RoleRepo>()),
+                   ),
+                    BlocProvider(
+                      create: (context) => RoleRequestsBloc(repo: sl<UserRepo>()),
                     ),
-                  ),
+                   BlocProvider(
+                     create: (context) => UsersBloc(
+                       repo: sl<UserRepo>(),
+                       appChangesValues: context.read<AppChangesValues>(),
+                     ),
+                   ),
                   BlocProvider(
                     create: (context) =>
                         OrganizationsBloc(repo: sl<OrganizationRepo>()),
@@ -276,6 +281,10 @@ class _AppLouncherState extends State<AppLouncher> {
                   BlocProvider(
                     create: (context) =>
                         AnalyticsBloc(repo: sl<AnalyticsRepo>()),
+                  ),
+                  BlocProvider(
+                    create: (context) =>
+                        SystemMonitoringBloc(repo: sl<AnalyticsRepo>()),
                   ),
                 ],
                 titleApp: AppStrings.appName,

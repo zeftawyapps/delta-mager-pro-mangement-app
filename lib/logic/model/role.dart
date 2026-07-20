@@ -12,6 +12,7 @@ class RoleModel extends RoleDataModel implements BaseViewDataModel {
     super.allowAuthLogin,
     super.organizationId,
     super.meta,
+    super.isCustomerRole,
   });
 
   factory RoleModel.fromData(RoleDataModel data) {
@@ -25,6 +26,7 @@ class RoleModel extends RoleDataModel implements BaseViewDataModel {
       allowAuthLogin: data.allowAuthLogin,
       organizationId: data.organizationId,
       meta: data.meta,
+      isCustomerRole: data.isCustomerRole,
     );
   }
 

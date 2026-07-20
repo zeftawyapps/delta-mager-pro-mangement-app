@@ -68,7 +68,7 @@ class _CreateWorkflowFormState extends State<CreateWorkflowForm> {
         "stepNumber": 1,
         "stepKey": "started",
         "selectionMode": "broadcast",
-        "stepRole": "admin",
+        "stepRole": "order:workflowAction.started",
         "stepColor": "#4CAF50",
         "targetType": "both",
         "statusTag": "started",
@@ -93,7 +93,7 @@ class _CreateWorkflowFormState extends State<CreateWorkflowForm> {
         "stepNumber": 2,
         "stepKey": "processing",
         "selectionMode": "direct",
-        "stepRole": "admin",
+        "stepRole": "order:workflowAction.processing",
         "stepColor": "#FF9800",
         "targetType": "user",
         "statusTag": "processing",
@@ -120,7 +120,7 @@ class _CreateWorkflowFormState extends State<CreateWorkflowForm> {
         "stepNumber": 3,
         "stepKey": "completed",
         "selectionMode": "broadcast",
-        "stepRole": "admin",
+        "stepRole": "order:workflowAction.completed",
         "stepColor": "#2196F3",
         "targetType": "both",
         "statusTag": "completed",
@@ -153,13 +153,18 @@ class _CreateWorkflowFormState extends State<CreateWorkflowForm> {
       WorkflowManagementBloc,
       FeaturDataSourceState<WorkflowConfigModel>
     >(
+      listenWhen: (previous, current) => previous.itemState != current.itemState,
       listener: (context, state) {
         state.itemState.maybeWhen(
           success: (data) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('تم إنشاء مسار العمل بنجاح')),
             );
-            Navigator.of(context).pop(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(data);
+              }
+            });
           },
           failure: (error, reload) {
             ScaffoldMessenger.of(context).showSnackBar(

@@ -112,6 +112,7 @@ class _WorkflowTriggersFormState extends State<WorkflowTriggersForm> {
       WorkflowManagementBloc,
       FeaturDataSourceState<WorkflowConfigModel>
     >(
+      listenWhen: (previous, current) => previous.itemState != current.itemState,
       listener: (context, state) {
         state.itemState.maybeWhen(
           success: (data) {
@@ -120,7 +121,11 @@ class _WorkflowTriggersFormState extends State<WorkflowTriggersForm> {
                 content: Text('تم حفظ المحفزات بنجاح'),
               ),
             );
-            Navigator.of(context).pop(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(data);
+              }
+            });
           },
           failure: (error, reload) {
             ScaffoldMessenger.of(context).showSnackBar(

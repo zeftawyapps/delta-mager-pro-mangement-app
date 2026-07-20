@@ -1,0 +1,260 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Website Layout Sections Configuration Model",
+  "description": "Defines the custom schema, structure, display modes, and default data values for the website home layout sections manager.",
+  "dataModel": {
+    "sections": {
+      "type": "array",
+      "description": "List of widgets or content sections loaded dynamically on the storefront homepage.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "displayMode",
+          "title",
+          "isActive"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the section (e.g., 'web_offers', 'web_categories')."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of content loaded in this section.",
+            "enum": [
+              "categories",
+              "offers",
+              "new_products",
+              "best_seller",
+              "blog_posts",
+              "custom_banner",
+              "intro_slides",
+              "most_read_posts",
+              "jocker_post",
+              "about_company",
+              "faqs",
+              "testimonials",
+              "trust_badges",
+              "newsletter_signup",
+              "features",
+              "tabs_showcase",
+              "showcase",
+              "pricing",
+              "contact_us"
+            ],
+            "enumDescriptions": {
+              "categories": "Product categories navigation row (الأصناف)",
+              "offers": "Promotional banners and discounts slider (العروض)",
+              "new_products": "New arrivals showcase grid (المنتجات الجديدة)",
+              "best_seller": "Best selling items grid (الأكثر مبيعاً)",
+              "blog_posts": "Recent editorial/news blog articles (أحدث المقالات)",
+              "custom_banner": "Custom advertising or call-to-action banner (بانر إعلاني مخصص)",
+              "intro_slides": "Hero / intro slides section",
+              "most_read_posts": "Most read blog posts",
+              "jocker_post": "Featured joker post section",
+              "about_company": "Full about company article section",
+              "faqs": "FAQ accordion section",
+              "testimonials": "Customer testimonials section",
+              "trust_badges": "Trust and shipping badges",
+              "newsletter_signup": "Newsletter signup form",
+              "features": "Features / pillars grid (المميزات)",
+              "tabs_showcase": "Interactive tabs showcase (بنية النظام)",
+              "showcase": "Mockup image gallery with tabs",
+              "pricing": "Pricing plans section",
+              "contact_us": "Contact us form and info"
+            }
+          },
+          "displayMode": {
+            "type": "string",
+            "description": "Visual layout mode applied to the section.",
+            "enum": [
+              "horizontal_list",
+              "grid",
+              "slider"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Header title displayed at the top of the section."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional subtitle shown below the section title."
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the section is active and visible on the website."
+          },
+          "config": {
+            "type": "object",
+            "description": "Section-specific parameters.",
+            "properties": {
+              "autoPlay": { "type": "boolean" },
+              "crossAxisCount": { "type": "integer", "minimum": 2, "maximum": 4 },
+              "limit": { "type": "integer" },
+              "variant": { "type": "string" },
+              "buttonText": { "type": "string" },
+              "buttonLink": { "type": "string" },
+              "imageUrl": { "type": "string" },
+              "boxedLayout": { "type": "boolean" },
+              "hasShadow": { "type": "boolean" },
+              "introHybrid": {
+                "type": "object",
+                "description": "Intro styling when appMode is hybrid.",
+                "properties": {
+                  "displayStyle": { "type": "string", "enum": ["apple_fullscreen", "minimal_glass", "full_split", "classic_centered"] },
+                  "backgroundType": { "type": "string", "enum": ["solid", "gradient"] },
+                  "customBg": { "type": "string" },
+                  "textColor": { "type": "string", "description": "Solid hex (#FFFFFF) or CSS linear-gradient for gradient text" },
+                  "autoPlay": { "type": "boolean" },
+                  "duration": { "type": "integer", "minimum": 2000, "maximum": 8000 },
+                  "indicatorType": { "type": "string", "enum": ["pills", "dots", "none"] },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": ["start", "center", "end"],
+                    "description": "Text alignment: start=side by language, center=middle, end=opposite side"
+                  },
+                  "showGlow": { "type": "boolean", "description": "Classic: glow effect behind hero" },
+                  "showBadge": { "type": "boolean", "description": "Classic: show badge above title" },
+                  "badgeText": { "type": "string", "description": "Classic: badge label (empty = default per appMode)" },
+                  "showButton": { "type": "boolean", "description": "Classic: show CTA button" },
+                  "buttonText": { "type": "string", "description": "Classic: CTA label" },
+                  "buttonLink": { "type": "string", "description": "Classic: CTA href e.g. #featured or /store/101" },
+                  "useGradientTitle": { "type": "boolean", "description": "Classic: gradient h1 like legacy hero" },
+                  "showHeroImage": { "type": "boolean", "description": "Classic store: side product image" },
+                  "heroImageUrl": { "type": "string", "description": "Classic store: override image URL" },
+                  "showPrice": { "type": "boolean", "description": "Classic store: price row" },
+                  "price": { "type": "number" },
+                  "originalPrice": { "type": "number" },
+                  "discountLabel": { "type": "string", "description": "e.g. 20% OFF" }
+                }
+              },
+              "introBlog": {
+                "type": "object",
+                "description": "Intro styling when appMode is blog.",
+                "properties": {
+                  "displayStyle": { "type": "string", "enum": ["apple_fullscreen", "minimal_glass", "full_split", "classic_centered"] },
+                  "backgroundType": { "type": "string", "enum": ["solid", "gradient"] },
+                  "customBg": { "type": "string" },
+                  "textColor": { "type": "string", "description": "Solid hex (#FFFFFF) or CSS linear-gradient for gradient text" },
+                  "autoPlay": { "type": "boolean" },
+                  "duration": { "type": "integer", "minimum": 2000, "maximum": 8000 },
+                  "indicatorType": { "type": "string", "enum": ["pills", "dots", "none"] },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": ["start", "center", "end"],
+                    "description": "Text alignment: start=side by language, center=middle, end=opposite side"
+                  },
+                  "showGlow": { "type": "boolean", "description": "Classic: glow effect behind hero" },
+                  "showBadge": { "type": "boolean", "description": "Classic: show badge above title" },
+                  "badgeText": { "type": "string", "description": "Classic: badge label (empty = default per appMode)" },
+                  "showButton": { "type": "boolean", "description": "Classic: show CTA button" },
+                  "buttonText": { "type": "string", "description": "Classic: CTA label" },
+                  "buttonLink": { "type": "string", "description": "Classic: CTA href e.g. #featured or /store/101" },
+                  "useGradientTitle": { "type": "boolean", "description": "Classic: gradient h1 like legacy hero" },
+                  "showHeroImage": { "type": "boolean", "description": "Classic store: side product image" },
+                  "heroImageUrl": { "type": "string", "description": "Classic store: override image URL" },
+                  "showPrice": { "type": "boolean", "description": "Classic store: price row" },
+                  "price": { "type": "number" },
+                  "originalPrice": { "type": "number" },
+                  "discountLabel": { "type": "string", "description": "e.g. 20% OFF" }
+                }
+              },
+              "introStore": {
+                "type": "object",
+                "description": "Intro styling when appMode is store.",
+                "properties": {
+                  "displayStyle": { "type": "string", "enum": ["apple_fullscreen", "minimal_glass", "full_split", "classic_centered"] },
+                  "backgroundType": { "type": "string", "enum": ["solid", "gradient"] },
+                  "customBg": { "type": "string" },
+                  "textColor": { "type": "string", "description": "Solid hex (#FFFFFF) or CSS linear-gradient for gradient text" },
+                  "autoPlay": { "type": "boolean" },
+                  "duration": { "type": "integer", "minimum": 2000, "maximum": 8000 },
+                  "indicatorType": { "type": "string", "enum": ["pills", "dots", "none"] },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": ["start", "center", "end"],
+                    "description": "Text alignment: start=side by language, center=middle, end=opposite side"
+                  },
+                  "showGlow": { "type": "boolean", "description": "Classic: glow effect behind hero" },
+                  "showBadge": { "type": "boolean", "description": "Classic: show badge above title" },
+                  "badgeText": { "type": "string", "description": "Classic: badge label (empty = default per appMode)" },
+                  "showButton": { "type": "boolean", "description": "Classic: show CTA button" },
+                  "buttonText": { "type": "string", "description": "Classic: CTA label" },
+                  "buttonLink": { "type": "string", "description": "Classic: CTA href e.g. #featured or /store/101" },
+                  "useGradientTitle": { "type": "boolean", "description": "Classic: gradient h1 like legacy hero" },
+                  "showHeroImage": { "type": "boolean", "description": "Classic store: side product image" },
+                  "heroImageUrl": { "type": "string", "description": "Classic store: override image URL" },
+                  "showPrice": { "type": "boolean", "description": "Classic store: price row" },
+                  "price": { "type": "number" },
+                  "originalPrice": { "type": "number" },
+                  "discountLabel": { "type": "string", "description": "e.g. 20% OFF" }
+                }
+              },
+              "items": {
+                "type": "array",
+                "description": "For features, faqs, trust_badges sections.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "icon": { "type": "string" },
+                    "title": { "type": "string" },
+                    "description": { "type": "string" },
+                    "question": { "type": "string" },
+                    "answer": { "type": "string" }
+                  }
+                }
+              },
+              "tabs": {
+                "type": "array",
+                "description": "For tabs_showcase and showcase sections.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "content": { "type": "string" },
+                    "imageUrl": { "type": "string" },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "icon": { "type": "string" },
+                          "title": { "type": "string" },
+                          "description": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "plans": {
+                "type": "array",
+                "description": "For pricing section.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "price": { "type": "string" },
+                    "period": { "type": "string" },
+                    "features": { "type": "array", "items": { "type": "string" } },
+                    "isPopular": { "type": "boolean" },
+                    "buttonText": { "type": "string" },
+                    "buttonLink": { "type": "string" }
+                  }
+                }
+              },
+              "phone": { "type": "string" },
+              "email": { "type": "string" },
+              "address": { "type": "string" },
+              "mapUrl": { "type": "string" },
+              "showForm": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

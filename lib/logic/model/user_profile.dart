@@ -59,6 +59,16 @@ class UserViewProfileModel extends UserProfileModel implements BaseViewDataModel
   @override
   Map<String, dynamic> get map => toJson();
 
+  /// 🛡️ هل هذا المستخدم زبون؟
+  /// يعتمد على وجود دور 'customer' أو 'wholesaler'
+  bool get isCustomer {
+    if (roles == null || roles!.isEmpty) return false;
+    return roles!.any((role) {
+      final r = role.toLowerCase();
+      return r == 'customer' || r == 'wholesaler';
+    });
+  }
+
   @override
   set map(Map<String, dynamic>? value) {
     // implementation if needed

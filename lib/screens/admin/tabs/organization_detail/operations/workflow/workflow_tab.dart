@@ -39,11 +39,27 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
   }
 
   void _loadData() {
-    context.read<WorkflowManagementBloc>().loadSpecificConfig(
-      widget.organizationId,
-      entityType: _entityType,
+    // Guard: لا نُرسل طلب جديد إذا كانت البيانات محملة مسبقاً لنفس المنظمة
+    final currentState = context.read<WorkflowManagementBloc>().state;
+    final alreadyLoaded = currentState.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
     );
-    context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
+    if (!alreadyLoaded) {
+      context.read<WorkflowManagementBloc>().loadSpecificConfig(
+        widget.organizationId,
+        entityType: _entityType,
+      );
+    }
+
+    final rolesCurrentState = context.read<RolesBloc>().state;
+    final rolesAlreadyLoaded = rolesCurrentState.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
+    );
+    if (!rolesAlreadyLoaded) {
+      context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
+    }
   }
 
   @override
@@ -276,6 +292,7 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
               onDelete: () => _showDeleteStepDialog(config, step),
               onAddAction: () => _showAddActionDialog(config, step),
               onConfigureTriggers: () => _showConfigureTriggersDialog(config, step),
+              onDeleteAction: (action) => _showDeleteActionDialog(config, step, action),
             );
           }),
           const SizedBox(height: 40),
@@ -542,6 +559,81 @@ class _WorkflowSectionTabState extends State<WorkflowSectionTab> {
               isDark: widget.isDark,
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteActionDialog(
+    WorkflowConfigModel config,
+    WorkflowStep step,
+    WorkflowAction action,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final bgColor = widget.isDark ? DarkColors.surface : Colors.white;
+        final textColor = widget.isDark ? DarkColors.textPrimary : LightColors.textPrimary;
+
+        return AlertDialog(
+          backgroundColor: bgColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                "تأكيد حذف الإجراء",
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Text(
+            "هل أنت متأكد من حذف الإجراء \"${action.actionName.ar}\" من الخطوة \"${step.stepName.ar}\"؟",
+            style: TextStyle(color: widget.isDark ? Colors.grey.shade300 : Colors.black87),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("إلغاء"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                final updatedActions = List<WorkflowAction>.from(step.actions)
+                  ..removeWhere((a) => a.actionKey == action.actionKey);
+                final updatedStep = WorkflowStep(
+                  id: step.id,
+                  stepName: step.stepName,
+                  stepNumber: step.stepNumber,
+                  stepKey: step.stepKey,
+                  stepRole: step.stepRole,
+                  stepColor: step.stepColor,
+                  selectionMode: step.selectionMode,
+                  targetType: step.targetType,
+                  requiredApprovalsCount: step.requiredApprovalsCount,
+                  statusTag: step.statusTag,
+                  ableToEditOrderItems: step.ableToEditOrderItems,
+                  allowDirectAssignment: step.allowDirectAssignment,
+                  stepTriggers: step.stepTriggers,
+                  actions: updatedActions,
+                );
+
+                context.read<WorkflowManagementBloc>().updateStep(
+                  organizationId: widget.organizationId,
+                  stepNumber: step.stepNumber,
+                  entityType: _entityType,
+                  step: updatedStep,
+                  slug: config.workflowSlug,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("حذف الإجراء"),
+            ),
+          ],
         );
       },
     );

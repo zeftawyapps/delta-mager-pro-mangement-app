@@ -39,6 +39,16 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final appChanges = context.read<AppChangesValues>();
+
+      // ⚡ إذا كان المستخدم محملاً مسبقاً من الكاش، يتم تحويله فوراً دون طلب شبكة جديد
+      if (appChanges.user != null) {
+        if (appChanges.user!.roles.contains('admin')) {
+          appChanges.isInitialized = true;
+          widget.goRoute(context, AppRoutes.welcome, replace: true);
+          return;
+        }
+      }
+
       if (!appChanges.isInitialized) {
         context.read<AuthBloc>().checkSavedUser(
           onUserFound: (user) {
@@ -74,6 +84,18 @@ class _LoginAdminScreenState extends State<LoginAdminScreen> {
   @override
   Widget build(BuildContext context) {
     context.watch<OrganizationConfigBloc>(); // 🆕 لضمان التحديث التلقائي
+    final appChanges = context.watch<AppChangesValues>();
+
+    // ⚡ توجيه تلقائي بمجرد انتهاء تحميل الكاش غير المتزامن
+    if (appChanges.user != null && appChanges.user!.roles.contains('admin')) {
+      appChanges.isInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.goRoute(context, AppRoutes.welcome, replace: true);
+        }
+      });
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;

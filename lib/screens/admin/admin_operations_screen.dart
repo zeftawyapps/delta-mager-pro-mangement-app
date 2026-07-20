@@ -11,6 +11,7 @@ import 'tabs/general/permissions_tab.dart';
 import 'tabs/general/users_tab.dart';
 import 'tabs/general/system_management_tab.dart';
 import 'tabs/general/system_info_tab.dart';
+import 'tabs/general/system_monitoring_tab.dart';
 
 class AdminOperationsScreen extends StatefulWidget with AppShellRouterMixin {
   AdminOperationsScreen({super.key});
@@ -26,7 +27,7 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminOrganizationsBloc>().loadActiveOrganizations();
     });
@@ -68,6 +69,7 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen>
                 Tab(text: "بيانات النظام", icon: Icon(Icons.info_outline)),
                 Tab(text: "إدارة النظام", icon: Icon(Icons.settings)),
                 Tab(text: "المنظمات المتاجر", icon: Icon(Icons.store)),
+                Tab(text: "مراقبة النظام", icon: Icon(Icons.monitor_heart)),
                 Tab(text: "الأدوار العامة", icon: Icon(Icons.security)),
                 Tab(text: "المستخدمين", icon: Icon(Icons.people)),
                 Tab(text: "الصلاحيات", icon: Icon(Icons.key)),
@@ -88,6 +90,7 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen>
                   SystemInfoTab(isDark: isDark),
                   SystemManagementTab(isDark: isDark),
                   OrganizationsTab(isDark: isDark),
+                  SystemMonitoringTab(isDark: isDark),
                   GlobalRolesTab(isDark: isDark),
                   UsersTab(isDark: isDark),
                   PermissionsTab(isDark: isDark),

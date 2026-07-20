@@ -17,6 +17,10 @@ class SystemInfoModel extends SystemInfo implements BaseViewDataModel {
     super.licenseExpiryDate,
     super.maintenanceMode = false,
     super.logo,
+    super.customerAuthPrimaryIdentifier,
+    super.customerRequirePhoneOnSignup,
+    super.customerAutoGenerateUsername,
+    super.customerQuickSignupEnabled,
   });
 
   factory SystemInfoModel.fromData(SystemInfo data) {
@@ -31,6 +35,10 @@ class SystemInfoModel extends SystemInfo implements BaseViewDataModel {
       licenseExpiryDate: data.licenseExpiryDate,
       maintenanceMode: data.maintenanceMode,
       logo: data.logo,
+      customerAuthPrimaryIdentifier: data.customerAuthPrimaryIdentifier,
+      customerRequirePhoneOnSignup: data.customerRequirePhoneOnSignup,
+      customerAutoGenerateUsername: data.customerAutoGenerateUsername,
+      customerQuickSignupEnabled: data.customerQuickSignupEnabled,
     );
   }
 

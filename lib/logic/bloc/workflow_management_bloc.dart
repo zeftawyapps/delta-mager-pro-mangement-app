@@ -17,7 +17,10 @@ class WorkflowManagementBloc
     String organizationId, {
     String entityType = 'orders',
   }) async {
-    emit(state.copyWith(listState: const DataSourceBaseState.loading()));
+    emit(state.copyWith(
+      listState: const DataSourceBaseState.loading(),
+      itemState: const DataSourceBaseState.init(),
+    ));
 
     final result = await repo.getWorkflowConfig(
       orgId: organizationId,
@@ -41,6 +44,7 @@ class WorkflowManagementBloc
       emit(
         state.copyWith(
           listState: DataSourceBaseState.success(configs),
+          itemState: const DataSourceBaseState.init(),
         ),
       );
     } else {
@@ -53,6 +57,7 @@ class WorkflowManagementBloc
             ),
             () => loadSpecificConfig(organizationId, entityType: entityType),
           ),
+          itemState: const DataSourceBaseState.init(),
         ),
       );
     }
@@ -69,7 +74,9 @@ class WorkflowManagementBloc
     );
 
     if (result.status == StatusModel.success) {
-      loadSpecificConfig(organizationId, entityType: request.entityType);
+      emit(state.copyWith(itemState: DataSourceBaseState.success(null)));
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
+      await loadSpecificConfig(organizationId, entityType: request.entityType);
     } else {
       emit(
         state.copyWith(
@@ -107,6 +114,7 @@ class WorkflowManagementBloc
           itemState: DataSourceBaseState.success(null),
         ),
       );
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
     } else {
       emit(
         state.copyWith(
@@ -149,6 +157,7 @@ class WorkflowManagementBloc
           itemState: DataSourceBaseState.success(null),
         ),
       );
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
     } else {
       emit(
         state.copyWith(
@@ -192,6 +201,7 @@ class WorkflowManagementBloc
           itemState: DataSourceBaseState.success(null),
         ),
       );
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
     } else {
       emit(
         state.copyWith(
@@ -222,7 +232,9 @@ class WorkflowManagementBloc
     );
 
     if (result.status == StatusModel.success) {
-      loadSpecificConfig(organizationId, entityType: entityType);
+      emit(state.copyWith(itemState: DataSourceBaseState.success(null)));
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
+      await loadSpecificConfig(organizationId, entityType: entityType);
     } else {
       emit(
         state.copyWith(
@@ -254,7 +266,9 @@ class WorkflowManagementBloc
     );
 
     if (result.status == StatusModel.success) {
-      loadSpecificConfig(organizationId, entityType: entityType);
+      emit(state.copyWith(itemState: DataSourceBaseState.success(null)));
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
+      await loadSpecificConfig(organizationId, entityType: entityType);
     } else {
       emit(
         state.copyWith(
@@ -292,7 +306,9 @@ class WorkflowManagementBloc
     );
 
     if (result.status == StatusModel.success) {
-      loadSpecificConfig(organizationId, entityType: entityType);
+      emit(state.copyWith(itemState: DataSourceBaseState.success(null)));
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
+      await loadSpecificConfig(organizationId, entityType: entityType);
     } else {
       emit(
         state.copyWith(
@@ -328,7 +344,9 @@ class WorkflowManagementBloc
     );
 
     if (result.status == StatusModel.success) {
-      loadSpecificConfig(organizationId, entityType: entityType);
+      emit(state.copyWith(itemState: DataSourceBaseState.success(null)));
+      emit(state.copyWith(itemState: const DataSourceBaseState.init()));
+      await loadSpecificConfig(organizationId, entityType: entityType);
     } else {
       emit(
         state.copyWith(

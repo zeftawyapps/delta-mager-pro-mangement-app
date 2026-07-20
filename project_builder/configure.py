@@ -117,7 +117,14 @@ def main():
     firebase_project = firebase_cfg.get("project", "domansy-dev")
     hosting_cfg = firebase_cfg.get("hosting", {})
     hosting_admin = hosting_cfg.get("admin", "")
-    hosting_dashboard = hosting_cfg.get("dashboard", "")
+    hosting_dashboard = (
+        hosting_cfg.get("client") or 
+        hosting_cfg.get("cleint") or 
+        hosting_cfg.get("clientApp") or 
+        hosting_cfg.get("cleintApp") or 
+        hosting_cfg.get("dashboard") or 
+        ""
+    )
     
     # Active environment ('local', 'dev', 'prod' - default to prod)
     active_env = client_config.get("env", "local" if client_name == "local" else "prod")

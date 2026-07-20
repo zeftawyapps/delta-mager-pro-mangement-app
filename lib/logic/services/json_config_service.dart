@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yaml/yaml.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/configs.dart';
 
@@ -24,12 +25,20 @@ class JsonConfigService {
       );
       final YamlMap clientYamlMap = loadYaml(clientResponse);
       _config = _yamlToMap(clientYamlMap);
-      
+
       // حفظ اسم العميل النشط في الإعدادات للاستخدام البرمجي
       _config['activeClient'] = activeClient;
 
       // حفظ حالة المسؤول أو المنظمة من config.yaml
-      _config['isAdminMode'] = yamlMap['isAdminMode'] == true || yamlMap['isAdminMode'] == 'true';
+      _config['isAdminMode'] =
+          yamlMap['isAdminMode'] == true || yamlMap['isAdminMode'] == 'true';
+
+      // 3. استعادة اللغة المختارة من قبل المستخدم من SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString('user_selected_language');
+      if (savedLanguage != null) {
+        _config['user_selected_language'] = savedLanguage;
+      }
     } catch (e) {
       // print('Error loading configuration: $e');
       _config = {};
@@ -65,6 +74,22 @@ class JsonConfigService {
   Map<String, dynamic> get branding => appBranding;
   String get appTitle => appBranding['appTitle'] ?? 'Domancy';
   String get defaultOrgName => appBranding['defaultOrgName'] ?? 'domansy';
+
+  /// اللغة الافتراضية للتطبيق (واجهة + بيانات الـ API) من إعدادات العميل.
+  /// تُقرأ من الـ Cache أولاً، ثم appBranding.language أو من الجذر language.
+  String get defaultLanguage {
+    return _config['user_selected_language'] ??
+        appBranding['language'] ??
+        _config['language'] ??
+        'ar';
+  }
+
+  /// حفظ اللغة المختارة من قبل المستخدم في الذاكرة الدائمة
+  Future<void> setUserLanguage(String lang) async {
+    _config['user_selected_language'] = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_selected_language', lang);
+  }
   String get appVersion => _config['appVersion'] ?? '1.0.0';
   int get appBuildIndex => _config['appBuildIndex'] ?? 100;
   String get activeClient => _config['activeClient'] ?? 'domansy';
@@ -93,6 +118,7 @@ class JsonConfigService {
     }
     return '';
   }
+
   Map<String, dynamic> get envUrls => _config['envUrls'] ?? {};
   String get env => _config['env'] ?? 'prod';
   bool get isAdminMode => _config['isAdminMode'] ?? true;

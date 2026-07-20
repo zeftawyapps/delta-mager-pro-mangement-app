@@ -110,13 +110,18 @@ class _WorkflowActionFormState extends State<WorkflowActionForm> {
       WorkflowManagementBloc,
       FeaturDataSourceState<WorkflowConfigModel>
     >(
+      listenWhen: (previous, current) => previous.itemState != current.itemState,
       listener: (context, state) {
         state.itemState.maybeWhen(
           success: (data) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('تم حفظ الإجراء بنجاح')),
             );
-            Navigator.of(context).pop(data);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(data);
+              }
+            });
           },
           failure: (error, reload) {
             ScaffoldMessenger.of(context).showSnackBar(

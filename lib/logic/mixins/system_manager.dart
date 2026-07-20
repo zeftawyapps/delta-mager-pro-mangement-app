@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
-import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/sidebar_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
@@ -46,7 +45,7 @@ mixin SystemManager {
     dynamic featureConfig;
     if (orgConfig != null && orgConfig.feature != null) {
       final f = orgConfig.feature!;
-      
+
       // الخريطة التي تربط اسم الميزة بمفتاح الإعدادات
       final featureToConfigKey = {
         SystemFeatures.product: 'products',
@@ -54,7 +53,7 @@ mixin SystemManager {
         SystemFeatures.offer: 'offers',
         SystemFeatures.user: 'users',
       };
-      
+
       final configKey = featureToConfigKey[feature];
       if (configKey != null) {
         featureConfig = f.configs[configKey];
@@ -74,29 +73,16 @@ mixin SystemManager {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // تحديث آخر مسار مسجل
         context.read<AppChangesValues>().setLastRoute(mainPath);
-        
-        // تحديث العنصر المختار في القائمة الجانبية بشكل آمن
-        if (user != null) {
-          try {
-            // التأكد من وجود الـ Provider قبل الاستخدام لتجنب الـ null error
-            final hasSidebarProvider = context.read<AppShellRouterProvider?>() != null;
-            if (hasSidebarProvider) {
-              final router = context.widget as AppShellRouterMixin;
-              router.goRouterInSidBar(context, mainPath);
-            }
-          } catch (e) {
-            debugPrint("Sidebar update skipped: $e");
-          }
-        }
       });
     }
 
     // التحقق من المصادقة والبيانات الأساسية
     Widget? authWidget;
     final router = context.widget as AppShellRouterMixin;
-    
+
     if (user == null && orgConfig == null) {
-      authWidget = AppChangesValues.checkAuth(context, router) ??
+      authWidget =
+          AppChangesValues.checkAuth(context, router) ??
           const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
       authWidget = AppChangesValues.checkAuth(context, router);

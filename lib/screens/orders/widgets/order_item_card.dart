@@ -1,22 +1,146 @@
 import 'package:flutter/material.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/order_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderItemCard extends StatelessWidget {
   final OrderModel order;
   final Color stepColor;
   final VoidCallback onManageOrder;
+  final bool showSenderInfo;
+  final bool showRecipientInfo;
 
   const OrderItemCard({
     super.key,
     required this.order,
     required this.stepColor,
     required this.onManageOrder,
+    this.showSenderInfo = true,
+    this.showRecipientInfo = true,
   });
+
+  Future<void> _openMap(double latitude, double longitude) async {
+    final Uri url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        debugPrint("Could not launch $url");
+      }
+    } catch (e) {
+      debugPrint("Error launching map url: $e");
+    }
+  }
+
+  Widget _buildContactDetailsBlock(BuildContext context, String title, OrderContactDetails? details, Color color) {
+    if (details == null) return const SizedBox.shrink();
+
+    String locationText = "";
+    if (details.governorateId != null && details.governorateId!.isNotEmpty) {
+      locationText += details.governorateId!.replaceAll('_', ' ').toUpperCase();
+    }
+    if (details.cityId != null && details.cityId!.isNotEmpty) {
+      if (locationText.isNotEmpty) locationText += " - ";
+      locationText += details.cityId!.replaceAll('_', ' ').toUpperCase();
+    }
+
+    final hasCoordinates = details.latitude != null && details.longitude != null;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_pin_circle_outlined, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.person_outline, details.name ?? "غير متوفر"),
+          const SizedBox(height: 4),
+          _buildInfoRow(Icons.phone_outlined, details.phone ?? "غير متوفر"),
+          const SizedBox(height: 4),
+          _buildInfoRow(Icons.location_on_outlined, details.address ?? "غير متوفر"),
+          if (locationText.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            _buildInfoRow(Icons.map_outlined, locationText),
+          ],
+          if (hasCoordinates) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _openMap(details.latitude!, details.longitude!),
+                icon: const Icon(Icons.map, size: 14),
+                label: const Text("فتح الموقع على الخريطة", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                style: TextButton.styleFrom(
+                  foregroundColor: color,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  backgroundColor: color.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 13, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final sender = order.senderDetails;
     final items = order.items;
+
+    // Determine subtitle based on configuration flags
+    List<Widget> subtitleWidgets = [];
+    if (showSenderInfo && sender != null) {
+      subtitleWidgets.add(
+        Row(
+          children: [
+            const Icon(Icons.person_outline, size: 13, color: Colors.grey),
+            const SizedBox(width: 4),
+            Text(
+              "من: ${sender.name ?? 'عميل غير معروف'}",
+              style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -48,48 +172,27 @@ class OrderItemCard extends StatelessWidget {
           children: [
             Text(
               "طلب #${order.id.substring(order.id.length - 5).toUpperCase()}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             Text(
               "${order.totalOrderPrice} ج.م",
               style: TextStyle(
                 color: stepColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 16,
               ),
             ),
           ],
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.person_outline, size: 14, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(
-                  sender?.name ?? "عميل غير معروف",
-                  style: const TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.phone_outlined, size: 14, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(
-                  sender?.phone ?? "بدون هاتف",
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
+        subtitle: subtitleWidgets.isEmpty 
+            ? null 
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 6),
+                  ...subtitleWidgets,
+                ],
+              ),
         children: [
           const Divider(height: 1, indent: 16, endIndent: 16),
           Padding(
@@ -97,11 +200,17 @@ class OrderItemCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (showSenderInfo && sender != null) ...[
+                  _buildContactDetailsBlock(context, "بيانات المرسل (الاستلام)", sender, Theme.of(context).primaryColor),
+                  const SizedBox(height: 16),
+                ],
+                
                 const Text(
                   "المنتجات المطلوبة:",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey,
+                    fontSize: 13,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -133,6 +242,7 @@ class OrderItemCard extends StatelessWidget {
                                     item.name ?? "منتج",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
+                                      fontSize: 13,
                                     ),
                                   ),
                                   if (item.description != null &&
@@ -142,7 +252,7 @@ class OrderItemCard extends StatelessWidget {
                                       item.description!,
                                       style: TextStyle(
                                         color: Colors.grey[700],
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -152,7 +262,7 @@ class OrderItemCard extends StatelessWidget {
                                     "${item.quantity} × ${item.unitPrice} ج.م",
                                     style: const TextStyle(
                                       color: Colors.grey,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
@@ -162,6 +272,7 @@ class OrderItemCard extends StatelessWidget {
                               "${item.totalPrice} ج.م",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -198,14 +309,14 @@ class OrderItemCard extends StatelessWidget {
                     children: [
                       const Text(
                         "إجمالي الطلب النهائي",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
                         "${order.totalOrderPrice} ج.م",
                         style: TextStyle(
                           color: stepColor,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 15,
                         ),
                       ),
                     ],

@@ -1,11 +1,11 @@
 {
-    "name": "delta_mager_pro_mangement_app",
-    "short_name": "delta_mager_pro_mangement_app",
+    "name": "local",
+    "short_name": "local",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "دومانسي - متجرك الإلكتروني للتسوق وتلبية كافة احتياجاتك.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

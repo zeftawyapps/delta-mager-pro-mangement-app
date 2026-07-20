@@ -3,7 +3,7 @@ import 'package:matger_pro_core_logic/core/orgnization/data/organization_policy.
 
 // Re-exporting core data structures for application-wide use
 export 'package:matger_pro_core_logic/core/orgnization/data/organization_policy.dart'
-    show OrganizationPolicy, LogisticsPolicy, ShippingPolicy, SalesRulesPolicy, InvoiceSlice;
+    show OrganizationPolicy, LogisticsPolicy, ShippingPolicy, SalesRulesPolicy, InvoiceSlice, AppLinksPolicy, AppLinkItem, RewardsPolicy, RewardTier;
 
 class OrganizationPolicyModel extends OrganizationPolicy implements BaseViewDataModel {
   OrganizationPolicyModel({
@@ -11,6 +11,8 @@ class OrganizationPolicyModel extends OrganizationPolicy implements BaseViewData
     super.logistics,
     super.shipping,
     super.salesRules,
+    super.appLinks,
+    super.rewards,
   });
 
   factory OrganizationPolicyModel.fromData(OrganizationPolicy data) {
@@ -19,6 +21,8 @@ class OrganizationPolicyModel extends OrganizationPolicy implements BaseViewData
       logistics: data.logistics,
       shipping: data.shipping,
       salesRules: data.salesRules,
+      appLinks: data.appLinks,
+      rewards: data.rewards,
     );
   }
 

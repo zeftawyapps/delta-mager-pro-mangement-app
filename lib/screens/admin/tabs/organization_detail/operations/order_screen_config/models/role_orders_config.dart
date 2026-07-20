@@ -12,6 +12,7 @@ class RoleOrdersConfig {
   final List<String> allowedPaths;
   final bool showPathFilterBar;
   final bool filterByAssignedUser;
+  final bool sortByClosestLocation;
 
   const RoleOrdersConfig({
     this.showSenderInfo = true,
@@ -27,6 +28,7 @@ class RoleOrdersConfig {
     this.allowedPaths = const [],
     this.showPathFilterBar = false,
     this.filterByAssignedUser = false,
+    this.sortByClosestLocation = false,
   });
 
   factory RoleOrdersConfig.defaultConfig() => const RoleOrdersConfig();
@@ -59,6 +61,7 @@ class RoleOrdersConfig {
           : [],
       showPathFilterBar: _parseBool(map['showPathFilterBar'], false),
       filterByAssignedUser: _parseBool(map['filterByAssignedUser'], false),
+      sortByClosestLocation: _parseBool(map['sortByClosestLocation'], false),
     );
   }
 
@@ -77,6 +80,7 @@ class RoleOrdersConfig {
       'allowedPaths': allowedPaths,
       'showPathFilterBar': showPathFilterBar,
       'filterByAssignedUser': filterByAssignedUser,
+      'sortByClosestLocation': sortByClosestLocation,
     };
   }
 
@@ -94,6 +98,7 @@ class RoleOrdersConfig {
     List<String>? allowedPaths,
     bool? showPathFilterBar,
     bool? filterByAssignedUser,
+    bool? sortByClosestLocation,
   }) {
     return RoleOrdersConfig(
       showSenderInfo: showSenderInfo ?? this.showSenderInfo,
@@ -109,6 +114,7 @@ class RoleOrdersConfig {
       allowedPaths: allowedPaths ?? this.allowedPaths,
       showPathFilterBar: showPathFilterBar ?? this.showPathFilterBar,
       filterByAssignedUser: filterByAssignedUser ?? this.filterByAssignedUser,
+      sortByClosestLocation: sortByClosestLocation ?? this.sortByClosestLocation,
     );
   }
 }

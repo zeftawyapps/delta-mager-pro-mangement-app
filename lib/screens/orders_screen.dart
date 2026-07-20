@@ -21,6 +21,7 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/order_path_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/order_path_model.dart';
+import 'package:geolocator/geolocator.dart';
 
 class OrdersScreen extends StatefulWidget with AppShellRouterMixin {
   final bool canAdd;
@@ -37,6 +38,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   int _selectedStepIndex = 0;
   late AppChangesValues appChangesValues;
   String? _selectedFilterPathId;
+  bool _sortByDistance = false;
   final ScrollController _pathScrollController = ScrollController();
 
   @override
@@ -75,23 +77,20 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
+  List<String> _getCurrentRoles() {
+    final user = appChangesValues.user;
+    final profile = appChangesValues.userProfile;
+    return [
+      ...?user?.roles,
+      ...?profile?.roles,
+    ];
+  }
+
   List<WorkflowStep> _getVisibleSteps(
     List<WorkflowStep> originalSteps,
     String workflowSlug,
   ) {
-    final user = appChangesValues.user;
-    final roles = user?.roles ?? [];
-
-    final isExempt =
-        AppShellConfigs.isAdminMode ||
-        roles.contains('admin') ||
-        roles.contains('organizationOwner') ||
-        roles.contains('owner') ||
-        roles.contains('super_admin');
-
-    if (isExempt) {
-      return originalSteps;
-    }
+    final roles = _getCurrentRoles();
 
     final orgConfig = context
         .read<OrganizationConfigBloc>()
@@ -147,19 +146,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   List<WorkflowConfigModel> _getVisibleConfigs(
     List<WorkflowConfigModel> originalConfigs,
   ) {
-    final user = appChangesValues.user;
-    final roles = user?.roles ?? [];
-
-    final isExempt =
-        AppShellConfigs.isAdminMode ||
-        roles.contains('admin') ||
-        roles.contains('organizationOwner') ||
-        roles.contains('owner') ||
-        roles.contains('super_admin');
-
-    if (isExempt) {
-      return originalConfigs;
-    }
+    final roles = _getCurrentRoles();
 
     final orgConfig = context
         .read<OrganizationConfigBloc>()
@@ -360,6 +347,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                             setState(() {
                               _selectedWorkflowIndex = index;
                               _selectedFilterPathId = null;
+                              _sortByDistance = false;
                               _initializeTabController(
                                 visibleConfigs,
                                 forcedIndex: 0,
@@ -561,6 +549,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                                         _selectedFilterPathId = isAll
                                             ? null
                                             : pathObj?.id;
+                                        _sortByDistance = false;
                                         _loadOrders(
                                           currentConfig.workflowSlug,
                                           _getActiveAbsoluteStepIndex(),
@@ -625,6 +614,67 @@ class _OrdersScreenState extends State<OrdersScreen>
                         },
                       ),
 
+                      Builder(
+                        builder: (context) {
+                          if (_selectedFilterPathId == null || !_canSortByDistance(currentConfig)) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 8),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              decoration: BoxDecoration(
+                                color: _sortByDistance 
+                                    ? Theme.of(context).primaryColor.withOpacity(0.08) 
+                                    : Colors.grey.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _sortByDistance 
+                                      ? Theme.of(context).primaryColor.withOpacity(0.3) 
+                                      : Colors.grey.withOpacity(0.2),
+                                ),
+                              ),
+                              child: SwitchListTile(
+                                title: Row(
+                                  children: [
+                                    Icon(
+                                      _sortByDistance ? Icons.location_on : Icons.near_me_outlined,
+                                      color: _sortByDistance ? Theme.of(context).primaryColor : Colors.grey,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "ترتيب حسب الموقع الأقرب",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: _sortByDistance ? Theme.of(context).primaryColor : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: const Text(
+                                  "فرز الطلبات من الأقرب للأبعد بناءً على موقعك الحالي",
+                                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                                ),
+                                value: _sortByDistance,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _sortByDistance = val;
+                                  });
+                                  _loadOrders(
+                                    currentConfig.workflowSlug,
+                                    _getActiveAbsoluteStepIndex(),
+                                  );
+                                },
+                                activeColor: Theme.of(context).primaryColor,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
                       Expanded(
                         child:
                             BlocBuilder<
@@ -676,9 +726,42 @@ class _OrdersScreenState extends State<OrdersScreen>
                                               0],
                                         );
 
+                                        final roles = _getCurrentRoles();
+                                        bool showSender = true;
+                                        bool showRecipient = true;
+                                        final orgConfig = context
+                                            .read<OrganizationConfigBloc>()
+                                            .state
+                                            .itemState
+                                            .maybeWhen(success: (data) => data, orElse: () => null);
+
+                                        if (orgConfig != null) {
+                                          final ordersConfig = orgConfig.ordersConfig;
+                                          if (ordersConfig != null && ordersConfig is Map) {
+                                            final rolesConfig = ordersConfig['rolesConfig'];
+                                            if (rolesConfig != null && rolesConfig is Map) {
+                                              for (final role in roles) {
+                                                if (rolesConfig.containsKey(role)) {
+                                                  final rConfig = rolesConfig[role];
+                                                  if (rConfig is Map) {
+                                                    if (rConfig.containsKey('showSenderInfo')) {
+                                                      showSender = rConfig['showSenderInfo'] == true;
+                                                    }
+                                                    if (rConfig.containsKey('showRecipientInfo')) {
+                                                      showRecipient = rConfig['showRecipientInfo'] == true;
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+
                                         return OrderItemCard(
                                           order: order,
                                           stepColor: stepColor,
+                                          showSenderInfo: showSender,
+                                          showRecipientInfo: showRecipient,
                                           onManageOrder: () =>
                                               _showOrderManagementSheet(
                                                 order,
@@ -795,21 +878,12 @@ class _OrdersScreenState extends State<OrdersScreen>
     required dynamic orgConfig,
     required List<OrderPathModel> allPaths,
   }) {
-    final user = appChangesValues.user;
-    final roles = user?.roles ?? [];
-
-    final isExempt =
-        AppShellConfigs.isAdminMode ||
-        roles.contains('admin') ||
-        roles.contains('organizationOwner') ||
-        roles.contains('owner') ||
-        roles.contains('super_admin');
-
     if (orgConfig == null) return [];
 
     final ordersConfig = orgConfig.ordersConfig;
     if (ordersConfig == null || ordersConfig is! Map) return [];
 
+    final roles = _getCurrentRoles();
     final rolesConfig = ordersConfig['rolesConfig'];
     if (rolesConfig == null || rolesConfig is! Map) return [];
 
@@ -842,7 +916,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     final activeStepIndex = _getActiveAbsoluteStepIndex();
     final currentStepNumber = _getActiveStepNumber(activeStepIndex);
 
-    return (isExempt || allowedPaths.isEmpty
+    return (allowedPaths.isEmpty
             ? workflowPaths
             : workflowPaths.where((p) => allowedPaths.contains(p.id)).toList())
         .where((p) => p.triggerStepNumber == currentStepNumber)
@@ -934,12 +1008,101 @@ class _OrdersScreenState extends State<OrdersScreen>
     }
   }
 
-  void _loadOrders(String slug, int currentStepIndex) {
+  bool _canSortByDistance(WorkflowConfigModel? currentConfig) {
+    final roles = _getCurrentRoles();
+
+    final orgConfig = context
+        .read<OrganizationConfigBloc>()
+        .state
+        .itemState
+        .maybeWhen(success: (data) => data, orElse: () => null);
+
+    if (orgConfig != null) {
+      final ordersConfig = orgConfig.ordersConfig;
+      if (ordersConfig != null && ordersConfig is Map) {
+        final rolesConfig = ordersConfig['rolesConfig'];
+        if (rolesConfig != null && rolesConfig is Map) {
+          for (final role in roles) {
+            if (rolesConfig.containsKey(role)) {
+              final rConfig = rolesConfig[role];
+              if (rConfig is Map && rConfig['sortByClosestLocation'] == true) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  Future<void> _loadOrders(String slug, int currentStepIndex) async {
     final finalSlug = slug.isEmpty ? 'default' : slug;
+
+    double? latitude;
+    double? longitude;
+    bool? sortByDistanceParam;
+
+    final roles = _getCurrentRoles();
+
+    bool shouldSortByDistance = false;
+    final orgConfig = context
+        .read<OrganizationConfigBloc>()
+        .state
+        .itemState
+        .maybeWhen(success: (data) => data, orElse: () => null);
+
+    if (orgConfig != null) {
+      final ordersConfig = orgConfig.ordersConfig;
+      if (ordersConfig != null && ordersConfig is Map) {
+        final rolesConfig = ordersConfig['rolesConfig'];
+        if (rolesConfig != null && rolesConfig is Map) {
+          for (final role in roles) {
+            if (rolesConfig.containsKey(role)) {
+              final rConfig = rolesConfig[role];
+              if (rConfig is Map && rConfig['sortByClosestLocation'] == true) {
+                shouldSortByDistance = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (shouldSortByDistance && _sortByDistance && _selectedFilterPathId != null) {
+      try {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (serviceEnabled) {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+
+          if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+            Position position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high,
+              timeLimit: const Duration(seconds: 5),
+            );
+            latitude = position.latitude;
+            longitude = position.longitude;
+            sortByDistanceParam = true;
+          }
+        }
+      } catch (e) {
+        debugPrint("Error fetching location for closest sorting: $e");
+      }
+    }
+
+    if (!mounted) return;
+
     context.read<OrdersBloc>().loadOrders(
       workflowSlug: finalSlug,
       currentStepIndex: currentStepIndex,
       orderPathId: _selectedFilterPathId,
+      sortByDistance: sortByDistanceParam,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 

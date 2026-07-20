@@ -24,6 +24,19 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
   AuthBloc({required this.authRepo, this.appChangesValues})
     : super(FeaturDataSourceState<Users>.defaultState());
 
+  void _debugLogUserPermissions(String source, Users user) {
+    assert(() {
+      debugPrint(
+        '[$source] user=${user.username} org=${user.organizationId} permissions=${user.permissions}',
+      );
+      return true;
+    }());
+  }
+
+  void _markInitialized() {
+    appChangesValues?.setInitialized(true);
+  }
+
   Future<void> login({required String email, required String password}) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await authRepo.login(username: email, password: password);
@@ -39,6 +52,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         debugPrint(
           '🔐 Permissions: ${user.permissions?.join(', ') ?? 'No explicit permissions'}',
         );
+        _debugLogUserPermissions('login', user);
 
         // 💾 حفظ لبيانات تسجيل الدخول
         SharedPrefranceChecking().setDataInShardRefrace(
@@ -46,9 +60,11 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
           pass: base64Encode(utf8.encode(password)), // Hashed (Encoded)
           token: user.token!,
         );
+        _markInitialized();
 
         emit(state.copyWith(itemState: DataSourceBaseState.success(user)));
       } catch (e) {
+        _markInitialized();
         emit(
           state.copyWith(
             itemState: DataSourceBaseState.failure(
@@ -59,6 +75,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         );
       }
     } else {
+      _markInitialized();
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
@@ -93,6 +110,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         debugPrint(
           '🔐 Permissions: ${user.permissions?.join(', ') ?? 'No explicit permissions'}',
         );
+        _debugLogUserPermissions('loginOrg', user);
 
         // 💾 حفظ لبيانات تسجيل الدخول
         SharedPrefranceChecking().setDataInShardRefrace(
@@ -103,9 +121,11 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('active_org_name', orgName);
+        _markInitialized();
 
         emit(state.copyWith(itemState: DataSourceBaseState.success(user)));
       } catch (e) {
+        _markInitialized();
         emit(
           state.copyWith(
             itemState: DataSourceBaseState.failure(
@@ -120,6 +140,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         );
       }
     } else {
+      _markInitialized();
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
@@ -184,40 +205,36 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
           AppRoutes.activeOrgName = savedOrgName;
           AppRoutes.defaultOrgName = savedOrgName;
 
+          String password;
+          try {
+            password = utf8.decode(base64Decode(shardUserModel.pass!));
+          } catch (_) {
+            password = shardUserModel.pass!;
+          }
+
           final result = await signeIn(
             map: {
               "orgName": savedOrgName,
               "email": shardUserModel.email!,
-              "pass": utf8.decode(base64Decode(shardUserModel.pass!)), // Decode
+              "pass": password,
             },
           );
 
           if (result.status == StatusModel.success && result.data != null) {
             final user = Users.fromUserModel(result.data!);
-            if (appChangesValues != null) {
-              appChangesValues!.isInitialized = true;
-            }
+            _markInitialized();
             onUserFound(user);
           } else {
-            if (appChangesValues != null) {
-              appChangesValues!.isInitialized = true;
-              appChangesValues!.notifyListeners();
-            }
+            _markInitialized();
             onUserNotFound();
           }
         } else {
-          if (appChangesValues != null) {
-            appChangesValues!.isInitialized = true;
-            appChangesValues!.notifyListeners();
-          }
+          _markInitialized();
           onUserNotFound();
         }
       },
       NotRegistAction: () {
-        if (appChangesValues != null) {
-          appChangesValues!.isInitialized = true;
-          appChangesValues!.notifyListeners();
-        }
+        _markInitialized();
         onUserNotFound();
       },
     );

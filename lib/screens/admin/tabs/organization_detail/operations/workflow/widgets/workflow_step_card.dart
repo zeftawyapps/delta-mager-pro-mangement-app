@@ -12,6 +12,7 @@ class WorkflowStepCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onAddAction;
   final VoidCallback onConfigureTriggers;
+  final Function(WorkflowAction action)? onDeleteAction;
 
   const WorkflowStepCard({
     super.key,
@@ -24,6 +25,7 @@ class WorkflowStepCard extends StatelessWidget {
     required this.onDelete,
     required this.onAddAction,
     required this.onConfigureTriggers,
+    this.onDeleteAction,
   });
 
   Color _getStepColor(WorkflowStep step) {
@@ -143,6 +145,25 @@ class WorkflowStepCard extends StatelessWidget {
                   color: AppColors.herbGreen,
                 ),
               ),
+              if (onDeleteAction != null) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () => onDeleteAction!(action),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      size: 13,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -294,7 +315,7 @@ class WorkflowStepCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildStepRow(Icons.security, "الدور", step.stepRole),
+                    _buildStepRow(Icons.key, "مفتاح الخطوة", step.stepKey),
                     _buildStepRow(
                       Icons.touch_app,
                       "الإسناد",

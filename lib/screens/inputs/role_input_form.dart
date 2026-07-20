@@ -45,6 +45,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
   final Map<String, ScrollController> _horizontalScrollControllers = {};
   String? selectedOrganizationId;
   bool allowAuthLogin = false;
+  bool isCustomerRole = false;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
       text: widget.role?.description ?? '',
     );
     allowAuthLogin = widget.role?.allowAuthLogin ?? false;
+    isCustomerRole = widget.role?.isCustomerRole ?? false;
     selectedPermissions = List<String>.from(widget.role?.permissions ?? []);
     _loadPermissions();
 
@@ -137,6 +139,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.screenB2bHome,
           SystemFeatures.screenOrderPaths,
           SystemFeatures.screenBlog,
+          SystemFeatures.screenAnalytics,
         ],
       },
       'management': {
@@ -150,6 +153,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.offer,
           SystemFeatures.orderPath,
           SystemFeatures.blog,
+          SystemFeatures.analytics,
         ],
       },
       'security': {
@@ -243,9 +247,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
   void saveRole() {
     if (!form.form.currentState!.validate()) return;
 
-    final finalPermissions = selectedPermissions
-        .where((p) => p.isNotEmpty)
-        .toList();
+    final finalPermissions = isCustomerRole
+        ? <String>[]
+        : selectedPermissions.where((p) => p.isNotEmpty).toList();
 
     final targetOrgId = widget.isCopy
         ? selectedOrganizationId
@@ -265,6 +269,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         permissions: finalPermissions,
         allowAuthLogin: allowAuthLogin,
         organizationId: targetOrgId,
+        isCustomerRole: isCustomerRole,
       );
     } else if (widget.role != null && widget.role!.id != null) {
       context.read<RolesBloc>().updateRole(
@@ -275,6 +280,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         permissions: finalPermissions,
         allowAuthLogin: allowAuthLogin,
         organizationId: widget.organizationId,
+        isCustomerRole: isCustomerRole,
       );
     } else {
       context.read<RolesBloc>().createRole(
@@ -284,6 +290,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
         permissions: finalPermissions,
         allowAuthLogin: allowAuthLogin,
         organizationId: widget.organizationId,
+        isCustomerRole: isCustomerRole,
       );
     }
   }
@@ -432,73 +439,105 @@ class _RoleInputFormState extends State<RoleInputForm> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "الصلاحيات (Permissions)",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          "${selectedPermissions.length} مختارة",
+                    ),
+                    child: SwitchListTile(
+                      title: const Text(
+                        'دور زبون (Customer Role)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: const Text(
+                        'تحديد هذا الدور كدور مخصص للزبائن، حيث تتم إدارة صلاحياتهم بداخل إعدادات تهيئة المنظمة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      secondary: Icon(
+                        Icons.person_pin,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      value: isCustomerRole,
+                      onChanged: (val) {
+                        setState(() {
+                          isCustomerRole = val;
+                        });
+                      },
+                    ),
+                  ),
+                  if (!isCustomerRole) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "الصلاحيات (Permissions)",
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: 'بحث في الصلاحيات...',
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.grey.withOpacity(0.1),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            "${selectedPermissions.length} مختارة",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    onChanged: (val) {
-                      setState(() {
-                        searchQuery = val;
-                        _groupPermissions();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  if (isLoadingPermissions)
-                    const Center(child: CircularProgressIndicator())
-                  else ...[
-                    if (widget.organizationId == null) ...[
-                      _buildSuperAdminToggle(),
-                      const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'بحث في الصلاحيات...',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.grey.withOpacity(0.1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          searchQuery = val;
+                          _groupPermissions();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    if (isLoadingPermissions)
+                      const Center(child: CircularProgressIndicator())
+                    else ...[
+                      if (widget.organizationId == null) ...[
+                        _buildSuperAdminToggle(),
+                        const SizedBox(height: 16),
+                      ],
+                      if (widget.organizationId != null) ...[
+                        _buildWorkflowPermissionsSection(),
+                        const SizedBox(height: 16),
+                      ],
+                      _buildCategorizedPermissions(),
                     ],
-                    if (widget.organizationId != null) ...[
-                      _buildWorkflowPermissionsSection(),
-                      const SizedBox(height: 16),
-                    ],
-                    _buildCategorizedPermissions(),
                   ],
                 ],
               ),
@@ -678,17 +717,14 @@ class _RoleInputFormState extends State<RoleInputForm> {
                 final workflowName = config.workflow.workflowName.ar;
                 final executor = config.roleExecutor;
 
-                // Extract steps for this specific workflow
+                // Extract steps for this specific workflow using stepKey
                 final List<Map<String, dynamic>> steps = [];
                 for (var step in config.workflow.steps) {
-                  final String technicalKey = step.stepRole.isNotEmpty
-                      ? step.stepRole
-                      : step.stepKey;
+                  final String stepKey = step.stepKey;
                   final String displayName = step.stepName.ar;
 
-                  // Keep them unique within this list if necessary
-                  if (!steps.any((s) => s['key'] == technicalKey)) {
-                    steps.add({'key': technicalKey, 'name': displayName});
+                  if (stepKey.isNotEmpty && !steps.any((s) => s['key'] == stepKey)) {
+                    steps.add({'key': stepKey, 'name': displayName});
                   }
                 }
 
@@ -1117,6 +1153,11 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                       jobKey != SystemJobs.read) {
                                     return;
                                   }
+                                  // Restrict 'analytics' to 'read' only (read-only data)
+                                  if (resKey == SystemFeatures.analytics &&
+                                      jobKey != SystemJobs.read) {
+                                    return;
+                                  }
                                   setState(() {
                                     if (val == true) {
                                       selectedPermissions.add(permKey);
@@ -1129,6 +1170,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
                                           // Respect restriction even for 'all/admin'
                                           if (widget.organizationId != null &&
                                               resKey == SystemFeatures.organization &&
+                                              j != SystemJobs.read) continue;
+
+                                          // Analytics is read-only
+                                          if (resKey == SystemFeatures.analytics &&
                                               j != SystemJobs.read) continue;
 
                                           if (!selectedPermissions.contains(k))

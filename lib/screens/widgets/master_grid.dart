@@ -17,17 +17,9 @@ class MasterGrid<
     extends StatefulWidget {
   final String title;
   final String? searchHint;
-  final Widget Function(
-    BuildContext context,
-    T item,
-    bool isSelected,
-  )
+  final Widget Function(BuildContext context, T item, bool isSelected)
   itemBuilder;
-  final Widget Function(
-    BuildContext context,
-    T item,
-    bool isSelected,
-  )?
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   listBuilder;
   final void Function(T item)? onItemTap;
   final ViewMode viewMode;
@@ -329,7 +321,8 @@ class _MasterGridState<
                             addWidget: _buildAddCard(context, isDark),
                             listItem: (index, item) {
                               final isSelected = _selectedItems.contains(item);
-                              final isSelectionModeActive = _selectedItems.isNotEmpty;
+                              final isSelectionModeActive =
+                                  _selectedItems.isNotEmpty;
                               return MasterGridItemWrapper(
                                 isSelected: isSelected,
                                 isSelectionModeActive: isSelectionModeActive,
@@ -512,7 +505,7 @@ class MasterGridItemWrapper extends StatelessWidget {
             child: child,
           ),
         ),
-        
+
         // غطاء التحديد (Selection Overlay)
         if (isSelected)
           Positioned.fill(

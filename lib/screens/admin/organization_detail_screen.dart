@@ -13,7 +13,6 @@ import 'tabs/organization_detail/general/general_info_tab.dart';
 import 'tabs/organization_detail/settings/config/config_tab.dart';
 import 'tabs/organization_detail/settings/product_config/product_config_tab.dart';
 import 'tabs/organization_detail/operations/policies/policies_tab.dart';
-import 'tabs/organization_detail/general/license_tab.dart';
 import 'tabs/organization_detail/operations/workflow/workflow_tab.dart';
 import 'tabs/organization_detail/operations/roles/roles_tab.dart';
 import 'tabs/organization_detail/settings/features_tab.dart';
@@ -32,7 +31,30 @@ class OrganizationDetailScreen extends StatefulWidget {
       _OrganizationDetailScreenState();
 }
 
+class _SidebarItem {
+  final String title;
+  final IconData icon;
+
+  const _SidebarItem({required this.title, required this.icon});
+}
+
 class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
+  int _selectedIndex = 0;
+
+  static const List<_SidebarItem> _sidebarItems = [
+    _SidebarItem(title: "البيانات الأساسية والترخيص", icon: Icons.info_outline),
+    _SidebarItem(title: "الإعدادات العامة (Config)", icon: Icons.settings_outlined),
+    _SidebarItem(title: "إعدادات المنتجات", icon: Icons.inventory_2_outlined),
+    _SidebarItem(title: "إعدادات B2B Home", icon: Icons.home_outlined),
+    _SidebarItem(title: "إعدادات Website", icon: Icons.web_outlined),
+    _SidebarItem(title: "المزايا Features", icon: Icons.star_outline),
+    _SidebarItem(title: "السياسات Policies", icon: Icons.gavel_outlined),
+    _SidebarItem(title: "الأدوار Roles", icon: Icons.security_outlined),
+    _SidebarItem(title: "مسارات العمل Workflow", icon: Icons.account_tree_outlined),
+    _SidebarItem(title: "خطوط السير Paths", icon: Icons.alt_route_outlined),
+    _SidebarItem(title: "إعدادات الطلبات Orders Config", icon: Icons.tune_outlined),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -41,404 +63,314 @@ class _OrganizationDetailScreenState extends State<OrganizationDetailScreen> {
     context.read<OrganizationPolicyBloc>().loadPolicy(orgId);
   }
 
+  Widget _buildDetailContent(bool isDark) {
+    switch (_selectedIndex) {
+      case 0:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            final config = state.itemState.maybeWhen(
+              success: (c) => c,
+              orElse: () => null,
+            );
+            return GeneralInfoTab(
+              organization: widget.organization,
+              systemLicense: config?.systemLicense,
+              isDark: isDark,
+            );
+          },
+        );
+      case 1:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => ConfigSectionTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 2:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => ProductConfigSectionTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 3:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => B2BHomeConfigTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 4:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => WebsiteConfigTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 5:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => FeaturesSectionTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 6:
+        return BlocBuilder<
+          OrganizationPolicyBloc,
+          FeaturDataSourceState<OrganizationPolicyModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (policy) => PoliciesSectionTab(
+                policy: policy!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      case 7:
+        return RolesSectionTab(
+          organizationId: widget.organization.organizationId,
+          isDark: isDark,
+        );
+      case 8:
+        return WorkflowSectionTab(
+          organizationId: widget.organization.organizationId,
+          isDark: isDark,
+        );
+      case 9:
+        return OrderPathsSectionTab(
+          organizationId: widget.organization.organizationId,
+          isDark: isDark,
+        );
+      case 10:
+        return BlocBuilder<
+          AdminOrganizationConfigBloc,
+          FeaturDataSourceState<OrganizationConfigModel>
+        >(
+          builder: (context, state) {
+            return state.itemState.maybeWhen(
+              success: (config) => OrderScreenConfigTab(
+                config: config!,
+                organizationId: widget.organization.organizationId,
+                isDark: isDark,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              failure: (error, reload) => _buildErrorCard(
+                error.message ?? 'خطأ في التحميل',
+                reload,
+              ),
+              orElse: () => const SizedBox(),
+            );
+          },
+        );
+      default:
+        return const SizedBox();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? DarkColors.primary : LightColors.primary;
+    final sidebarColor = isDark ? DarkColors.surface : Colors.white;
 
-    return DefaultTabController(
-      length: 12,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.organization.name),
-          backgroundColor: isDark ? DarkColors.surface : LightColors.primary,
-          foregroundColor: Colors.white,
-          bottom: TabBar(
-            isScrollable: true, // Added for mobile support if many tabs
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tooltip(
-                message: "البيانات الأساسية للمنظمة مثل الاسم والشعار وتفاصيل التواصل.",
-                child: Tab(
-                  icon: Icon(Icons.info),
-                  text: "البيانات الأساسية",
-                ),
-              ),
-              Tooltip(
-                message: "إمكانيات الإعدادات والتهيئات العامة للنظام والمنظمة.",
-                child: Tab(
-                  icon: Icon(Icons.settings),
-                  text: "الإعدادات Config",
-                ),
-              ),
-              Tooltip(
-                message: "تخصيص خيارات المنتجات والأسعار والخصومات الخاصة بالمؤسسة.",
-                child: Tab(
-                  icon: Icon(Icons.inventory_2_outlined),
-                  text: "إعدادات المنتجات",
-                ),
-              ),
-              Tooltip(
-                message: "تهيئة وإعداد الشاشة الرئيسية وتصميم واجهة تطبيق الـ B2B للعملاء.",
-                child: Tab(
-                  icon: Icon(Icons.home_outlined),
-                  text: "إعدادات B2B Home",
-                ),
-              ),
-              Tooltip(
-                message: "تهيئة وإعداد وتصميم واجهة موقع الويب والمدونة للعملاء.",
-                child: Tab(
-                  icon: Icon(Icons.web),
-                  text: "إعدادات Website",
-                ),
-              ),
-              // Footer tab removed; footer settings moved into Website Config tab.
-              Tooltip(
-                message: "التحكم في الميزات الإضافية مثل الولاء وعروض المبيعات والدعم الفني.",
-                child: Tab(
-                  icon: Icon(Icons.star_outline),
-                  text: "المزايا Features",
-                ),
-              ),
-              Tooltip(
-                message: "إدارة وتعديل سياسات الاسترجاع والخصوصية وشروط الاستخدام للمنظمة.",
-                child: Tab(
-                  icon: Icon(Icons.gavel),
-                  text: "السياسات Policies",
-                ),
-              ),
-              Tooltip(
-                message: "إدارة وتوزيع أدوار وصلاحيات الموظفين والمشرفين التابعين للمنظمة.",
-                child: Tab(
-                  icon: Icon(Icons.security),
-                  text: "الأدوار Roles",
-                ),
-              ),
-              Tooltip(
-                message: "تصميم وإدارة خط سير حركة الطلبات ومراحل العمل التشغيلية.",
-                child: Tab(
-                  icon: Icon(Icons.account_tree_outlined),
-                  text: "مسارات العمل Workflow",
-                ),
-              ),
-              Tooltip(
-                message: "تحديد خطوط السير والتوجيه الجغرافي للمناديب في المناطق.",
-                child: Tab(
-                  icon: Icon(Icons.alt_route),
-                  text: "خطوط السير Paths",
-                ),
-              ),
-              Tooltip(
-                message: "تخصيص طريقة عرض بيانات الطلبات وحقول الإدخال للمشرفين.",
-                child: Tab(
-                  icon: Icon(Icons.tune),
-                  text: "إعدادات الطلبات Orders Config",
-                ),
-              ),
-              Tooltip(
-                message: "التحقق من تفاصيل ترخيص المنظمة وتاريخ انتهاء الصلاحية والحدود.",
-                child: Tab(
-                  icon: Icon(Icons.verified),
-                  text: "الترخيص License",
-                ),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.organization.name),
+        backgroundColor: isDark ? DarkColors.surface : LightColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Row(
+        children: [
+          // Sidebar Column
+          Container(
+            width: 260,
+            color: sidebarColor,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _sidebarItems.length,
+              itemBuilder: (context, index) {
+                final item = _sidebarItems[index];
+                final isSelected = _selectedIndex == index;
+                return _buildSidebarItem(index, item, isSelected, isDark, primaryColor);
+              },
+            ),
           ),
+          const VerticalDivider(width: 1, thickness: 1),
+          // Content Detail Pane
+          Expanded(
+            child: Container(
+              color: isDark ? DarkColors.background : LightColors.background,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.04, 0.0),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOutCubic,
+                        ),
+                      ),
+                      child: child,
+                    ),
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_selectedIndex),
+                  child: _buildDetailContent(isDark),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem(
+    int index,
+    _SidebarItem item,
+    bool isSelected,
+    bool isDark,
+    Color primaryColor,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor.withOpacity(0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: primaryColor.withOpacity(0.12), width: 1)
+              : Border.all(color: Colors.transparent, width: 1),
         ),
-        body: Container(
-          color: isDark ? DarkColors.background : LightColors.background,
-          child: TabBarView(
-            children: [
-              // --- Tab 1: General Info ---
-              GeneralInfoTab(organization: widget.organization, isDark: isDark),
-
-              // --- Tab 2: Configuration ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => ConfigSectionTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () {
-                      final prevData = state.itemState.maybeWhen(
-                        success: (d) => d,
-                        orElse: () => null,
-                      );
-                      if (prevData != null) {
-                        return Stack(
-                          children: [
-                            ConfigSectionTab(
-                              config: prevData,
-                              organizationId:
-                                  widget.organization.organizationId,
-                              isDark: isDark,
-                            ),
-                            const Center(child: CircularProgressIndicator()),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    failure: (error, reload) => Center(
-                      child: _buildErrorCard(
-                        error.message ?? 'خطأ في التحميل',
-                        reload,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => setState(() => _selectedIndex = index),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    item.icon,
+                    color: isSelected ? primaryColor : (isDark ? Colors.white60 : Colors.black54),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      item.title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected
+                            ? primaryColor
+                            : (isDark ? Colors.white70 : Colors.black87),
                       ),
                     ),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-
-              // --- Tab 3: Product Configuration ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => ProductConfigSectionTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () {
-                      final prevData = state.itemState.maybeWhen(
-                        success: (d) => d,
-                        orElse: () => null,
-                      );
-                      if (prevData != null) {
-                        return Stack(
-                          children: [
-                            ProductConfigSectionTab(
-                              config: prevData,
-                              organizationId:
-                                  widget.organization.organizationId,
-                              isDark: isDark,
-                            ),
-                            const Center(child: CircularProgressIndicator()),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    failure: (error, reload) => Center(
-                      child: _buildErrorCard(
-                        error.message ?? 'خطأ في التحميل',
-                        reload,
+                  ),
+                  if (isSelected)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    orElse: () => const SizedBox(),
-                  );
-                },
+                ],
               ),
-              
-              // --- Tab 4: B2B Home Configuration ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => B2BHomeConfigTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-
-              // --- Tab 5: Website Home Configuration ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => WebsiteConfigTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-
-              // (Footer tab removed) Footer settings are included inside WebsiteConfigTab.
-
-              // --- Tab 5: Features ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => FeaturesSectionTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () {
-                      final prevData = state.itemState.maybeWhen(
-                        success: (d) => d,
-                        orElse: () => null,
-                      );
-                      if (prevData != null) {
-                        return Stack(
-                          children: [
-                            FeaturesSectionTab(
-                              config: prevData,
-                              organizationId:
-                                  widget.organization.organizationId,
-                              isDark: isDark,
-                            ),
-                            const Center(child: CircularProgressIndicator()),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    failure: (error, reload) => Center(
-                      child: _buildErrorCard(
-                        error.message ?? 'خطأ في التحميل',
-                        reload,
-                      ),
-                    ),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-
-              // --- Tab 4: Policies ---
-              BlocBuilder<
-                OrganizationPolicyBloc,
-                FeaturDataSourceState<OrganizationPolicyModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.when(
-                    init: () => const SizedBox(),
-                    loading: () {
-                      final prevData = state.itemState.maybeWhen(
-                        success: (d) => d,
-                        orElse: () => null,
-                      );
-                      if (prevData != null) {
-                        return Stack(
-                          children: [
-                            PoliciesSectionTab(
-                              policy: prevData,
-                              organizationId:
-                                  widget.organization.organizationId,
-                              isDark: isDark,
-                            ),
-                            const Center(child: CircularProgressIndicator()),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    success: (policy) => PoliciesSectionTab(
-                      policy: policy!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    failure: (error, reload) => Center(
-                      child: _buildErrorCard(
-                        error.message ?? 'خطأ في التحميل',
-                        reload,
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              // --- Tab 5: Roles ---
-              RolesSectionTab(
-                organizationId: widget.organization.organizationId,
-                isDark: isDark,
-              ),
-
-              // --- Tab 8: Workflow ---
-              WorkflowSectionTab(
-                organizationId: widget.organization.organizationId,
-                isDark: isDark,
-              ),
-
-              // --- Tab 9: Order Paths ---
-              OrderPathsSectionTab(
-                organizationId: widget.organization.organizationId,
-                isDark: isDark,
-              ),
-
-              // --- Tab 10: Orders Configuration ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => OrderScreenConfigTab(
-                      config: config!,
-                      organizationId: widget.organization.organizationId,
-                      isDark: isDark,
-                    ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-
-              // --- Tab 11: License ---
-              BlocBuilder<
-                AdminOrganizationConfigBloc,
-                FeaturDataSourceState<OrganizationConfigModel>
-              >(
-                builder: (context, state) {
-                  return state.itemState.maybeWhen(
-                    success: (config) => LicenseSectionTab(
-                      systemLicense: config?.systemLicense,
-                      isDark: isDark,
-                    ),
-                    loading: () {
-                      final prevData = state.itemState.maybeWhen(
-                        success: (d) => d,
-                        orElse: () => null,
-                      );
-                      if (prevData != null) {
-                        return Stack(
-                          children: [
-                            LicenseSectionTab(
-                              systemLicense: prevData.systemLicense,
-                              isDark: isDark,
-                            ),
-                            const Center(child: CircularProgressIndicator()),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    failure: (error, reload) => Center(
-                      child: _buildErrorCard(
-                        error.message ?? 'خطأ في التحميل',
-                        reload,
-                      ),
-                    ),
-                    orElse: () => const SizedBox(),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),

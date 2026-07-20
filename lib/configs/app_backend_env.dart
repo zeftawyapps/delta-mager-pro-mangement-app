@@ -1,5 +1,7 @@
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/services/json_config_service.dart';
 import 'package:matger_pro_core_logic/config/paoject_config.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 enum AppEnvType { local, dev, prod }
 
@@ -14,7 +16,8 @@ class AppBackendEnv {
     final envUrls = JsonConfigService().envUrls;
     if (envUrls[envName] is Map) {
       final envConfig = envUrls[envName] as Map;
-      if (envConfig['baseUrl'] != null && envConfig['baseUrl'].toString().isNotEmpty) {
+      if (envConfig['baseUrl'] != null &&
+          envConfig['baseUrl'].toString().isNotEmpty) {
         return envConfig['baseUrl'].toString();
       }
     }
@@ -39,7 +42,8 @@ class AppBackendEnv {
     final envUrls = JsonConfigService().envUrls;
     if (envUrls[envName] is Map) {
       final envConfig = envUrls[envName] as Map;
-      if (envConfig['imageUrl'] != null && envConfig['imageUrl'].toString().isNotEmpty) {
+      if (envConfig['imageUrl'] != null &&
+          envConfig['imageUrl'].toString().isNotEmpty) {
         return envConfig['imageUrl'].toString();
       }
     }
@@ -62,7 +66,30 @@ class AppBackendEnv {
   initConfigration(AppEnvType env) {
     _currentEnv = env;
     projectConfig(myBaseUrl: baseUrl, myImageUrl: imageUrl);
-    ProjectAPIHeader.setLanguage("ar");
+    // 🌐 لغة بيانات الـ API تتبع اللغة الافتراضية للتطبيق (من إعدادات العميل)
+    ProjectAPIHeader.setLanguage(AppShellConfigs.languageCode);
+  }
+
+  static String resolveImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return '';
+    String cleanUrl = url.trim();
+    cleanUrl = cleanUrl.replaceAll('\\', '/');
+
+    if (!kIsWeb && cleanUrl.contains('localhost')) {
+      cleanUrl = cleanUrl.replaceAll('localhost', '10.0.2.2');
+    }
+
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      final baseUrl = AppBackendEnv().imageUrl;
+      if (baseUrl.endsWith('/') && cleanUrl.startsWith('/')) {
+        cleanUrl = baseUrl + cleanUrl.substring(1);
+      } else if (!baseUrl.endsWith('/') && !cleanUrl.startsWith('/')) {
+        cleanUrl = '$baseUrl/$cleanUrl';
+      } else {
+        cleanUrl = baseUrl + cleanUrl;
+      }
+    }
+
+    return cleanUrl;
   }
 }
-

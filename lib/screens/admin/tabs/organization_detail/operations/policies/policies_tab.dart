@@ -8,6 +8,8 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_policy_blo
 import 'widgets/units_field_editor.dart';
 import 'widgets/governorate_fees_editor.dart';
 import 'widgets/invoice_slices_editor.dart';
+import 'widgets/app_links_editor.dart';
+import 'widgets/rewards_policy_editor.dart';
 
 class PoliciesSectionTab extends StatefulWidget {
   final OrganizationPolicyModel policy;
@@ -71,6 +73,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
         id: _editingPolicy.id,
         shipping: _editingPolicy.shipping,
         salesRules: _editingPolicy.salesRules,
+        appLinks: _editingPolicy.appLinks,
+        rewards: _editingPolicy.rewards,
         logistics: LogisticsPolicy(
           currency: currency ?? current.currency,
           enableVat: enableVat ?? current.enableVat,
@@ -95,6 +99,8 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
         id: _editingPolicy.id,
         logistics: _editingPolicy.logistics,
         salesRules: _editingPolicy.salesRules,
+        appLinks: _editingPolicy.appLinks,
+        rewards: _editingPolicy.rewards,
         shipping: ShippingPolicy(
           defaultFee: defaultFee ?? current.defaultFee,
           freeShippingEnabled:
@@ -122,6 +128,43 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
           wholesaleDiscount: wholesaleDiscount ?? current.wholesaleDiscount,
           agentDiscount: agentDiscount ?? current.agentDiscount,
           invoiceSlices: invoiceSlices ?? current.invoiceSlices,
+        ),
+        appLinks: _editingPolicy.appLinks,
+        rewards: _editingPolicy.rewards,
+      );
+    });
+  }
+
+  void _updateAppLinks(List<AppLinkItem> links) {
+    setState(() {
+      _editingPolicy = OrganizationPolicyModel(
+        id: _editingPolicy.id,
+        logistics: _editingPolicy.logistics,
+        shipping: _editingPolicy.shipping,
+        salesRules: _editingPolicy.salesRules,
+        rewards: _editingPolicy.rewards,
+        appLinks: AppLinksPolicy(links: links),
+      );
+    });
+  }
+
+  void _updateRewards({
+    bool? isEnabled,
+    num? pointsPerCurrency,
+    List<RewardTier>? tiers,
+  }) {
+    setState(() {
+      final current = _editingPolicy.rewards ?? RewardsPolicy();
+      _editingPolicy = OrganizationPolicyModel(
+        id: _editingPolicy.id,
+        logistics: _editingPolicy.logistics,
+        shipping: _editingPolicy.shipping,
+        salesRules: _editingPolicy.salesRules,
+        appLinks: _editingPolicy.appLinks,
+        rewards: RewardsPolicy(
+          isEnabled: isEnabled ?? current.isEnabled,
+          pointsPerCurrency: pointsPerCurrency ?? current.pointsPerCurrency,
+          tiers: tiers ?? current.tiers,
         ),
       );
     });
@@ -213,30 +256,47 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_isEditing) {
-            _save();
-          } else {
-            setState(() => _isEditing = true);
-          }
-        },
-        backgroundColor: _isEditing ? Colors.green : LightColors.primary,
-        icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
-        label: Text(
-          _isEditing ? "حفظ التغييرات" : "تعديل السياسات",
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "سياسات المنظمة (Policies)",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (_isEditing) {
+                      _save();
+                    } else {
+                      setState(() => _isEditing = true);
+                    }
+                  },
+                  icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white, size: 18),
+                  label: Text(
+                    _isEditing ? "حفظ التغييرات" : "تعديل السياسات",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isEditing ? Colors.green : LightColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
               if (_isEditing)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -396,11 +456,46 @@ class _PoliciesSectionTabState extends State<PoliciesSectionTab> {
                   ),
                 ],
               ),
-              const SizedBox(height: 80), // Space for FAB
+              const SizedBox(height: 16),
+
+              // --- App Links Section ---
+              _buildPolicyCard(
+                title: "روابط التطبيق والسياسات (App Links)",
+                icon: Icons.link_outlined,
+                color: Colors.purple,
+                children: [
+                  AppLinksEditor(
+                    links: _editingPolicy.appLinks?.links ?? [],
+                    isEditing: _isEditing,
+                    onLinksChanged: (links) => _updateAppLinks(links),
+                    isDark: widget.isDark,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // --- Rewards Policy Section ---
+              _buildPolicyCard(
+                title: "سياسة المكافآت والنقاط (Rewards Policy)",
+                icon: Icons.card_giftcard_outlined,
+                color: Colors.teal,
+                children: [
+                  RewardsPolicyEditor(
+                    rewards: _editingPolicy.rewards,
+                    isEditing: _isEditing,
+                    onRewardsChanged: (rewardsVal) => _updateRewards(
+                      isEnabled: rewardsVal.isEnabled,
+                      pointsPerCurrency: rewardsVal.pointsPerCurrency,
+                      tiers: rewardsVal.tiers,
+                    ),
+                    isDark: widget.isDark,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

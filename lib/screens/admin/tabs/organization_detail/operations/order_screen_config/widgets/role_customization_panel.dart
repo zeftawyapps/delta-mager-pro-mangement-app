@@ -340,10 +340,24 @@ class RoleCustomizationPanel extends StatelessWidget {
           ),
 
           if (config.filterByPath) ...[
+            const SizedBox(height: 8),
+            ToggleOption(
+              title: "ترتيب الطلبات حسب الموقع الأقرب",
+              subtitle: "ترتيب الطلبات المصفاة تلقائيًا بناءً على المسافة الجغرافية من موقع المستخدم الحالي",
+              value: config.sortByClosestLocation,
+              isDark: isDark,
+              onChanged: isEditing
+                  ? (val) => onConfigUpdated(config.copyWith(
+                        sortByClosestLocation: val,
+                      ))
+                  : null,
+            ),
             const SizedBox(height: 12),
             Builder(
               builder: (context) {
-                final workflowState = context.watch<WorkflowManagementBloc>().state;
+                // استخدام context.read بدلاً من context.watch لتجنب إعادة البناء اللانهائية
+                // البيانات كافية لأنها محملة بالفعل من BlocListener في الـ parent
+                final workflowState = context.read<WorkflowManagementBloc>().state;
                 final configs = workflowState.listState.maybeWhen(
                   success: (list) => list ?? [],
                   orElse: () => <WorkflowConfigModel>[],

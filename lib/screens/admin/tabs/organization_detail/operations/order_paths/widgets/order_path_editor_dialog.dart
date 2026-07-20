@@ -78,12 +78,14 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
         scheduleType = path.schedule!.type;
         selectedDays.addAll(List<int>.from(path.schedule!.values));
       } else {
-        scheduleType = 'always';
+        scheduleType = 'daily';
+        selectedDays.addAll([1, 2, 3, 4, 5, 6, 7]);
       }
       activeWorkflowSlug = path.workflowSlug;
       activeTriggerStepNumber = path.triggerStepNumber;
     } else {
-      scheduleType = 'always';
+      scheduleType = 'daily';
+      selectedDays.addAll([1, 2, 3, 4, 5, 6, 7]);
     }
   }
 
@@ -308,8 +310,11 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                 ],
                 onChanged: (val) {
                   setState(() {
-                    scheduleType = val ?? 'always';
-                    if (scheduleType != 'weekly') {
+                    scheduleType = val ?? 'daily';
+                    if (scheduleType == 'daily') {
+                      selectedDays.clear();
+                      selectedDays.addAll([1, 2, 3, 4, 5, 6, 7]);
+                    } else if (scheduleType != 'weekly') {
                       selectedDays.clear();
                     }
                   });
@@ -360,6 +365,10 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                     orElse: () => <WorkflowConfigModel>[],
                   );
 
+                  if (activeWorkflowSlug == null && configs.isNotEmpty) {
+                    activeWorkflowSlug = configs.first.workflowSlug;
+                  }
+
                   return DropdownButtonFormField<String>(
                     value: activeWorkflowSlug,
                     decoration: InputDecoration(
@@ -369,18 +378,12 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                       ),
                       prefixIcon: const Icon(Icons.account_tree_outlined),
                     ),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: null,
-                        child: Text("لا يوجد مسار مرتبط"),
-                      ),
-                      ...configs.map((config) {
-                        return DropdownMenuItem<String>(
-                          value: config.workflowSlug,
-                          child: Text(config.workflow.workflowName.ar),
-                        );
-                      }),
-                    ],
+                    items: configs.map((config) {
+                      return DropdownMenuItem<String>(
+                        value: config.workflowSlug,
+                        child: Text(config.workflow.workflowName.ar),
+                      );
+                    }).toList(),
                     onChanged: (slug) {
                       setState(() {
                         activeWorkflowSlug = slug;
@@ -407,6 +410,9 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                     }
                     
                     final steps = selectedConfig?.workflow.steps ?? [];
+                    if (activeTriggerStepNumber == null && steps.isNotEmpty) {
+                      activeTriggerStepNumber = steps.first.stepNumber;
+                    }
 
                     return DropdownButtonFormField<int>(
                       value: activeTriggerStepNumber,
@@ -417,18 +423,12 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                         ),
                         prefixIcon: const Icon(Icons.flag_outlined),
                       ),
-                      items: [
-                        const DropdownMenuItem<int>(
-                          value: null,
-                          child: Text("لا يوجد خطوة ربط محددة"),
-                        ),
-                        ...steps.map((step) {
-                          return DropdownMenuItem<int>(
-                            value: step.stepNumber,
-                            child: Text("${step.stepNumber} - ${step.stepName.ar}"),
-                          );
-                        }),
-                      ],
+                      items: steps.map((step) {
+                        return DropdownMenuItem<int>(
+                          value: step.stepNumber,
+                          child: Text("${step.stepNumber} - ${step.stepName.ar}"),
+                        );
+                      }).toList(),
                       onChanged: (stepNum) {
                         setState(() {
                           activeTriggerStepNumber = stepNum;
@@ -483,11 +483,12 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
             if (scheduleType == 'weekly') {
               scheduleData = {
                 'type': 'weekly',
-                'values': selectedDays,
+                'values': selectedDays.isNotEmpty ? selectedDays : [1, 2, 3, 4, 5, 6, 7],
               };
             } else if (scheduleType == 'daily') {
               scheduleData = {
                 'type': 'daily',
+                'values': [1, 2, 3, 4, 5, 6, 7],
               };
             }
 

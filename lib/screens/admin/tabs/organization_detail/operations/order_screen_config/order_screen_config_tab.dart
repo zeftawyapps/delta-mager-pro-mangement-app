@@ -49,12 +49,38 @@ class _OrderScreenConfigTabState extends State<OrderScreenConfigTab> {
   @override
   void initState() {
     super.initState();
-    context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
-    context.read<WorkflowManagementBloc>().loadSpecificConfig(
-      widget.organizationId,
-      entityType: 'orders',
+
+    // Guard: لا نُعيد الطلب إذا كانت البيانات محملة مسبقاً
+    final rolesState = context.read<RolesBloc>().state;
+    final rolesLoaded = rolesState.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
     );
-    context.read<OrderPathBloc>().loadOrderPaths(widget.organizationId);
+    if (!rolesLoaded) {
+      context.read<RolesBloc>().loadRoles(organizationId: widget.organizationId);
+    }
+
+    final wfState = context.read<WorkflowManagementBloc>().state;
+    final wfLoaded = wfState.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
+    );
+    if (!wfLoaded) {
+      context.read<WorkflowManagementBloc>().loadSpecificConfig(
+        widget.organizationId,
+        entityType: 'orders',
+      );
+    }
+
+    final pathState = context.read<OrderPathBloc>().state;
+    final pathLoaded = pathState.listState.maybeWhen(
+      success: (list) => list != null && list.isNotEmpty,
+      orElse: () => false,
+    );
+    if (!pathLoaded) {
+      context.read<OrderPathBloc>().loadOrderPaths(widget.organizationId);
+    }
+
     _loadData();
   }
 
@@ -224,19 +250,34 @@ class _OrderScreenConfigTabState extends State<OrderScreenConfigTab> {
     ).firstOrNull;
     final rolePermissions = selectedRole?.permissions ?? [];
 
-    // 4. استخرج step keys من صلاحيات الدور اللي على شكل order:workflowAction.[stepKey]
+    // 4. استخرج step keys من صلاحيات الدور ومن أدوار الخطوات (stepRole)
     final Set<String> permissionStepKeys = {};
     for (var perm in rolePermissions) {
       final actionMatch = RegExp(r'^order:workflowAction\.(.+)$').firstMatch(perm);
       if (actionMatch != null) {
         permissionStepKeys.add(actionMatch.group(1)!);
       }
-      if (perm == '*:*') {
+      if (perm == '*:*' || perm == '*' || perm.startsWith('order:')) {
         permissionStepKeys.addAll(stepsMap.keys);
       }
     }
 
-    // 5. availableSteps = كل الخطوات اللي في الـ workflow واللي موجودة في صلاحيات الدور
+    // فحص مطابقة دور الخطوة (stepRole) مع اسم أو مفتاح الدور المختار
+    for (var step in selectedConfig.workflow.steps) {
+      if (selectedRole != null &&
+          (step.stepRole == selectedRole.name ||
+           step.stepRole == selectedRole.displayName ||
+           step.stepRole == roleId)) {
+        permissionStepKeys.add(step.stepKey);
+      }
+    }
+
+    // إذا لم توجد صيغة تخصيص معقدة، اعرض جميع خطوات سير العمل المختار بشكل افتراضي لتمكين الأدمن من تخصيصها
+    if (permissionStepKeys.isEmpty) {
+      permissionStepKeys.addAll(stepsMap.keys);
+    }
+
+    // 5. availableSteps = كل الخطوات المتاحة بناءً على الفلترة السابقة
     final List<String> availableSteps = stepsMap.keys.where(
       (stepKey) => permissionStepKeys.contains(stepKey),
     ).toList();

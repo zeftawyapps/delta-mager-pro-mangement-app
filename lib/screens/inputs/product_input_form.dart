@@ -118,11 +118,18 @@ class _ProductInputFormState extends State<ProductInputForm> {
       text: widget.product?.descriptionAr ?? '',
     );
 
-    isDetailedDescriptionHtml = widget.product?.additionalData['isDetailedDescriptionHtml'] == true ||
-        widget.product?.additionalData['isDetailedDescriptionHtml']?.toString().toLowerCase() == 'true';
+    isDetailedDescriptionHtml =
+        widget.product?.additionalData['isDetailedDescriptionHtml'] == true ||
+        widget.product?.additionalData['isDetailedDescriptionHtml']
+                ?.toString()
+                .toLowerCase() ==
+            'true';
 
-    final detailedDesc = widget.product?.additionalData['detailedDescription'] ?? '';
-    _quillDetailedDescriptionController = _initQuillController(isDetailedDescriptionHtml ? detailedDesc : '');
+    final detailedDesc =
+        widget.product?.additionalData['detailedDescription'] ?? '';
+    _quillDetailedDescriptionController = _initQuillController(
+      isDetailedDescriptionHtml ? detailedDesc : '',
+    );
 
     detailedDescriptionController = TextEditingController(
       text: isDetailedDescriptionHtml ? '' : detailedDesc,
@@ -330,6 +337,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
     _quillDetailedDescriptionController.dispose();
     super.dispose();
   }
+
   late final ValidationsForm form;
 
   QuillController _initQuillController(String htmlContent) {
@@ -373,12 +381,14 @@ class _ProductInputFormState extends State<ProductInputForm> {
   }
 
   QuillController _initQuillControllerFromPlainText(String plainText) {
-    final delta = Delta()..insert(plainText.endsWith('\n') ? plainText : '$plainText\n');
+    final delta = Delta()
+      ..insert(plainText.endsWith('\n') ? plainText : '$plainText\n');
     return QuillController(
       document: Document.fromDelta(delta),
       selection: const TextSelection.collapsed(offset: 0),
     );
   }
+
   void _saveProduct() {
     // 1️⃣ إظهار تنبيهات قبل الفحص
     if (selectedCategoryId == null || selectedCategoryId!.isEmpty) {
@@ -409,15 +419,19 @@ class _ProductInputFormState extends State<ProductInputForm> {
         widget.product != null &&
         widget.product!.images.isNotEmpty) {
       final firstImage = widget.product!.images.first;
-      existingUrls.add(firstImage.startsWith(ApiUrls.IMAGE_BASE_URL)
-          ? firstImage.substring(ApiUrls.IMAGE_BASE_URL.length)
-          : firstImage);
+      existingUrls.add(
+        firstImage.startsWith(ApiUrls.IMAGE_BASE_URL)
+            ? firstImage.substring(ApiUrls.IMAGE_BASE_URL.length)
+            : firstImage,
+      );
     }
     for (final img in additionalImages) {
       if (img is String) {
-        existingUrls.add(img.startsWith(ApiUrls.IMAGE_BASE_URL)
-            ? img.substring(ApiUrls.IMAGE_BASE_URL.length)
-            : img);
+        existingUrls.add(
+          img.startsWith(ApiUrls.IMAGE_BASE_URL)
+              ? img.substring(ApiUrls.IMAGE_BASE_URL.length)
+              : img,
+        );
       }
     }
 
@@ -1464,17 +1478,26 @@ class _ProductInputFormState extends State<ProductInputForm> {
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text('تنسيق متقدم (HTML)'),
-                          subtitle: Text('تفعيل خيار تنسيق الخطوط والقوائم في الوصف التفصيلي'),
+                          subtitle: Text(
+                            'تفعيل خيار تنسيق الخطوط والقوائم في الوصف التفصيلي',
+                          ),
                           value: isDetailedDescriptionHtml,
                           activeThumbColor: Theme.of(context).primaryColor,
                           onChanged: (value) {
                             setState(() {
                               isDetailedDescriptionHtml = value;
                               if (value) {
-                                final currentText = detailedDescriptionController.text.trim();
-                                _quillDetailedDescriptionController = _initQuillControllerFromPlainText(currentText);
+                                final currentText =
+                                    detailedDescriptionController.text.trim();
+                                _quillDetailedDescriptionController =
+                                    _initQuillControllerFromPlainText(
+                                      currentText,
+                                    );
                               } else {
-                                detailedDescriptionController.text = _quillToPlainText(_quillDetailedDescriptionController);
+                                detailedDescriptionController.text =
+                                    _quillToPlainText(
+                                      _quillDetailedDescriptionController,
+                                    );
                               }
                             });
                           },
@@ -1485,7 +1508,9 @@ class _ProductInputFormState extends State<ProductInputForm> {
                             height: 280,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.grey[700]!
                                     : Colors.grey[350]!,
                               ),
@@ -1496,7 +1521,8 @@ class _ProductInputFormState extends State<ProductInputForm> {
                                 SizedBox(
                                   height: 44,
                                   child: QuillSimpleToolbar(
-                                    controller: _quillDetailedDescriptionController,
+                                    controller:
+                                        _quillDetailedDescriptionController,
                                     config: const QuillSimpleToolbarConfig(
                                       showFontFamily: false,
                                       showFontSize: false,
@@ -1515,9 +1541,11 @@ class _ProductInputFormState extends State<ProductInputForm> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: QuillEditor.basic(
-                                      controller: _quillDetailedDescriptionController,
+                                      controller:
+                                          _quillDetailedDescriptionController,
                                       config: const QuillEditorConfig(
-                                        placeholder: "ابدأ بكتابة الوصف التفصيلي المنسق هنا...",
+                                        placeholder:
+                                            "ابدأ بكتابة الوصف التفصيلي المنسق هنا...",
                                         expands: true,
                                         scrollable: true,
                                       ),

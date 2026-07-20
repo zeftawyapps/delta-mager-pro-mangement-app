@@ -534,8 +534,17 @@ class _CartScreenState extends State<CartScreen> {
                       return;
                     }
 
-                    final orderMode = B2bHomeConfig.defaultOrderMode;
-                    final workflowSlug = B2bHomeConfig.defaultWorkflowSlug;
+                    final currentPriceType = appChanges.priceType;
+                    final bool isWholesaleMode = currentPriceType == 'wholesale' || currentPriceType == 'distributor';
+
+                    final String orderMode = isWholesaleMode ? "B2B" : B2bHomeConfig.defaultOrderMode;
+                    final String? rawWorkflowSlug = isWholesaleMode
+                        ? (B2bHomeConfig.wholesaleWorkflowSlug?.isNotEmpty == true
+                            ? B2bHomeConfig.wholesaleWorkflowSlug
+                            : B2bHomeConfig.defaultWorkflowSlug)
+                        : B2bHomeConfig.defaultWorkflowSlug;
+                    final String? workflowSlug = (rawWorkflowSlug != null && rawWorkflowSlug.isNotEmpty) ? rawWorkflowSlug : null;
+
                     final calculationMode =
                         B2bHomeConfig.defaultCalculationMode;
 
@@ -544,7 +553,7 @@ class _CartScreenState extends State<CartScreen> {
                       items: cart.getOrderItems(),
                       totalOrderPrice: cart.totalAmount,
                       orderMode: orderMode,
-                      workflowSlug: workflowSlug != "" ? workflowSlug : null,
+                      workflowSlug: workflowSlug,
                       calculationMode: calculationMode,
                       senderOrganizationId: user?.organizationId,
                       additionalCalculation: cart.getAdditionalCalculations(),

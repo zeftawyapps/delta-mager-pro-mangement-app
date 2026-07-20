@@ -19,6 +19,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
     int? currentStepIndex,
     String? workflowSlug,
     String? orderPathId,
+    bool? sortByDistance,
+    double? latitude,
+    double? longitude,
   }) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
     final finalSlug = (workflowSlug == null || workflowSlug.isEmpty) ? 'default' : workflowSlug;
@@ -28,6 +31,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
       currentStepIndex: currentStepIndex,
       workflowSlug: finalSlug,
       orderPathId: orderPathId,
+      sortByDistance: sortByDistance,
+      latitude: latitude,
+      longitude: longitude,
     );
 
     if (result.status == StatusModel.success) {
@@ -46,6 +52,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
                 currentStepIndex: currentStepIndex,
                 workflowSlug: workflowSlug,
                 orderPathId: orderPathId,
+                sortByDistance: sortByDistance,
+                latitude: latitude,
+                longitude: longitude,
               ),
             ),
           ),
@@ -64,6 +73,9 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
               currentStepIndex: currentStepIndex,
               workflowSlug: workflowSlug,
               orderPathId: orderPathId,
+              sortByDistance: sortByDistance,
+              latitude: latitude,
+              longitude: longitude,
             ),
           ),
         ),

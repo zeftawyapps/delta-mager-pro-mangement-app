@@ -294,6 +294,88 @@ class _SystemInfoTabState extends State<SystemInfoTab> {
                       ),
                     ],
                   ),
+
+                  // --- Customer Auth Strategy Section ---
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Icon(Icons.security_rounded, color: primaryColor, size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        "إعدادات سياسة دخول العملاء (Customer Auth)",
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final crossAxisCount = width < 600
+                          ? 1
+                          : (width < 950 ? 2 : 4);
+
+                      return GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: width < 600 ? 3.0 : 2.0,
+                        children: [
+                          _buildInfoCard(
+                            title: "المعرف الأساسي للدخول",
+                            value: (systemInfo.customerAuthPrimaryIdentifier ?? 'any').toUpperCase(),
+                            icon: Icons.badge_rounded,
+                            color: Colors.blue,
+                            surfaceColor: surfaceColor,
+                            textColor: textColor,
+                            subtitleColor: subtitleColor,
+                            isDark: isDark,
+                          ),
+                          _buildInfoCard(
+                            title: "طلب الهاتف عند التسجيل",
+                            value: (systemInfo.customerRequirePhoneOnSignup ?? false)
+                                ? "إلزامي (Required)"
+                                : "اختياري (Optional)",
+                            icon: Icons.phone_android_rounded,
+                            color: (systemInfo.customerRequirePhoneOnSignup ?? false) ? Colors.red : Colors.green,
+                            surfaceColor: surfaceColor,
+                            textColor: textColor,
+                            subtitleColor: subtitleColor,
+                            isDark: isDark,
+                          ),
+                          _buildInfoCard(
+                            title: "توليد اسم المستخدم تلقائياً",
+                            value: (systemInfo.customerAutoGenerateUsername ?? true)
+                                ? "مفعل (Enabled)"
+                                : "معطل (Disabled)",
+                            icon: Icons.account_circle_rounded,
+                            color: (systemInfo.customerAutoGenerateUsername ?? true) ? Colors.green : Colors.grey,
+                            surfaceColor: surfaceColor,
+                            textColor: textColor,
+                            subtitleColor: subtitleColor,
+                            isDark: isDark,
+                          ),
+                          _buildInfoCard(
+                            title: "التسجيل السريع للعميل",
+                            value: (systemInfo.customerQuickSignupEnabled ?? true)
+                                ? "مفعل (Enabled)"
+                                : "معطل (Disabled)",
+                            icon: Icons.bolt_rounded,
+                            color: (systemInfo.customerQuickSignupEnabled ?? true) ? Colors.amber : Colors.grey,
+                            surfaceColor: surfaceColor,
+                            textColor: textColor,
+                            subtitleColor: subtitleColor,
+                            isDark: isDark,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             );

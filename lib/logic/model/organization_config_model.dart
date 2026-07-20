@@ -8,7 +8,10 @@ export 'package:matger_pro_core_logic/core/orgnization/data/organization_config.
         VisualConfig,
         ThemesConfig,
         LayoutConfig,
-        SystemLicenseConfig;
+        SystemLicenseConfig,
+        CustomerAuthConfig,
+        CustomerRolesConfig,
+        RolePermissionsRule;
 
 class OrganizationConfigModel extends OrganizationConfig
     implements BaseViewDataModel {
@@ -23,6 +26,8 @@ class OrganizationConfigModel extends OrganizationConfig
     super.b2bHomeLayout,
     super.ordersConfig,
     super.website,
+    super.customerAuth,
+    super.customerRoles,
   });
 
   factory OrganizationConfigModel.fromData(OrganizationConfig data) {
@@ -37,6 +42,8 @@ class OrganizationConfigModel extends OrganizationConfig
       b2bHomeLayout: data.b2bHomeLayout,
       ordersConfig: data.ordersConfig,
       website: data.website,
+      customerAuth: data.customerAuth,
+      customerRoles: data.customerRoles,
     );
   }
 

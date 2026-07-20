@@ -1,4 +1,5 @@
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
+import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -15,9 +16,8 @@ import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/version_check_result.dart';
 import 'package:delta_mager_pro_mangement_app/logic/services/version_check_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
-import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
 import 'package:JoDija_reposatory/constes/api_urls.dart';
+import 'package:JoDija_tamplites/util/localization/loclization/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget with AppShellRouterMixin {
   SplashScreen({super.key});
@@ -41,32 +41,38 @@ class _SplashScreenState extends State<SplashScreen> {
   void _loadInitialData() {
     final systemBloc = context.read<SystemBloc>();
     final configBloc = context.read<OrganizationConfigBloc>();
+    final appChanges = context.read<AppChangesValues>();
 
-    // التحقق من الحالة الحالية لكل Bloc لمنع التحميل المتكرر عند إعادة بناء الشاشة (Remount)
-    // أو في حالة وجود خطأ سابق (حتى لا يتم الدخول في حلقة مفرغة من الطلبات)
-
-    bool canLoadSystem = true;
-    systemBloc.state.itemState.maybeWhen(
-      loading: () => canLoadSystem = false,
-      success: (_) => canLoadSystem = false,
-      failure: (_, __) => canLoadSystem = false,
-      orElse: () {},
-    );
-
-    if (canLoadSystem) {
+    // إذا تم استدعاء الـ Splash وكان التطبيق غير مهيأ (Reload)
+    // نقوم بإجبار الـ Blocs على التحميل مجدداً
+    if (!appChanges.isInitialized) {
       systemBloc.loadSystemInfo();
-    }
-
-    bool canLoadConfig = true;
-    configBloc.state.itemState.maybeWhen(
-      loading: () => canLoadConfig = false,
-      success: (_) => canLoadConfig = false,
-      failure: (_, __) => canLoadConfig = false,
-      orElse: () {},
-    );
-
-    if (canLoadConfig) {
       configBloc.getOrganizationConfigByName(AppRoutes.activeOrgName);
+    } else {
+      // التحقق العادي لمنع التحميل المتكرر
+      bool canLoadSystem = true;
+      systemBloc.state.itemState.maybeWhen(
+        loading: () => canLoadSystem = false,
+        success: (_) => canLoadSystem = false,
+        failure: (_, __) => canLoadSystem = false,
+        orElse: () {},
+      );
+
+      if (canLoadSystem) {
+        systemBloc.loadSystemInfo();
+      }
+
+      bool canLoadConfig = true;
+      configBloc.state.itemState.maybeWhen(
+        loading: () => canLoadConfig = false,
+        success: (_) => canLoadConfig = false,
+        failure: (_, __) => canLoadConfig = false,
+        orElse: () {},
+      );
+
+      if (canLoadConfig) {
+        configBloc.getOrganizationConfigByName(AppRoutes.activeOrgName);
+      }
     }
 
     // التحقق الفوري: إذا كانت البيانات محملة مسبقاً، ننتقل مباشرة
@@ -133,34 +139,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void _proceedToLogin() {
     if (!mounted) return;
 
-    // Check for saved user first before redirecting to login screen
-    context.read<AuthBloc>().checkSavedUser(
-      onUserFound: (user) {
-        if (mounted) {
-          final appChanges = context.read<AppChangesValues>();
-          final laseRoute = appChanges.laseRoute;
-
-          // If we reloaded a protected page, navigate back to it
-          if (laseRoute != null &&
-              laseRoute != AppRoutes.welcome &&
-              laseRoute != AppRoutes.splash &&
-              !laseRoute.contains('/login') &&
-              !laseRoute.contains('/welcom')) {
-            widget.goRoute(context, laseRoute, replace: true);
-          } else {
-            widget.goRoute(context, AppRoutes.welcome, replace: true);
-          }
-        }
-      },
-      onUserNotFound: () {
-        if (mounted) {
-          widget.goRoute(
-            context,
-            AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
-            replace: true,
-          );
-        }
-      },
+    // Splash only bootstraps system/config, then always hands off to the login
+    // screen. The login screen auto-logs-in when a saved session exists and then
+    // routes to the welcome screen (which applies the permission filtering).
+    widget.goRoute(
+      context,
+      AppRoutes.loginWithOrgName(AppRoutes.activeOrgName),
+      replace: true,
     );
   }
 
@@ -171,6 +156,7 @@ class _SplashScreenState extends State<SplashScreen> {
           !result.forceUpdate, // منع الإغلاق إذا كان التحديث إجبارياً
       builder: (BuildContext context) {
         final primaryColor = AppColors.primary;
+        final tr = Translation().appLocal.values;
         return WillPopScope(
           onWillPop: () async =>
               !result.forceUpdate, // منع زر الرجوع في الأندرويد
@@ -220,8 +206,8 @@ class _SplashScreenState extends State<SplashScreen> {
                           const SizedBox(height: 12),
                           Text(
                             result.forceUpdate
-                                ? "تحديث إجباري جديد"
-                                : "يتوفر تحديث جديد",
+                                ? tr['update_force_title']!
+                                : tr['update_available_title']!,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -230,7 +216,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "إصدار ${result.latestVersion} (بناء ${result.buildIndex})",
+                            "${tr['version_short']} ${result.latestVersion} (${tr['build']} ${result.buildIndex})",
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
@@ -248,8 +234,8 @@ class _SplashScreenState extends State<SplashScreen> {
                         children: [
                           Text(
                             result.forceUpdate
-                                ? "لضمان استمرارية تشغيل الخدمات والمبيعات، يجب تحديث التطبيق إلى الإصدار الجديد فوراً."
-                                : "يسعدنا أن نقدم لكم هذا التحديث الجديد لتحسين الأداء وإضافة مميزات جديدة.",
+                                ? tr['update_force_message']!
+                                : tr['update_optional_message']!,
                             style: const TextStyle(
                               fontSize: 14,
                               height: 1.5,
@@ -258,9 +244,9 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                           if (result.releaseNotes.isNotEmpty) ...[
                             const SizedBox(height: 16),
-                            const Text(
-                              "أبرز التحديثات والمميزات:",
-                              style: TextStyle(
+                            Text(
+                              tr['update_highlights']!,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -328,9 +314,11 @@ class _SplashScreenState extends State<SplashScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text(
-                                  "لاحقاً",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                child: Text(
+                                  tr['later']!,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
@@ -359,9 +347,11 @@ class _SplashScreenState extends State<SplashScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text(
-                                "تحديث الآن",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                              child: Text(
+                                tr['update_now']!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -422,6 +412,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translation().appLocal.values;
     return MultiBlocListener(
       listeners: [
         BlocListener<SystemBloc, FeaturDataSourceState<SystemInfoModel>>(
@@ -517,7 +508,10 @@ class _SplashScreenState extends State<SplashScreen> {
                       }
 
                       // العرض الافتراضي (التحميل)
-                      return _buildSplashUI(AppStrings.appName, "جاري البدء...");
+                      return _buildSplashUI(
+                        AppStrings.appName,
+                        tr['splash_starting']!,
+                      );
                     },
                   );
                 },
@@ -530,7 +524,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "الإصدار ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
+                      "${tr['version']} ${AppShellLocalConfigs.appVersion} (${AppShellLocalConfigs.appBuildIndex})",
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 12,
@@ -538,7 +532,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "جميع الحقوق محفوظة © ${DateTime.now().year}",
+                      "${tr['all_rights_reserved']} © ${DateTime.now().year}",
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 10,
@@ -566,24 +560,40 @@ class _SplashScreenState extends State<SplashScreen> {
         : ((systemLogo != null && systemLogo.isNotEmpty) ? systemLogo : null);
 
     final activeLogo = (rawLogo != null && rawLogo.isNotEmpty)
-        ? (rawLogo.contains('http') ? rawLogo : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
+        ? (rawLogo.contains('http')
+              ? rawLogo
+              : '${ApiUrls.IMAGE_BASE_URL}$rawLogo')
         : null;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          activeLogo != null
-              ? Image.network(
-                  activeLogo,
-                  width: 120,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Image.asset(AppAsset.logo, width: 120),
-                )
-              : Image.asset(
-                  AppAsset.logo,
-                  width: 120,
-                ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: const BoxDecoration(shape: BoxShape.circle),
+            clipBehavior: Clip.antiAlias,
+            child: activeLogo != null
+                ? Image.network(
+                    activeLogo,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      AppAsset.logo,
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Image.asset(
+                    AppAsset.logo,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
+          ),
           const SizedBox(height: 16),
           Text(
             title,
@@ -619,6 +629,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Widget _buildErrorUI(String message, VoidCallback? onRetry) {
+    final tr = Translation().appLocal.values;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -641,9 +652,9 @@ class _SplashScreenState extends State<SplashScreen> {
                 .shake(duration: 600.ms)
                 .scale(duration: 400.ms, curve: Curves.easeOut),
             const SizedBox(height: 32),
-            const Text(
-              "حدث خطأ أثناء التشغيل",
-              style: TextStyle(
+            Text(
+              tr['error_on_startup']!,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -664,9 +675,12 @@ class _SplashScreenState extends State<SplashScreen> {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text(
-                  "إعادة المحاولة",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  tr['retry']!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,

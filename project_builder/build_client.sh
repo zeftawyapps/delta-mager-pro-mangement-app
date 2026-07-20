@@ -151,6 +151,18 @@ if [ -z "$DASHBOARD_TARGET" ]; then DASHBOARD_TARGET="lib/main_dashboard.dart"; 
 if [ -z "$ADMIN_TARGET" ]; then ADMIN_TARGET="lib/main_admin.dart"; fi
 
 if [ -z "$DASHBOARD_SITE" ]; then
+    DASHBOARD_SITE="$(yaml_read "firebase.hosting.client")"
+fi
+if [ -z "$DASHBOARD_SITE" ]; then
+    DASHBOARD_SITE="$(yaml_read "firebase.hosting.cleint")"
+fi
+if [ -z "$DASHBOARD_SITE" ]; then
+    DASHBOARD_SITE="$(yaml_read "firebase.hosting.clientApp")"
+fi
+if [ -z "$DASHBOARD_SITE" ]; then
+    DASHBOARD_SITE="$(yaml_read "firebase.hosting.cleintApp")"
+fi
+if [ -z "$DASHBOARD_SITE" ]; then
     DASHBOARD_SITE="$(yaml_read "firebase.hosting.dashboard")"
 fi
 if [ -z "$ADMIN_SITE" ]; then
@@ -325,9 +337,11 @@ EOF
     echo -e "\n${YELLOW}🚀 Deploying ${app_name} to Firebase site [${hosting_site}]...${NC}"
     cd "$CLIENT_APP_DIR" || exit 1
     if [ -n "$FIREBASE_PROJECT" ]; then
-        firebase deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT"
+        echo -e "${CYAN}📌 Setting active Firebase project context to [${FIREBASE_PROJECT}]...${NC}"
+        firebase use "$FIREBASE_PROJECT" 2>/dev/null || npx -y firebase-tools use "$FIREBASE_PROJECT" 2>/dev/null || true
+        firebase deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT" || npx -y firebase-tools deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT"
     else
-        firebase deploy --only hosting --config "$tmp_firebase_json"
+        firebase deploy --only hosting --config "$tmp_firebase_json" || npx -y firebase-tools deploy --only hosting --config "$tmp_firebase_json"
     fi
     local deploy_exit_code=$?
     rm -f "$tmp_firebase_json"

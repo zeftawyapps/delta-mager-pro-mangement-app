@@ -18,9 +18,23 @@ class AppChangesValues extends ChangeNotifier {
 
   Users? user;
   UserViewProfileModel? userProfile;
+  String? priceType;
 
   AppChangesValues() {
     _captureInitialRoute();
+  }
+
+  void setPriceType(String? type) async {
+    if (priceType != type) {
+      priceType = type;
+      final prefs = await SharedPreferences.getInstance();
+      if (type != null && type.isNotEmpty) {
+        await prefs.setString('price_type_mode', type);
+      } else {
+        await prefs.remove('price_type_mode');
+      }
+      notifyListeners();
+    }
   }
 
   void _captureInitialRoute() {
@@ -39,6 +53,11 @@ class AppChangesValues extends ChangeNotifier {
       }
 
       final decodedPath = Uri.decodeComponent(currentPath);
+
+      final urlPriceType = uri.queryParameters['priceType'] ?? uri.queryParameters['mode'];
+      if (urlPriceType != null) {
+        priceType = urlPriceType;
+      }
 
       if (decodedPath.isNotEmpty &&
           decodedPath != '/' &&
@@ -71,6 +90,11 @@ class AppChangesValues extends ChangeNotifier {
   Future<void> loadUserFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      
+      if (priceType == null) {
+        priceType = prefs.getString('price_type_mode');
+      }
+
       final userJson = prefs.getString('cached_user_data');
       if (userJson != null) {
         final Map<String, dynamic> userData = jsonDecode(userJson);
@@ -96,6 +120,20 @@ class AppChangesValues extends ChangeNotifier {
     }
   }
 
+  void setInitialized(bool value) {
+    if (isInitialized != value) {
+      isInitialized = value;
+      notifyListeners();
+    }
+  }
+
+  /// إعادة تعيين حالة التطبيق لإجبار الـ Managers (SystemManager, OrgLifecycleManager)
+  /// على إعادة التحميل والتوجه لـ SplashScreen
+  void resetInitialization() {
+    isInitialized = false;
+    notifyListeners();
+  }
+
   void setUserProfile(UserViewProfileModel? profile) {
     if (userProfile != profile) {
       userProfile = profile;
@@ -113,6 +151,12 @@ class AppChangesValues extends ChangeNotifier {
     var user = changvalue.user;
 
     if (!changvalue.isInitialized) {
+      assert(() {
+        debugPrint(
+          '[checkAuth][debug] not initialized -> splash, user=${user?.username}',
+        );
+        return true;
+      }());
       return SplashScreen();
     }
 

@@ -44,11 +44,21 @@ class _OrganizationInputFormState extends State<OrganizationInputForm> {
   @override
   void initState() {
     super.initState();
-    orgNameController = TextEditingController(text: widget.organization?.orgName ?? '');
-    nameController = TextEditingController(text: widget.organization?.name ?? '');
-    emailController = TextEditingController(text: widget.organization?.email ?? '');
-    phoneController = TextEditingController(text: widget.organization?.phone ?? '');
-    addressController = TextEditingController(text: widget.organization?.address ?? '');
+    orgNameController = TextEditingController(
+      text: widget.organization?.orgName ?? '',
+    );
+    nameController = TextEditingController(
+      text: widget.organization?.name ?? '',
+    );
+    emailController = TextEditingController(
+      text: widget.organization?.email ?? '',
+    );
+    phoneController = TextEditingController(
+      text: widget.organization?.phone ?? '',
+    );
+    addressController = TextEditingController(
+      text: widget.organization?.address ?? '',
+    );
 
     selectedCountryId = widget.organization?.countryId;
     selectedGovernorateId = widget.organization?.governorateId;
@@ -158,8 +168,13 @@ class _OrganizationInputFormState extends State<OrganizationInputForm> {
                 children: [
                   const CloseButton(),
                   Text(
-                    widget.organization != null ? "تعديل بيانات المنظمة" : "بيانات إنشاء منظمة جديدة",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    widget.organization != null
+                        ? "تعديل بيانات المنظمة"
+                        : "بيانات إنشاء منظمة جديدة",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(width: 48),
                 ],
@@ -534,16 +549,16 @@ class _OrganizationInputFormState extends State<OrganizationInputForm> {
                                     ),
                                   )
                                 : Icon(
-                                  widget.organization != null
-                                      ? Icons.edit
-                                      : Icons.add_business,
-                                ),
+                                    widget.organization != null
+                                        ? Icons.edit
+                                        : Icons.add_business,
+                                  ),
                             label: Text(
                               isLoad
                                   ? 'جاري الحفظ...'
                                   : (widget.organization != null
-                                      ? 'تحديث البيانات'
-                                      : 'إنشاء المنظمة والمالك'),
+                                        ? 'تحديث البيانات'
+                                        : 'إنشاء المنظمة والمالك'),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

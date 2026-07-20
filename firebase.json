@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "local-admin",
+    "site": "tantest-admin",
     "public": "build/web",
     "ignore": [
       "firebase.json",

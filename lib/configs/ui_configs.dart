@@ -1,13 +1,18 @@
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/models/app_bar_config.dart';
+import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/settings_provider.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
 import 'package:JoDija_tamplites/util/localization/loaclized_init.dart';
 import 'package:JoDija_tamplites/util/localization/loclization/app_localizations.dart';
+import 'package:delta_mager_pro_mangement_app/loclization/app_localizations_ar.dart';
+import 'package:delta_mager_pro_mangement_app/loclization/app_localizations_en.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/auth_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/organization_config_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/bloc/system_bloc.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
+import 'package:delta_mager_pro_mangement_app/configs/cp_screens_config.dart';
+import 'package:delta_mager_pro_mangement_app/configs/sidbarItmes.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/configs/dialog_configs.dart';
 import 'package:matger_pro_core_logic/core/auth/data/user_profile_model.dart';
@@ -16,6 +21,10 @@ import 'package:delta_mager_pro_mangement_app/screens/inputs/profile_input_form.
 import 'package:delta_mager_pro_mangement_app/screens/inputs/organization_input_form.dart';
 import 'package:delta_mager_pro_mangement_app/screens/inputs/change_password_form.dart';
 import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:delta_mager_pro_mangement_app/configs/app_backend_env.dart';
+import 'package:delta_mager_pro_mangement_app/logic/services/json_config_service.dart';
+import 'package:JoDija_tamplites/util/localization/loclization/laoclization.inits.dart';
+import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/providers/sidebar_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +36,7 @@ class DefaultAppLocal extends AppLocal {
 
 class LocalizationConfigs {
   static Map<String, AppLocalizationsInit> buildLocalizations() {
-    return {'ar': DefaultAppLocal(), 'en': DefaultAppLocal()};
+    return {'ar': AppLocalizationsAr(), 'en': AppLocalizationsEn()};
   }
 }
 
@@ -54,6 +63,7 @@ class AppBarConfigs {
   }
 
   static AppBarConfig buildLargeScreenAppBar(BuildContext context) {
+    final tr = Translation().appLocal.values;
     final config = context
         .read<OrganizationConfigBloc>()
         .state
@@ -66,7 +76,7 @@ class AppBarConfigs {
     );
 
     final String title = config?.layout?.appTitle != null
-        ? "${config!.layout!.appTitle} - نظام الإدارة"
+        ? "${config!.layout!.appTitle} - ${tr['appbar_management_system']!}"
         : systemInfo?.appName ??
               '${AppShellConfigs.titleApp} Management System';
 
@@ -92,44 +102,74 @@ class AppBarConfigs {
               borderRadius: BorderRadius.circular(15),
             ),
             elevation: 8,
-            tooltip: 'قائمة المستخدم',
+            tooltip: Translation().appLocal.values['menu_user_tooltip'],
             onSelected: (value) => _handleMenuSelection(context, value, user),
-            itemBuilder: (context) => [
-              PopupMenuItem<String>(
-                value: 'profile',
-                child: _buildMenuItem(
-                  icon: Icons.person_outline,
-                  title: 'الملف الشخصي',
-                  iconColor: Colors.blue,
-                ),
-              ),
-              if (canUpdateOrg)
+            itemBuilder: (menuContext) {
+              // تُقرأ الترجمة وحالة الإعدادات وقت فتح القائمة لتعكس اللغة/الثيم الحاليين
+              final tr = Translation().appLocal.values;
+              final settings = menuContext.read<SettingsProvider>();
+              return [
                 PopupMenuItem<String>(
-                  value: 'organization',
+                  value: 'profile',
                   child: _buildMenuItem(
-                    icon: Icons.business_outlined,
-                    title: 'بيانات المنظمة',
-                    iconColor: Colors.green,
+                    icon: Icons.person_outline,
+                    title: tr['menu_profile']!,
+                    iconColor: Colors.blue,
                   ),
                 ),
-              PopupMenuItem<String>(
-                value: 'change_password',
-                child: _buildMenuItem(
-                  icon: Icons.lock_outline,
-                  title: 'تغيير كلمة المرور',
-                  iconColor: Colors.orange,
+                if (canUpdateOrg)
+                  PopupMenuItem<String>(
+                    value: 'organization',
+                    child: _buildMenuItem(
+                      icon: Icons.business_outlined,
+                      title: tr['menu_organization']!,
+                      iconColor: Colors.green,
+                    ),
+                  ),
+                PopupMenuItem<String>(
+                  value: 'change_password',
+                  child: _buildMenuItem(
+                    icon: Icons.lock_outline,
+                    title: tr['menu_change_password']!,
+                    iconColor: Colors.orange,
+                  ),
                 ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem<String>(
-                value: 'logout',
-                child: _buildMenuItem(
-                  icon: Icons.logout,
-                  title: 'تسجيل الخروج',
-                  iconColor: Colors.red,
+                const PopupMenuDivider(),
+                // 🌐 تبديل اللغة (يعرض اللغة التي سيتم التحويل إليها)
+                PopupMenuItem<String>(
+                  value: 'language',
+                  child: _buildMenuItem(
+                    icon: Icons.translate,
+                    title: settings.languageCode == 'ar'
+                        ? 'English'
+                        : 'العربية',
+                    iconColor: Colors.teal,
+                  ),
                 ),
-              ),
-            ],
+                // 🌗 تبديل الوضع الفاتح/الداكن
+                PopupMenuItem<String>(
+                  value: 'theme',
+                  child: _buildMenuItem(
+                    icon: settings.isDarkMode
+                        ? Icons.light_mode_outlined
+                        : Icons.dark_mode_outlined,
+                    title: settings.isDarkMode
+                        ? tr['menu_theme_light']!
+                        : tr['menu_theme_dark']!,
+                    iconColor: Colors.indigo,
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: _buildMenuItem(
+                    icon: Icons.logout,
+                    title: tr['menu_logout']!,
+                    iconColor: Colors.red,
+                  ),
+                ),
+              ];
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
@@ -183,7 +223,8 @@ class AppBarConfigs {
                           ),
                         ),
                       Text(
-                        user.roles?.join(', ') ?? 'مستخدم',
+                        user.roles?.join(', ') ??
+                            Translation().appLocal.values['role_user_default']!,
                         style: const TextStyle(fontSize: 8, color: Colors.grey),
                       ),
                     ],
@@ -214,6 +255,45 @@ class AppBarConfigs {
         break;
       case 'change_password':
         _showChangePasswordDialog(context);
+        break;
+      case 'language':
+        // 🌐 تنفيذ الـ Reload المطلوب عبر إرسال التطبيق لحالة "غير مهيأ"
+        // مما يفعّل منطق الـ SystemManager للعودة لـ SplashScreen وجلب بيانات جديدة
+        final settings = context.read<SettingsProvider>();
+        final appChanges = context.read<AppChangesValues>();
+        final newLanguage = settings.languageCode == 'ar' ? 'en' : 'ar';
+
+        // 1. تحديث اللغة في الـ Provider والـ Cache
+        settings.setLanguage(newLanguage);
+        JsonConfigService().setUserLanguage(newLanguage);
+        AppShellConfigs.languageCode = newLanguage;
+
+        // 2. تحديث الـ API Headers باللغة الجديدة فوراً
+        AppBackendEnv().initConfigration(AppBackendEnv.currentEnv);
+
+        // 3. تحديث سينجلتون الترجمة لضمان قراءة القيم الجديدة
+        LocalizationInit(
+          LocalizationConfigs.buildLocalizations(),
+        ).setAppLocal(newLanguage);
+
+        // 4. الـ Reload: مسح حالة التهيئة وإجبار الـ Blocs على إعادة التحميل
+        // هذا سيجعل SystemManager.getSystemConfig يعيد توجيه المستخدم لـ SplashScreen
+        context
+            .read<SystemBloc>()
+            .loadSystemInfo(); // إجبار الـ SystemBloc على التحميل مجدداً
+        context.read<OrganizationConfigBloc>().getOrganizationConfigByName(
+          AppRoutes.activeOrgName,
+        ); // إجبار الـ ConfigBloc على التحميل مجدداً
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appChanges.resetInitialization();
+          // العودة للـ Splash باستخدام AppShellRoutes().goRoute لضمان التوافق مع الـ Router
+          AppShellRoutes().goRoute(context, AppRoutes.splash, replace: true);
+        });
+        break;
+      case 'theme':
+        // 🌗 تبديل الوضع الفاتح/الداكن عبر SettingsProvider
+        context.read<SettingsProvider>().toggleTheme();
         break;
       case 'logout':
         _handleLogout(context);
@@ -304,15 +384,16 @@ class AppBarConfigs {
 
   /// تنفيذ عملية تسجيل الخروج
   static void _handleLogout(BuildContext context) {
+    final tr = Translation().appLocal.values;
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('تسجيل الخروج'),
-        content: const Text('هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+        title: Text(tr['menu_logout']!),
+        content: Text(tr['logout_confirm_message']!),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('إلغاء'),
+            child: Text(tr['cancel']!),
           ),
           TextButton(
             onPressed: () async {
@@ -327,7 +408,7 @@ class AppBarConfigs {
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('تسجيل الخروج'),
+            child: Text(tr['menu_logout']!),
           ),
         ],
       ),
