@@ -30,7 +30,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading users"),
-            () => loadUsers(organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -57,7 +57,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
             ErrorStateModel(
               message: result.message ?? "Error loading your profile",
             ),
-            () => loadMyProfile(),
+            () {},
           ),
         ),
       );
@@ -65,6 +65,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
   }
 
   Future<void> createUser({
+    String? name,
     required String username,
     required String email,
     required String password,
@@ -72,9 +73,13 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     List<String> roles = const [],
     String? address,
     String? organizationId,
+    String? countryId,
+    String? governorateId,
+    String? cityId,
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.createNewUser(
+      name: name,
       username: username,
       email: email,
       password: password,
@@ -82,6 +87,9 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
       roles: roles,
       address: address,
       organizationId: organizationId,
+      countryId: countryId,
+      governorateId: governorateId,
+      cityId: cityId,
     );
 
     if (result.status == StatusModel.success && result.data != null) {
@@ -98,15 +106,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error creating user"),
-            () => createUser(
-              username: username,
-              email: email,
-              password: password,
-              phone: phone,
-              roles: roles,
-              address: address,
-              organizationId: organizationId,
-            ),
+            () {},
           ),
         ),
       );
@@ -115,6 +115,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
 
   Future<void> updateUser({
     required String userId,
+    String? name,
     String? username,
     String? email,
     String? phone,
@@ -130,6 +131,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateProfile(
       userId: userId,
+      name: name,
       username: username,
       email: email,
       phone: phone,
@@ -157,20 +159,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error updating user"),
-            () => updateUser(
-              userId: userId,
-              username: username,
-              email: email,
-              phone: phone,
-              address: address,
-              isActive: isActive,
-              roles: roles,
-              organizationId: organizationId,
-              countryId: countryId,
-              governorateId: governorateId,
-              cityId: cityId,
-              additionalFields: additionalFields,
-            ),
+            () {},
           ),
         ),
       );
@@ -178,6 +167,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
   }
 
   Future<void> updateMyProfile({
+    String? name,
     String? username,
     String? email,
     String? phone,
@@ -190,6 +180,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
   }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.updateMyProfile(
+      name: name,
       username: username,
       email: email,
       phone: phone,
@@ -217,17 +208,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
             ErrorStateModel(
               message: result.message ?? "Error updating your profile",
             ),
-            () => updateMyProfile(
-              username: username,
-              email: email,
-              phone: phone,
-              address: address,
-              organizationId: organizationId,
-              countryId: countryId,
-              governorateId: governorateId,
-              cityId: cityId,
-              additionalFields: additionalFields,
-            ),
+            () {},
           ),
         ),
       );
@@ -293,18 +274,16 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error searching users"),
-            () => searchUsers(term, organizationId: organizationId),
+            () {},
           ),
         ),
       );
     }
   }
 
-  Future<void> loadExternalCustomers({String? organizationId}) async {
+  Future<void> loadCustomersByRole({String? organizationId}) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
-    final result = await repo.searchExternalCustomers(
-      organizationId: organizationId,
-    );
+    final result = await repo.getProfilesByRole('customer');
 
     if (result.status == StatusModel.success) {
       final users =
@@ -318,14 +297,14 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
             ErrorStateModel(
               message: result.message ?? "Error loading customers",
             ),
-            () => loadExternalCustomers(organizationId: organizationId),
+            () {},
           ),
         ),
       );
     }
   }
 
-  Future<void> searchExternalCustomers(
+  Future<void> searchCustomersByRole(
     String? term, {
     String? organizationId,
   }) async {
@@ -338,7 +317,7 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
     if (result.status == StatusModel.success) {
       final users =
           result.data?.map((e) => UserViewProfileModel.fromData(e)).toList() ??
-          [];
+          <UserViewProfileModel>[];
       emit(state.copyWith(listState: DataSourceBaseState.success(users)));
     } else {
       emit(
@@ -347,10 +326,21 @@ class UsersBloc extends Cubit<FeaturDataSourceState<UserViewProfileModel>> {
             ErrorStateModel(
               message: result.message ?? "Error searching customers",
             ),
-            () => searchExternalCustomers(term, organizationId: organizationId),
+            () {},
           ),
         ),
       );
     }
+  }
+
+  Future<void> loadExternalCustomers({String? organizationId}) async {
+    return loadCustomersByRole(organizationId: organizationId);
+  }
+
+  Future<void> searchExternalCustomers(
+    String? term, {
+    String? organizationId,
+  }) async {
+    return searchCustomersByRole(term, organizationId: organizationId);
   }
 }

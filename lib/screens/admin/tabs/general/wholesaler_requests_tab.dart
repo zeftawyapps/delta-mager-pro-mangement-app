@@ -60,7 +60,7 @@ class _WholesalerRequestsTabState extends State<WholesalerRequestsTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('المستخدم: ${request.username ?? request.email ?? request.userId}'),
+              Text('المستخدم: ${request.name ?? request.username ?? request.email ?? request.userId}'),
               const SizedBox(height: 8),
               Text(
                 'الدور المطلوب الترقية إليه: ${request.requestedRoleName}',
@@ -93,7 +93,7 @@ class _WholesalerRequestsTabState extends State<WholesalerRequestsTab> {
                   // Launch WhatsApp to send OTP
                   await _sendWhatsApp(
                     request.phone ?? '',
-                    request.username ?? 'عميل',
+                    request.name ?? request.username ?? 'عميل',
                     result.otpCode!,
                   );
                 } else {
@@ -233,7 +233,7 @@ class _WholesalerRequestsTabState extends State<WholesalerRequestsTab> {
             if (requestItem.otpCode != null) {
               _sendWhatsApp(
                 requestItem.phone ?? '',
-                requestItem.username ?? 'عميل',
+                requestItem.name ?? requestItem.username ?? 'عميل',
                 requestItem.otpCode!,
               );
             }
@@ -267,7 +267,12 @@ class WholesalerRequestCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     final status = request.status;
+    final customerName = request.name ?? request.username ?? "عميل بدون اسم";
+    final phone = request.phone;
     final shopName = request.shopName;
+    final roleDisplayName = (request.displayName != null && request.displayName!.isNotEmpty)
+        ? request.displayName!
+        : request.requestedRoleName;
     final taxId = request.taxId;
     final code = request.otpCode;
 
@@ -291,7 +296,7 @@ class WholesalerRequestCard extends StatelessWidget {
           CircleAvatar(
             radius: 24,
             backgroundColor: primaryColor.withOpacity(0.1),
-            child: Icon(Icons.storefront, color: primaryColor, size: 24),
+            child: Icon(Icons.person_outline, color: primaryColor, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -299,13 +304,14 @@ class WholesalerRequestCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // 1. اسم العميل بخط كبير + شارة الحالة
                 Row(
                   children: [
                     Text(
-                      shopName ?? 'اسم المحل غير محدد',
+                      customerName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: 16,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -334,13 +340,53 @@ class WholesalerRequestCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'صاحب الطلب: ${request.username ?? "بدون اسم"} - رقم الهاتف: ${request.phone ?? "غير معروف"}',
-                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                // 2. رقم الهاتف ومكالمة هاتفية مباشرة
+                InkWell(
+                  onTap: () async {
+                    if (phone == null || phone.trim().isEmpty) return;
+                    final cleanPhone = phone.trim().replaceAll(' ', '').replaceAll('-', '');
+                    final Uri url = Uri.parse('tel:$cleanPhone');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.phone,
+                          size: 15,
+                          color: Colors.green.shade700,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          phone ?? "غير معروف",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4),
+                // 3. اسم المحل
                 Text(
-                  'الدور المطلوب الترقية إليه: ${request.requestedRoleName}',
+                  'اسم المحل: ${shopName ?? "غير محدد"}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // 4. الدور المطلوب الترقية إليه كـ Display Name
+                Text(
+                  'الدور المطلوب: $roleDisplayName',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

@@ -29,7 +29,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadProducts(page: page, limit: limit),
+            () {},
           ),
         ),
       );
@@ -91,25 +91,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createProduct(
-              name: name,
-              categoryId: categoryId,
-              organizationId: organizationId,
-              price: price,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              images: images,
-              additionalData: additionalData,
-              isNew: isNew,
-              isBestSeller: isBestSeller,
-              isOnSale: isOnSale,
-              isJoker: isJoker,
-              isSuperJoker: isSuperJoker,
-              isAvailable: isAvailable,
-              oldPrice: oldPrice,
-              discount: discount,
-              priceOptions: priceOptions,
-            ),
+            () {},
           ),
         ),
       );
@@ -147,13 +129,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => updateProduct(
-              productId: productId,
-              data: data,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              images: images,
-            ),
+            () {},
           ),
         ),
       );
@@ -171,7 +147,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => deleteProduct(id),
+            () {},
           ),
         ),
       );
@@ -196,10 +172,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => bulkDeleteProducts(
-              productIds: productIds,
-              organizationId: organizationId,
-            ),
+            () {},
           ),
         ),
       );
@@ -226,11 +199,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => bulkUpdateProducts(
-              productIds: productIds,
-              organizationId: organizationId,
-              updateData: updateData,
-            ),
+            () {},
           ),
         ),
       );
@@ -260,12 +229,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => unifyProductsPrice(
-              productIds: productIds,
-              organizationId: organizationId,
-              priceOptions: priceOptions,
-              basePrice: basePrice,
-            ),
+            () {},
           ),
         ),
       );
@@ -311,11 +275,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createProductVariants(
-              variantNames: variantNames,
-              template: template,
-              organizationId: organizationId,
-            ),
+            () {},
           ),
         ),
       );
@@ -340,7 +300,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => searchProducts(query: query, organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -359,7 +319,7 @@ class ProductsBloc extends Cubit<FeaturDataSourceState<ProductModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadDiscountedProducts(),
+            () {},
           ),
         ),
       );

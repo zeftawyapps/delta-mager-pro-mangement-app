@@ -41,38 +41,30 @@ class _SplashScreenState extends State<SplashScreen> {
   void _loadInitialData() {
     final systemBloc = context.read<SystemBloc>();
     final configBloc = context.read<OrganizationConfigBloc>();
-    final appChanges = context.read<AppChangesValues>();
 
-    // إذا تم استدعاء الـ Splash وكان التطبيق غير مهيأ (Reload)
-    // نقوم بإجبار الـ Blocs على التحميل مجدداً
-    if (!appChanges.isInitialized) {
+    // فحص صارم: يمنع التحميل إذا كان الـ Bloc في حالة loading أو success أو failure
+    bool canLoadSystem = true;
+    systemBloc.state.itemState.maybeWhen(
+      loading: () => canLoadSystem = false,
+      success: (_) => canLoadSystem = false,
+      failure: (_, __) => canLoadSystem = false,
+      orElse: () {},
+    );
+
+    if (canLoadSystem) {
       systemBloc.loadSystemInfo();
+    }
+
+    bool canLoadConfig = true;
+    configBloc.state.itemState.maybeWhen(
+      loading: () => canLoadConfig = false,
+      success: (_) => canLoadConfig = false,
+      failure: (_, __) => canLoadConfig = false,
+      orElse: () {},
+    );
+
+    if (canLoadConfig) {
       configBloc.getOrganizationConfigByName(AppRoutes.activeOrgName);
-    } else {
-      // التحقق العادي لمنع التحميل المتكرر
-      bool canLoadSystem = true;
-      systemBloc.state.itemState.maybeWhen(
-        loading: () => canLoadSystem = false,
-        success: (_) => canLoadSystem = false,
-        failure: (_, __) => canLoadSystem = false,
-        orElse: () {},
-      );
-
-      if (canLoadSystem) {
-        systemBloc.loadSystemInfo();
-      }
-
-      bool canLoadConfig = true;
-      configBloc.state.itemState.maybeWhen(
-        loading: () => canLoadConfig = false,
-        success: (_) => canLoadConfig = false,
-        failure: (_, __) => canLoadConfig = false,
-        orElse: () {},
-      );
-
-      if (canLoadConfig) {
-        configBloc.getOrganizationConfigByName(AppRoutes.activeOrgName);
-      }
     }
 
     // التحقق الفوري: إذا كانت البيانات محملة مسبقاً، ننتقل مباشرة

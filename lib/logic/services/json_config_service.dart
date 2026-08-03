@@ -90,8 +90,13 @@ class JsonConfigService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_selected_language', lang);
   }
-  String get appVersion => _config['appVersion'] ?? '1.0.0';
-  int get appBuildIndex => _config['appBuildIndex'] ?? 100;
+  String get appVersion => _config['appVersion']?.toString() ?? '1.0.0';
+  int get appBuildIndex {
+    final val = _config['appBuildIndex'];
+    if (val is int) return val;
+    if (val != null) return int.tryParse(val.toString()) ?? 100;
+    return 100;
+  }
   String get activeClient => _config['activeClient'] ?? 'domansy';
   String get clientBaseUrl {
     final rootUrl = _config['baseUrl'];
@@ -122,6 +127,10 @@ class JsonConfigService {
   Map<String, dynamic> get envUrls => _config['envUrls'] ?? {};
   String get env => _config['env'] ?? 'prod';
   bool get isAdminMode => _config['isAdminMode'] ?? true;
+
+  void setIsAdminMode(bool value) {
+    _config['isAdminMode'] = value;
+  }
 
   // 🟢 تحديث الإعدادات برمجياً لمزامنتها مع الـ Bloc فور التحميل أو الحفظ
   void updateProductInput(Map<String, dynamic>? data) {

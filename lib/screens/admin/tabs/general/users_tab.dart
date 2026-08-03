@@ -41,7 +41,6 @@ class UsersTab extends StatefulWidget {
   final int debounceMs;
   final String? searchHint;
   final bool Function(UserViewProfileModel)? where;
-  final bool isCustomer;
 
   const UsersTab({
     super.key,
@@ -71,7 +70,6 @@ class UsersTab extends StatefulWidget {
     this.debounceMs = UserGridConfigs.debounceMs,
     this.searchHint = UserGridConfigs.searchHint,
     this.where,
-    this.isCustomer = false,
   });
 
   @override
@@ -79,6 +77,14 @@ class UsersTab extends StatefulWidget {
 }
 
 class _UsersTabState extends State<UsersTab> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UsersBloc>().loadUsers(organizationId: _getOrgId());
+    });
+  }
+
   String? _getOrgId() {
     if (widget.organizationIdFromRoute != null &&
         widget.organizationIdFromRoute != "" &&
@@ -100,7 +106,7 @@ class _UsersTabState extends State<UsersTab> {
     final orgId = _getOrgId();
     showCustomInputDialog(
       context: context,
-      content: UserInputForm(organizationId: orgId, isCustomer: widget.isCustomer),
+      content: UserInputForm(organizationId: orgId, isCustomer: false),
       height: 700,
       width: 600,
       onResult: (result) {
@@ -113,7 +119,7 @@ class _UsersTabState extends State<UsersTab> {
     final orgId = _getOrgId();
     showCustomInputDialog(
       context: context,
-      content: UserInputForm(user: user, organizationId: orgId, isCustomer: widget.isCustomer),
+      content: UserInputForm(user: user, organizationId: orgId, isCustomer: false),
       height: 700,
       width: 600,
       onResult: (result) {
@@ -142,12 +148,7 @@ class _UsersTabState extends State<UsersTab> {
     final appConfig = context.watch<AppChangesValues>();
     final user = appConfig.user;
     
-    // 🔒 إذا كنا في تبويب الزبائن، نغلق إمكانية الإضافة اليدوية تماماً
-    // الزبائن يجب أن يأتوا من الـ Signup أو طلبات الجملة فقط
-    final bool canAdd = widget.isCustomer 
-        ? false 
-        : (user?.can(SystemFeatures.user, SystemJobs.add) ?? widget.canAdd);
-
+    final bool canAdd = user?.can(SystemFeatures.user, SystemJobs.add) ?? widget.canAdd;
     final canUpdate = user?.can(SystemFeatures.user, SystemJobs.update) ?? true;
 
     final configBloc = context.watch<OrganizationConfigBloc>();
@@ -157,7 +158,7 @@ class _UsersTabState extends State<UsersTab> {
     );
 
     return MasterGrid<UserViewProfileModel, UsersBloc>(
-      title: widget.isCustomer ? "الزبائن" : "المستخدمين",
+      title: "المستخدمين",
       viewMode: ViewMode.list,
       childAspectRatio: 9,
       searchHint: widget.searchHint,
@@ -202,12 +203,8 @@ class _UsersTabState extends State<UsersTab> {
         ),
       ],
       onAdd: _addUser,
-      onLoad: (bloc) => widget.isCustomer
-          ? bloc.loadExternalCustomers(organizationId: _getOrgId())
-          : bloc.loadUsers(organizationId: _getOrgId()),
-      onSearch: (bloc, query) => widget.isCustomer
-          ? bloc.searchExternalCustomers(query, organizationId: _getOrgId())
-          : bloc.searchUsers(query, organizationId: _getOrgId()),
+      onLoad: (bloc) => bloc.loadUsers(organizationId: _getOrgId()),
+      onSearch: (bloc, query) => bloc.searchUsers(query, organizationId: _getOrgId()),
       canAdd: canAdd,
       showAddInGrid: featureConfig?.showAddInGrid ?? false,
       crossAxisCountSmall:
@@ -320,7 +317,9 @@ class _UserCardItemState extends State<UserCardItem> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      widget.user.username ?? 'بدون اسم',
+                      (widget.user.name != null && widget.user.name!.trim().isNotEmpty)
+                          ? widget.user.name!
+                          : (widget.user.username ?? 'بدون اسم'),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,

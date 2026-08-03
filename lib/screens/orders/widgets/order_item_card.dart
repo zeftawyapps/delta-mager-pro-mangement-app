@@ -31,6 +31,21 @@ class OrderItemCard extends StatelessWidget {
     }
   }
 
+  Future<void> _makeCall(String phoneNumber) async {
+    final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (cleanPhone.isEmpty) return;
+    final Uri url = Uri.parse("tel:$cleanPhone");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        debugPrint("Could not launch $url");
+      }
+    } catch (e) {
+      debugPrint("Error launching tel url: $e");
+    }
+  }
+
   Widget _buildContactDetailsBlock(BuildContext context, String title, OrderContactDetails? details, Color color) {
     if (details == null) return const SizedBox.shrink();
 
@@ -73,7 +88,7 @@ class OrderItemCard extends StatelessWidget {
           const SizedBox(height: 8),
           _buildInfoRow(Icons.person_outline, details.name ?? "غير متوفر"),
           const SizedBox(height: 4),
-          _buildInfoRow(Icons.phone_outlined, details.phone ?? "غير متوفر"),
+          _buildPhoneRow(details.phone),
           const SizedBox(height: 4),
           _buildInfoRow(Icons.location_on_outlined, details.address ?? "غير متوفر"),
           if (locationText.isNotEmpty) ...[
@@ -104,6 +119,52 @@ class OrderItemCard extends StatelessWidget {
     );
   }
 
+  Widget _buildPhoneRow(String? phone) {
+    final phoneText = phone ?? "غير متوفر";
+    final hasValidPhone = phone != null && phone.trim().isNotEmpty && phone != "غير متوفر";
+
+    return Row(
+      children: [
+        Icon(Icons.phone_outlined, size: 13, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            phoneText,
+            style: const TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
+          ),
+        ),
+        if (hasValidPhone)
+          InkWell(
+            onTap: () => _makeCall(phone),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.phone_forwarded_rounded, size: 13, color: Colors.green),
+                  SizedBox(width: 4),
+                  Text(
+                    "اتصال",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,6 +181,19 @@ class OrderItemCard extends StatelessWidget {
     );
   }
 
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return "غير محدد";
+    final localDt = dt.toLocal();
+    final day = localDt.day.toString().padLeft(2, '0');
+    final month = localDt.month.toString().padLeft(2, '0');
+    final year = localDt.year;
+    final hourInt = localDt.hour % 12 == 0 ? 12 : localDt.hour % 12;
+    final hour = hourInt.toString().padLeft(2, '0');
+    final minute = localDt.minute.toString().padLeft(2, '0');
+    final period = localDt.hour >= 12 ? 'م' : 'ص';
+    return '$year/$month/$day $hour:$minute $period';
+  }
+
   @override
   Widget build(BuildContext context) {
     final sender = order.senderDetails;
@@ -128,16 +202,174 @@ class OrderItemCard extends StatelessWidget {
     // Determine subtitle based on configuration flags
     List<Widget> subtitleWidgets = [];
     if (showSenderInfo && sender != null) {
+      final senderPhone = sender.phone;
+      final hasPhone = senderPhone != null && senderPhone.trim().isNotEmpty && senderPhone != "غير متوفر";
       subtitleWidgets.add(
         Row(
           children: [
             const Icon(Icons.person_outline, size: 13, color: Colors.grey),
             const SizedBox(width: 4),
-            Text(
-              "من: ${sender.name ?? 'عميل غير معروف'}",
-              style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 12),
+            Expanded(
+              child: Text(
+                "من: ${sender.name ?? 'عميل غير معروف'}",
+                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            if (hasPhone) ...[
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () => _makeCall(senderPhone),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone, size: 12, color: Colors.green),
+                      SizedBox(width: 3),
+                      Text(
+                        "اتصال",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
+        ),
+      );
+    }
+
+    // Dates (Creation & Step Transition / Update)
+    final createdAt = order.meta?.createdAt;
+    final updatedAt = order.meta?.updatedAt ?? createdAt;
+
+    if (createdAt != null) {
+      subtitleWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time_outlined, size: 13, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    "إنشاء: ${_formatDate(createdAt)}",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              if (updatedAt != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.history_toggle_off_rounded,
+                        size: 11,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "انتقال الخطوة / التعديل: ${_formatDate(updatedAt)}",
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Claim State Badge (for steps with selectionMode == 'claim')
+    final stepInfo = order.workFlow?.stepInfo;
+    final isClaimStep = stepInfo?.selectionMode == 'claim';
+
+    if (isClaimStep) {
+      final handlerName = order.meta?.updatedBy?.userName ??
+          order.meta?.createdBy?.userName ??
+          order.handlerUserId;
+
+      final isClaimed = (order.handlerUserId != null &&
+              order.handlerUserId!.trim().isNotEmpty) ||
+          (handlerName != null &&
+              handlerName.trim().isNotEmpty &&
+              order.status != 'pending');
+
+      subtitleWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isClaimed
+                  ? Colors.teal.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isClaimed
+                    ? Colors.teal.withOpacity(0.4)
+                    : Colors.orange.withOpacity(0.4),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isClaimed
+                      ? Icons.check_circle_outline
+                      : Icons.hourglass_top_rounded,
+                  size: 13,
+                  color: isClaimed ? Colors.teal[800] : Colors.orange[900],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isClaimed
+                      ? "تم أخذ الملكية بواسطة: ${handlerName ?? 'المستخدم'}"
+                      : "لم يتم أخذ الملكية بعد ⏳",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isClaimed ? Colors.teal[900] : Colors.orange[900],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }

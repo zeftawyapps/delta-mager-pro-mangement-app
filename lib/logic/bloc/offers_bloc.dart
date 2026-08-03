@@ -25,7 +25,7 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadOffers(organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -62,7 +62,7 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => searchOffers(query: query, organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -117,22 +117,7 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createOffer(
-              name: name,
-              organizationId: organizationId,
-              description: description,
-              targetType: targetType,
-              targetId: targetId,
-              discountPercentage: discountPercentage,
-              startDate: startDate,
-              endDate: endDate,
-              isActive: isActive,
-              sortOrder: sortOrder,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              isMasterProduct: isMasterProduct,
-              sharingLevel: sharingLevel,
-            ),
+            () {},
           ),
         ),
       );
@@ -189,23 +174,7 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => updateOffer(
-              offerId: offerId,
-              organizationId: organizationId,
-              name: name,
-              description: description,
-              targetType: targetType,
-              targetId: targetId,
-              discountPercentage: discountPercentage,
-              startDate: startDate,
-              endDate: endDate,
-              isActive: isActive,
-              sortOrder: sortOrder,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              isMasterProduct: isMasterProduct,
-              sharingLevel: sharingLevel,
-            ),
+            () {},
           ),
         ),
       );
@@ -223,7 +192,7 @@ class OffersBloc extends Cubit<FeaturDataSourceState<OfferModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => deleteOffer(id, organizationId: organizationId),
+            () {},
           ),
         ),
       );

@@ -60,7 +60,7 @@ class WebsiteConfig {
   static const String keyFooterTheme = "footerTheme";
   // Options list
   static const List<String> navbarLayoutOptions = ["classic", "floating", "boxed"];
-  static const List<String> navbarThemeOptions = ["glass", "solid", "gradient", "accent"];
+  static const List<String> navbarThemeOptions = ["glass", "solid", "gradient", "accent", "custom"];
   static const List<String> footerLayoutOptions = ["classic", "floating", "boxed"];
   static const List<String> footerThemeOptions = ["glass", "solid", "gradient", "accent"];
   // Arabic Labels
@@ -74,6 +74,7 @@ class WebsiteConfig {
     "solid": "خلفية موحدة (Solid Color)",
     "gradient": "تدرج لوني ناعم (Soft Gradient)",
     "accent": "بلون الهوية الرئيسي (Brand Accent)",
+    "custom": "تنسيق ألوان مخصص (Custom Colors)",
   };
 
   // 🔑 Excess Links Keys
@@ -141,6 +142,14 @@ class WebsiteConfig {
     introTextAlignCenter: "المنتصف",
     introTextAlignEnd: "الطرف المعاكس",
   };
+  static const String keySlideAnimation = "slideAnimation";
+  static const List<String> slideAnimationOptions = ["fade", "slide", "zoom", "flip"];
+  static const Map<String, String> slideAnimationLabels = {
+    "fade": "تلاشي ناعم (Fade)",
+    "slide": "انزلاق أفقي (Slide)",
+    "zoom": "تكبير وتلاشي (Zoom)",
+    "flip": "التواء كروت (Flip)",
+  };
   static const Map<String, String> indicatorTypeLabels = {
     indicatorPills: "أشكال ممدودة (Pills)",
     indicatorDots: "نقاط (Dots)",
@@ -155,6 +164,7 @@ class WebsiteConfig {
     String textColor = "",
     bool autoPlay = true,
     int duration = 4000,
+    String slideAnimation = "fade",
     String indicatorType = indicatorDots,
     bool showGlow = true,
     bool showBadge = true,
@@ -162,6 +172,8 @@ class WebsiteConfig {
     bool showButton = true,
     String buttonText = "",
     String buttonLink = "",
+    String buttonBg = "",
+    String buttonTextColor = "",
     bool useGradientTitle = true,
     bool showHeroImage = true,
     String heroImageUrl = "",
@@ -179,6 +191,7 @@ class WebsiteConfig {
       "textColor": textColor,
       "autoPlay": autoPlay,
       "duration": duration,
+      "slideAnimation": slideAnimation,
       "indicatorType": indicatorType,
       "textAlign": textAlign ?? normalizeIntroTextAlign(null, displayStyle: style),
       "showGlow": showGlow,
@@ -187,6 +200,8 @@ class WebsiteConfig {
       "showButton": showButton,
       "buttonText": buttonText,
       "buttonLink": buttonLink,
+      "buttonBg": buttonBg,
+      "buttonTextColor": buttonTextColor,
       "useGradientTitle": useGradientTitle,
       "showHeroImage": showHeroImage,
       "heroImageUrl": heroImageUrl,
@@ -611,13 +626,27 @@ class WebsiteConfig {
 
   static Map<String, dynamic> _sanitizeIntroModeConfig(Map<String, dynamic> sub) {
     final displayStyle = normalizeIntroDisplayStyle(sub['displayStyle']);
+    final bgType = sub['backgroundType'] ?? bgTypeSolid;
+    var customBg = sub['customBg']?.toString() ?? '';
+
+    // Clean gradient string when backgroundType is solid
+    if (bgType == bgTypeSolid && customBg.contains('linear-gradient')) {
+      final matches = RegExp(r'#[0-9A-Fa-f]{6}').allMatches(customBg).map((m) => m.group(0)!).toList();
+      if (matches.isNotEmpty) {
+        customBg = matches.first;
+      } else {
+        customBg = '';
+      }
+    }
+
     return {
       'displayStyle': displayStyle,
-      'backgroundType': sub['backgroundType'] ?? bgTypeSolid,
-      'customBg': sub['customBg'] ?? '',
+      'backgroundType': bgType,
+      'customBg': customBg,
       'textColor': sub['textColor'] ?? '',
       'autoPlay': sub['autoPlay'] ?? true,
       'duration': ((sub['duration'] ?? 4000) as num).toInt(),
+      'slideAnimation': sub['slideAnimation'] ?? 'fade',
       'indicatorType': sub['indicatorType'] ?? indicatorDots,
       'textAlign': normalizeIntroTextAlign(
         sub['textAlign'],
@@ -629,6 +658,8 @@ class WebsiteConfig {
       'showButton': sub['showButton'] ?? true,
       'buttonText': sub['buttonText'] ?? '',
       'buttonLink': sub['buttonLink'] ?? '',
+      'buttonBg': sub['buttonBg'] ?? '',
+      'buttonTextColor': sub['buttonTextColor'] ?? '',
       'useGradientTitle': sub['useGradientTitle'] ?? true,
       'showHeroImage': sub['showHeroImage'] ?? true,
       'heroImageUrl': sub['heroImageUrl'] ?? '',

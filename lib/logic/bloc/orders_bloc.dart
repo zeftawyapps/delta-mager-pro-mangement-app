@@ -46,17 +46,8 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
           state.copyWith(
             listState: DataSourceBaseState.failure(
               ErrorStateModel(message: "خطأ في معالجة بيانات الطلبات: $e"),
-              () => loadOrders(
-                page: page,
-                limit: limit,
-                currentStepIndex: currentStepIndex,
-                workflowSlug: workflowSlug,
-                orderPathId: orderPathId,
-                sortByDistance: sortByDistance,
-                latitude: latitude,
-                longitude: longitude,
-              ),
-            ),
+            () {},
+          ),
           ),
         );
       }
@@ -67,16 +58,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء جلب الطلبات",
             ),
-            () => loadOrders(
-              page: page,
-              limit: limit,
-              currentStepIndex: currentStepIndex,
-              workflowSlug: workflowSlug,
-              orderPathId: orderPathId,
-              sortByDistance: sortByDistance,
-              latitude: latitude,
-              longitude: longitude,
-            ),
+            () {},
           ),
         ),
       );
@@ -127,19 +109,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء إنشاء الطلب",
             ),
-            () => createOrder(
-              organizationId: organizationId,
-              senderDetails: senderDetails,
-              recipientDetails: recipientDetails,
-              items: items,
-              totalOrderPrice: totalOrderPrice,
-              orderMode: orderMode,
-              workflowSlug: workflowSlug,
-              senderOrganizationId: senderOrganizationId,
-              calculationMode: calculationMode,
-              additionalCalculation: additionalCalculation,
-              additionalData: additionalData,
-            ),
+            () {},
           ),
         ),
       );
@@ -175,12 +145,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تنفيذ الإجراء",
             ),
-            () => performWorkflowAction(
-              orderId,
-              actionName,
-              expectedStepNumber: expectedStepNumber,
-              targetUserId: targetUserId,
-            ),
+            () {},
           ),
         ),
       );
@@ -209,7 +174,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء استلام الطلب",
             ),
-            () => claimOrder(orderId, expectedStepNumber: expectedStepNumber),
+            () {},
           ),
         ),
       );
@@ -243,11 +208,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تعيين الطلب",
             ),
-            () => assignOrder(
-              orderId,
-              targetUserId,
-              expectedStepNumber: expectedStepNumber,
-            ),
+            () {},
           ),
         ),
       );
@@ -283,12 +244,7 @@ class OrdersBloc extends Cubit<FeaturDataSourceState<OrderModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تحديث عناصر الطلب",
             ),
-            () => updateOrderItems(
-              orderId: orderId,
-              items: items,
-              totalOrderPrice: totalOrderPrice,
-              calculationMode: calculationMode,
-            ),
+            () {},
           ),
         ),
       );

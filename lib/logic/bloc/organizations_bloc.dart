@@ -24,7 +24,7 @@ class OrganizationsBloc extends Cubit<FeaturDataSourceState<OrganizationModel>> 
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading organizations"),
-            () => loadActiveOrganizations(),
+            () {},
           ),
         ),
       );
@@ -54,10 +54,7 @@ class OrganizationsBloc extends Cubit<FeaturDataSourceState<OrganizationModel>> 
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createOrganizationWithOwner(
-              userData: userData,
-              organizationData: organizationData,
-            ),
+            () {},
           ),
         ),
       );

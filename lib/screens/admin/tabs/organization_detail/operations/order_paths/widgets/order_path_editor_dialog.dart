@@ -28,6 +28,7 @@ class OrderPathEditorDialog extends StatefulWidget {
 class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
   late final TextEditingController nameController;
   late bool autoAssign;
+  late bool isActive;
 
   // Dropdown variables
   String? activeGovernorateId;
@@ -60,6 +61,7 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
     final path = widget.path;
     nameController = TextEditingController(text: path?.name);
     autoAssign = path?.autoAssign ?? true;
+    isActive = path?.isActive ?? true;
 
     if (path != null) {
       selectedRegions.addAll(path.regions);
@@ -451,6 +453,19 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                 },
                 contentPadding: EdgeInsets.zero,
               ),
+              SwitchListTile(
+                title: const Text("حالة الفعالية"),
+                subtitle: Text(
+                  isActive ? "خط السير نشط ومفعل" : "خط السير غير نشط (معطل)",
+                  style: const TextStyle(fontSize: 12),
+                ),
+                value: isActive,
+                activeColor: Colors.green,
+                onChanged: (val) {
+                  setState(() => isActive = val);
+                },
+                contentPadding: EdgeInsets.zero,
+              ),
             ],
           ),
         ),
@@ -504,6 +519,7 @@ class _OrderPathEditorDialogState extends State<OrderPathEditorDialog> {
                     triggerStepNumber: activeTriggerStepNumber,
                     autoAssign: autoAssign,
                     schedule: scheduleData,
+                    isActive: isActive,
                   );
             } else {
               context.read<OrderPathBloc>().createOrderPath(

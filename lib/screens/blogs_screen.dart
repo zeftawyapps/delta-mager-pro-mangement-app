@@ -56,6 +56,7 @@ class _BlogsScreenState extends State<BlogsScreen>
       height: MediaQuery.of(context).size.height * 0.9,
       width: MediaQuery.of(context).size.width * 0.75,
       onResult: (result) {
+        if (!mounted) return;
         context.read<BlogPostsBloc>().loadPosts(organizationId: organizationId);
         context.read<BlogCategoriesBloc>().loadCategories(
           organizationId: organizationId,
@@ -71,6 +72,7 @@ class _BlogsScreenState extends State<BlogsScreen>
       height: MediaQuery.of(context).size.height * 0.9,
       width: MediaQuery.of(context).size.width * 0.75,
       onResult: (result) {
+        if (!mounted) return;
         context.read<BlogPostsBloc>().loadPosts(organizationId: organizationId);
         context.read<BlogCategoriesBloc>().loadCategories(
           organizationId: organizationId,
@@ -373,18 +375,9 @@ class _BlogPostCard extends StatelessWidget {
         ? post.introImageUrl
         : post.imageUrl;
 
-    String? fullImageUrl;
-    if (displayImageUrl != null && displayImageUrl.isNotEmpty) {
-      if (displayImageUrl.startsWith('http') ||
-          displayImageUrl.startsWith('https')) {
-        fullImageUrl = displayImageUrl;
-      } else {
-        final cleanPath = displayImageUrl.startsWith('/')
-            ? displayImageUrl.substring(1)
-            : displayImageUrl;
-        fullImageUrl = '${AppBackendEnv().imageUrl}/$cleanPath';
-      }
-    }
+    final fullImageUrl = (displayImageUrl != null && displayImageUrl.trim().isNotEmpty)
+        ? AppBackendEnv.resolveImageUrl(displayImageUrl)
+        : null;
 
     return Container(
       decoration: BoxDecoration(

@@ -8,6 +8,7 @@ import 'package:delta_mager_pro_mangement_app/logic/bloc/admin_organization_conf
 import 'package:JoDija_tamplites/util/widgits/images_widgets/image_picker_widget.dart';
 
 import 'widgets/website_section_card.dart';
+import 'widgets/intro_color_picker_widgets.dart';
 import '../b2b_home/widgets/order_settings_card.dart';
 
 class WebsiteConfigTab extends StatefulWidget {
@@ -28,7 +29,7 @@ class WebsiteConfigTab extends StatefulWidget {
 
 class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
   bool _isEditingHeader = false;
-  String _appMode = WebsiteConfig.appModeHybrid;
+  String _appMode = WebsiteConfig.appModeBlog;
   String _logoStyle = WebsiteConfig.logoStyleSolid;
   List<String> _navbarOrder = List.from(WebsiteConfig.defaultNavbarOrder);
 
@@ -73,14 +74,21 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     _initHeaderData();
   }
 
+  String _customNavbarBg = '';
+  String _customNavbarTextColor = '';
+
   void _initHeaderData() {
     final website = widget.config.website ?? {};
     _appMode =
         (website[WebsiteConfig.keyAppMode] as String?) ??
-        WebsiteConfig.appModeHybrid;
+        WebsiteConfig.appModeBlog;
     _logoStyle =
         (website[WebsiteConfig.keyLogoStyle] as String?) ??
         WebsiteConfig.logoStyleSolid;
+    _customNavbarBg =
+        (website['customNavbarBg'] as String?) ?? (website['navbarBg'] as String?) ?? '';
+    _customNavbarTextColor =
+        (website['customNavbarTextColor'] as String?) ?? (website['navbarTextColor'] as String?) ?? '';
     final savedOrder = website[WebsiteConfig.keyNavbarOrder];
     if (savedOrder is List) {
       _navbarOrder = List<String>.from(savedOrder);
@@ -114,6 +122,60 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     _navbarSticky = (website[WebsiteConfig.keyNavbarSticky] as bool?) ?? true;
   }
 
+  bool get _isGlobalEditing =>
+      _isEditingHeader ||
+      _isEditing ||
+      _isEditingFooter ||
+      _isEditingSocial ||
+      _isEditingOrderSettings;
+
+  void _enableGlobalEditing() {
+    setState(() {
+      _isEditingHeader = true;
+      _isEditing = true;
+      _isEditingFooter = true;
+      _isEditingSocial = true;
+      _isEditingOrderSettings = true;
+    });
+  }
+
+  void _cancelGlobalEditing() {
+    setState(() {
+      _isEditingHeader = false;
+      _isEditing = false;
+      _isEditingFooter = false;
+      _isEditingSocial = false;
+      _isEditingOrderSettings = false;
+      _loadData();
+      _initHeaderData();
+      _initFooterControllers();
+    });
+  }
+
+  Future<void> _saveAll() async {
+    await _saveHeader();
+    await _saveConfig();
+    await _saveFooter();
+    await _saveSocial();
+    await _saveOrderSettings();
+
+    if (!mounted) return;
+    setState(() {
+      _isEditingHeader = false;
+      _isEditing = false;
+      _isEditingFooter = false;
+      _isEditingSocial = false;
+      _isEditingOrderSettings = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم حفظ جميع إعدادات الموقع بنجاح'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   Future<void> _saveHeader() async {
     final websiteData = Map<String, dynamic>.from(widget.config.website ?? {});
     websiteData[WebsiteConfig.keyAppMode] = _appMode;
@@ -127,6 +189,8 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     websiteData[WebsiteConfig.keyNavbarLayout] = _navbarLayout;
     websiteData[WebsiteConfig.keyNavbarTheme] = _navbarTheme;
     websiteData[WebsiteConfig.keyNavbarSticky] = _navbarSticky;
+    websiteData['customNavbarBg'] = _customNavbarBg;
+    websiteData['customNavbarTextColor'] = _customNavbarTextColor;
 
     context.read<AdminOrganizationConfigBloc>().updateConfigSection(
       organizationId: widget.organizationId,
@@ -482,9 +546,9 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     setState(() {
       _sections.add({
         "id": "web_sec_${DateTime.now().millisecondsSinceEpoch}",
-        "type": WebsiteConfig.typeNewProducts,
+        "type": WebsiteConfig.typeBlogPosts,
         "displayMode": WebsiteConfig.modeGrid,
-        "title": "قسم جديد على الويب",
+        "title": "قسم مقالات جديد",
         "isActive": true,
         "config": {},
       });
@@ -497,6 +561,61 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
     });
   }
 
+  Widget _buildTopActionBar(Color primaryColor) {
+    final isEditingAny = _isGlobalEditing;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: widget.isDark ? DarkColors.surface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(widget.isDark ? 0.3 : 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: isEditingAny
+              ? primaryColor.withOpacity(0.5)
+              : (widget.isDark ? Colors.white10 : Colors.grey.shade200),
+          width: isEditingAny ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.web_rounded, color: primaryColor, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "تهيئة وإعدادات الموقع الإلكتروني",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: widget.isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  "يمكنك استخدام أزرار التعديل والحفظ المباشرة داخل كل قسم أدناه",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = widget.isDark
@@ -507,6 +626,7 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          _buildTopActionBar(primaryColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Card(
@@ -573,16 +693,17 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
                               label: Text("🗞️ مدونة فقط"),
                               icon: Icon(Icons.article_outlined, size: 16),
                             ),
-                            ButtonSegment(
-                              value: WebsiteConfig.appModeHybrid,
-                              label: Text("🔀 الهجين"),
-                              icon: Icon(Icons.join_full, size: 16),
-                            ),
-                            ButtonSegment(
-                              value: WebsiteConfig.appModeStore,
-                              label: Text("🛍️ متجر فقط"),
-                              icon: Icon(Icons.storefront_outlined, size: 16),
-                            ),
+                            // ⚠️ Temporarily hidden: Store & Hybrid modes disabled for now (Blog mode only)
+                            // ButtonSegment(
+                            //   value: WebsiteConfig.appModeHybrid,
+                            //   label: Text("🔀 الهجين"),
+                            //   icon: Icon(Icons.join_full, size: 16),
+                            // ),
+                            // ButtonSegment(
+                            //   value: WebsiteConfig.appModeStore,
+                            //   label: Text("🛍️ متجر فقط"),
+                            //   icon: Icon(Icons.storefront_outlined, size: 16),
+                            // ),
                           ],
                           selected: {_appMode},
                           onSelectionChanged: _isEditingHeader
@@ -867,6 +988,33 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
                             }
                           },
                         ),
+                        if (_navbarTheme == 'custom') ...[
+                          const SizedBox(height: 12),
+                          const Text(
+                            "لون خلفية بار الهيدر المخصص (Custom Navbar Background)",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                          const SizedBox(height: 4),
+                          IntroBackgroundColorPicker(
+                            backgroundType: 'solid',
+                            customBg: _customNavbarBg,
+                            isEditing: _isEditingHeader,
+                            palette: IntroThemePalette.fromOrganizationConfig(widget.config),
+                            onChanged: (v) => setState(() => _customNavbarBg = v),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "لون نصوص وعناوين الهيدر المخصص (Custom Navbar Text / Title Color)",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                          const SizedBox(height: 4),
+                          IntroTextColorPicker(
+                            textColor: _customNavbarTextColor,
+                            isEditing: _isEditingHeader,
+                            palette: IntroThemePalette.fromOrganizationConfig(widget.config),
+                            onChanged: (v) => setState(() => _customNavbarTextColor = v),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -887,6 +1035,22 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
               title: const Text(
                 "   اعدادات محتوى الموقع  websit body",
                 style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              trailing: TextButton.icon(
+                icon: Icon(
+                  _isEditing ? Icons.save : Icons.edit,
+                  size: 18,
+                  color: _isEditing ? Colors.green : primaryColor,
+                ),
+                label: Text(
+                  _isEditing ? "حفظ" : "تعديل",
+                  style: TextStyle(
+                    color: _isEditing ? Colors.green : primaryColor,
+                  ),
+                ),
+                onPressed: _isEditing
+                    ? _saveConfig
+                    : () => setState(() => _isEditing = true),
               ),
               children: [
                 // Upper part: header + reorderable sections list (inside its own card)
@@ -916,40 +1080,15 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
                                     : Colors.black87,
                               ),
                             ),
-                            Row(
-                              children: [
-                                if (_isEditing) ...[
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.add_circle,
-                                      color: Colors.blue,
-                                    ),
-                                    onPressed: _addSection,
-                                    tooltip: "إضافة قسم جديد",
-                                  ),
-                                ],
-                                const SizedBox(width: 8),
-                                ElevatedButton.icon(
-                                  onPressed: _isEditing
-                                      ? _saveConfig
-                                      : () => setState(() => _isEditing = true),
-                                  icon: Icon(
-                                    _isEditing ? Icons.save : Icons.edit,
-                                  ),
-                                  label: Text(
-                                    _isEditing
-                                        ? "حفظ التغييرات"
-                                        : "تعديل الإعدادات",
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _isEditing
-                                        ? Colors.green
-                                        : primaryColor,
-                                    foregroundColor: Colors.white,
-                                  ),
+                            if (_isEditing)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.add_circle,
+                                  color: Colors.blue,
                                 ),
-                              ],
-                            ),
+                                onPressed: _addSection,
+                                tooltip: "إضافة قسم جديد",
+                              ),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -1080,6 +1219,22 @@ class _WebsiteConfigTabState extends State<WebsiteConfigTab> {
               child: ExpansionTile(
                 leading: Icon(Icons.vertical_align_bottom, color: primaryColor),
                 title: const Text("إعدادات التذييل (Footer)"),
+                trailing: TextButton.icon(
+                  icon: Icon(
+                    _isEditingFooter ? Icons.save : Icons.edit,
+                    size: 18,
+                    color: _isEditingFooter ? Colors.green : primaryColor,
+                  ),
+                  label: Text(
+                    _isEditingFooter ? "حفظ" : "تعديل",
+                    style: TextStyle(
+                      color: _isEditingFooter ? Colors.green : primaryColor,
+                    ),
+                  ),
+                  onPressed: _isEditingFooter
+                      ? _saveFooter
+                      : () => setState(() => _isEditingFooter = true),
+                ),
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),

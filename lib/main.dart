@@ -10,6 +10,16 @@ import 'package:matger_pro_core_logic/core/di/injection_container.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🛡️ حماية محرك Flutter الفراغي من الكراش عند مواجهة أي بايت UTF-8 مكسور في الـ Inspector/DevTools
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (details.exception.toString().contains('InvalidInputError') ||
+        details.exception.toString().contains('FormatException')) {
+      debugPrint('⚠️ Warning caught: ${details.exception}');
+      return;
+    }
+    FlutterError.presentError(details);
+  };
+
   await initCoreLocator();
 
   // ⚙️ تحميل ملف الإعدادات الاستاتيكي JSON أولاً لتمكين الـ Whitelabeling ديناميكياً لكل عميل

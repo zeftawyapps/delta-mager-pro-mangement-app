@@ -42,7 +42,7 @@ class Users extends UserModel implements BaseViewDataModel {
       id: profile.userId,
       username: profile.username,
       email: profile.email,
-      name: profile.username, // نستخدم username كاسم في حال عدم وجود حقل name منفصل
+      name: (profile.name != null && profile.name!.trim().isNotEmpty) ? profile.name! : profile.username,
       phone: profile.phone,
       roles: profile.roles,
       isActive: profile.isActiveProfile,

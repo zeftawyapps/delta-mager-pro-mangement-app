@@ -31,11 +31,17 @@ class WorkflowSelector extends StatelessWidget {
               ? DarkColors.primary
               : LightColors.primary;
 
+          final nameAr = configs[index].workflow.workflowName.ar;
+          final nameEn = configs[index].workflow.workflowName.en;
+          final displayName = nameAr.trim().isNotEmpty
+              ? nameAr
+              : (nameEn.trim().isNotEmpty ? nameEn : configs[index].roleExecutor);
+
           return AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             margin: const EdgeInsets.only(left: 8),
             child: FilterChip(
-              label: Text(configs[index].roleExecutor),
+              label: Text(displayName),
               selected: isSelected,
               showCheckmark: false,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

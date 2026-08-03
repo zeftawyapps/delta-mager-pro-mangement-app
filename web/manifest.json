@@ -1,35 +1,53 @@
 {
-    "name": "local",
-    "short_name": "local",
+    "name": "TanTest",
+    "short_name": "TanTest",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "دومانسي - متجرك الإلكتروني للتسوق وتلبية كافة احتياجاتك.",
+    "background_color": "#D4AF37",
+    "theme_color": "#D4AF37",
+    "description": "لوحة التحكم لإدارة كافة العمليات والمنتجات والطلبات.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
-            "src": "icons/Icon-maskable-192.png",
+            "src": "icons/Icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "icons/Icon-maskable-512.png",
+            "src": "icons/Icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "TanTest - Desktop"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "TanTest - Mobile"
         }
     ]
 }

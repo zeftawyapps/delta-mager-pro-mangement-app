@@ -38,7 +38,7 @@ class SystemBloc extends Cubit<FeaturDataSourceState<SystemInfoModel>> {
             ErrorStateModel(
               message: result.message ?? "فشل تحميل بيانات النظام",
             ),
-            () => loadSystemInfo(),
+            () {},
           ),
         ),
       );
@@ -61,7 +61,7 @@ class SystemBloc extends Cubit<FeaturDataSourceState<SystemInfoModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تهيئة النظام"),
-            () => bootstrapSystem(request, systemKey),
+            () {},
           ),
         ),
       );

@@ -20,41 +20,162 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   
   <!-- 📈 Search Engine Optimization (SEO) -->
-  <title>local</title>
-  <meta name="description" content="دومانسي - متجرك الإلكتروني للتسوق وتلبية كافة احتياجاتك.">
-  <meta name="keywords" content="دومانسي, متجر, تسوق">
-  <meta name="author" content="local">
+  <title>TanTest</title>
+  <meta name="description" content="لوحة التحكم لإدارة كافة العمليات والمنتجات والطلبات.">
+  <meta name="keywords" content="لوحة تحكم, إدارة, متجر">
+  <meta name="author" content="TanTest">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://local-admin.web.app/">
+  <link rel="canonical" href="https://tantest-managment-system.web.app/">
 
   <!-- 👥 Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://local-admin.web.app/">
-  <meta property="og:title" content="local">
-  <meta property="og:description" content="دومانسي - متجرك الإلكتروني للتسوق وتلبية كافة احتياجاتك.">
+  <meta property="og:url" content="https://tantest-managment-system.web.app/">
+  <meta property="og:title" content="TanTest">
+  <meta property="og:description" content="لوحة التحكم لإدارة كافة العمليات والمنتجات والطلبات.">
   <meta property="og:image" content="icons/Icon-512.png">
 
   <!-- 🐦 Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://local-admin.web.app/">
-  <meta name="twitter:title" content="local">
-  <meta name="twitter:description" content="دومانسي - متجرك الإلكتروني للتسوق وتلبية كافة احتياجاتك.">
+  <meta name="twitter:url" content="https://tantest-managment-system.web.app/">
+  <meta name="twitter:title" content="TanTest">
+  <meta name="twitter:description" content="لوحة التحكم لإدارة كافة العمليات والمنتجات والطلبات.">
   <meta name="twitter:image" content="icons/Icon-512.png">
 
   <!-- 📱 Progressive Web App (PWA) & iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="local">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-  <meta name="theme-color" content="#0175C2">
+  <meta name="apple-mobile-web-app-title" content="TanTest">
+  <link rel="apple-touch-icon" href="icons/Icon-512.png">
+  <meta name="theme-color" content="#D4AF37">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="icons/Icon-512.png"/>
 
   <link rel="manifest" href="manifest.json">
+
+  <!-- 📲 PWA Floating Install Banner Styles & Script -->
+  <style>
+    #pwa-install-banner {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 999999;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 14px 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      color: #ffffff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      align-items: center;
+      gap: 14px;
+      animation: pwaSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      direction: rtl;
+    }
+    @keyframes pwaSlideUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    #pwa-install-banner img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .pwa-text-box {
+      display: flex;
+      flex-direction: column;
+    }
+    .pwa-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .pwa-subtitle {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+    .pwa-btn-install {
+      background: #D4AF37;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+    .pwa-btn-install:hover {
+      transform: scale(1.04);
+      opacity: 0.95;
+    }
+    .pwa-btn-close {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .pwa-btn-close:hover {
+      color: #ffffff;
+    }
+  </style>
 </head>
 <body>
+  <div id="pwa-install-banner">
+    <img src="icons/Icon-512.png" alt="TanTest">
+    <div class="pwa-text-box">
+      <span class="pwa-title">تثبيت تطبيق TanTest</span>
+      <span class="pwa-subtitle">أضفه لشاشتك الرئيسية لتصل إليه بسهولة</span>
+    </div>
+    <button id="pwa-btn-trigger" class="pwa-btn-install">تثبيت 📲</button>
+    <button id="pwa-btn-close" class="pwa-btn-close">✕</button>
+  </div>
+
+  <script>
+    let deferredPwaPrompt = null;
+    const banner = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('pwa-btn-trigger');
+    const closeBtn = document.getElementById('pwa-btn-close');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      if (banner) {
+        banner.style.display = 'flex';
+      }
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (deferredPwaPrompt) {
+          deferredPwaPrompt.prompt();
+          const { outcome } = await deferredPwaPrompt.userChoice;
+          console.log(`PWA install choice: ${outcome}`);
+          deferredPwaPrompt = null;
+        }
+        if (banner) banner.style.display = 'none';
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (banner) banner.style.display = 'none';
+      });
+    }
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

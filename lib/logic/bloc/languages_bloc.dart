@@ -25,7 +25,7 @@ class LanguagesBloc extends Cubit<FeaturDataSourceState<LanguageModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تحميل اللغات"),
-            () => loadLanguages(),
+            () {},
           ),
         ),
       );
@@ -44,7 +44,7 @@ class LanguagesBloc extends Cubit<FeaturDataSourceState<LanguageModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تهيئة اللغات"),
-            () => seedLanguages(),
+            () {},
           ),
         ),
       );

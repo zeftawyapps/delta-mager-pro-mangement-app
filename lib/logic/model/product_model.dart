@@ -43,6 +43,8 @@ class ProductModel extends ProductData implements BaseViewDataModel {
     super.additionalData = const {},
     super.meta,
     super.createdAt,
+    super.isMasterProduct = true,
+    super.sharingLevel = 'private',
   });
 
   factory ProductModel.fromData(ProductData data) {
@@ -72,6 +74,8 @@ class ProductModel extends ProductData implements BaseViewDataModel {
       additionalData: data.additionalData,
       meta: data.meta,
       createdAt: data.createdAt,
+      isMasterProduct: data.isMasterProduct,
+      sharingLevel: data.sharingLevel,
     );
   }
 

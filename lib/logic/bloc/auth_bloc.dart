@@ -69,8 +69,8 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
           state.copyWith(
             itemState: DataSourceBaseState.failure(
               ErrorStateModel(message: result.message),
-              () => login(email: email, password: password),
-            ),
+            () {},
+          ),
           ),
         );
       }
@@ -80,7 +80,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تسجيل الدخول"),
-            () => login(email: email, password: password),
+            () {},
           ),
         ),
       );
@@ -130,12 +130,8 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
           state.copyWith(
             itemState: DataSourceBaseState.failure(
               ErrorStateModel(message: "خطأ في معالجة بيانات المستخدم: $e"),
-              () => loginOrg(
-                orgName: orgName,
-                username: username,
-                password: password,
-              ),
-            ),
+            () {},
+          ),
           ),
         );
       }
@@ -145,11 +141,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تسجيل الدخول"),
-            () => loginOrg(
-              orgName: orgName,
-              username: username,
-              password: password,
-            ),
+            () {},
           ),
         ),
       );
@@ -273,10 +265,7 @@ class AuthBloc extends Cubit<FeaturDataSourceState<Users>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "فشل تغيير كلمة المرور"),
-            () => changePassword(
-              identifier: identifier,
-              newPassword: newPassword,
-            ),
+            () {},
           ),
         ),
       );

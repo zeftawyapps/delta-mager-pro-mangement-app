@@ -62,12 +62,7 @@ class AnalyticsBloc extends Cubit<AnalyticsState> {
         state.copyWith(
           salesReportState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading sales report"),
-            () => loadSalesReport(
-              organizationId: organizationId,
-              startDate: startDate,
-              endDate: endDate,
-              lang: lang,
-            ),
+            () {},
           ),
         ),
       );
@@ -93,11 +88,7 @@ class AnalyticsBloc extends Cubit<AnalyticsState> {
         state.copyWith(
           topSellingProductsState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading top selling products"),
-            () => loadTopSellingProducts(
-              organizationId: organizationId,
-              limit: limit,
-              lang: lang,
-            ),
+            () {},
           ),
         ),
       );
@@ -125,12 +116,7 @@ class AnalyticsBloc extends Cubit<AnalyticsState> {
         state.copyWith(
           orderStatsState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading order statistics"),
-            () => loadOrderStats(
-              organizationId: organizationId,
-              startDate: startDate,
-              endDate: endDate,
-              lang: lang,
-            ),
+            () {},
           ),
         ),
       );

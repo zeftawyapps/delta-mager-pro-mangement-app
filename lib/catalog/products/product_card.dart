@@ -148,6 +148,8 @@ class ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (product.sharingLevel == 'public')
+                  ProductBadge(text: 'منشور للعام 🌐', color: Colors.teal),
                 if (product.isNew) ProductBadge(text: AppStrings.isNew, color: Colors.green),
                 if (product.isSuperJoker)
                   ProductBadge(text: AppStrings.superJoker, color: Colors.deepPurple),

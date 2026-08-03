@@ -43,8 +43,8 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
               ErrorStateModel(
                 message: "خطأ في معالجة بيانات خطوط السير: $e",
               ),
-              () => loadOrderPaths(organizationId),
-            ),
+            () {},
+          ),
           ),
         );
       }
@@ -55,7 +55,7 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء جلب خطوط السير",
             ),
-            () => loadOrderPaths(organizationId),
+            () {},
           ),
         ),
       );
@@ -101,15 +101,7 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء إنشاء خط السير",
             ),
-            () => createOrderPath(
-              organizationId: organizationId,
-              name: name,
-              regions: regions,
-              workflowSlug: workflowSlug,
-              triggerStepNumber: triggerStepNumber,
-              autoAssign: autoAssign,
-              schedule: schedule,
-            ),
+            () {},
           ),
         ),
       );
@@ -158,17 +150,7 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تعديل خط السير",
             ),
-            () => updateOrderPath(
-              pathId: pathId,
-              organizationId: organizationId,
-              name: name,
-              regions: regions,
-              workflowSlug: workflowSlug,
-              triggerStepNumber: triggerStepNumber,
-              autoAssign: autoAssign,
-              schedule: schedule,
-              isActive: isActive,
-            ),
+            () {},
           ),
         ),
       );
@@ -199,10 +181,7 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء حذف خط السير",
             ),
-            () => deleteOrderPath(
-              pathId: pathId,
-              organizationId: organizationId,
-            ),
+            () {},
           ),
         ),
       );
@@ -230,7 +209,7 @@ class OrderPathBloc extends Cubit<FeaturDataSourceState<OrderPathModel>> {
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء جلب تفاصيل خط السير",
             ),
-            () => loadOrderPathDetails(pathId),
+            () {},
           ),
         ),
       );

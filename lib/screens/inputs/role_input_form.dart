@@ -257,9 +257,7 @@ class _RoleInputFormState extends State<RoleInputForm> {
 
     if (widget.isCopy) {
       if (targetOrgId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى اختيار المنظمة أولاً')),
-        );
+        _showErrorDialog(context, 'يرجى اختيار المنظمة أولاً');
         return;
       }
       context.read<RolesBloc>().createRole(
@@ -295,6 +293,73 @@ class _RoleInputFormState extends State<RoleInputForm> {
     }
   }
 
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Theme.of(context).cardColor,
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'تنبيه! خطأ في التنفيذ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            fontSize: 15,
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withOpacity(0.7),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'فهمت',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<RolesBloc, FeaturDataSourceState<RoleModel>>(
@@ -312,11 +377,9 @@ class _RoleInputFormState extends State<RoleInputForm> {
             }
           },
           failure: (error, reload) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text(error.message ?? '❌ خطأ في الإدخال راجع الدعم الفني'),
-              ),
+            _showErrorDialog(
+              context,
+              error.message ?? '❌ خطأ في الإدخال راجع الدعم الفني',
             );
           },
         );
@@ -890,6 +953,10 @@ class _RoleInputFormState extends State<RoleInputForm> {
           SystemFeatures.organization,
           SystemFeatures.blog,
           SystemFeatures.screenBlog,
+          SystemFeatures.orderPath,
+          SystemFeatures.screenOrderPaths,
+          SystemFeatures.analytics,
+          SystemFeatures.screenAnalytics,
         ];
         if (!allowedInOrg.contains(r)) return false;
       }
@@ -1211,6 +1278,8 @@ class _RoleInputFormState extends State<RoleInputForm> {
 
   IconData _getResourceIcon(String resource) {
     resource = resource.toLowerCase();
+    if (resource.contains('path')) return Icons.alt_route;
+    if (resource.contains('analytic')) return Icons.analytics;
     if (resource.contains('product')) return Icons.shopping_bag;
     if (resource.contains('categor')) return Icons.category;
     if (resource.contains('order')) return Icons.receipt;

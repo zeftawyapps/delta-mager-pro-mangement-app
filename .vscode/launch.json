@@ -5,10 +5,7 @@
             "name": "Flutter Chrome",
             "request": "launch",
             "type": "dart",
-            "args": [
-                "-d",
-                "chrome"
-            ]
+            "deviceId": "chrome"
         }
     ]
 }

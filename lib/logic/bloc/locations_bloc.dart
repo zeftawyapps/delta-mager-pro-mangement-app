@@ -113,7 +113,7 @@ class LocationsBloc extends Cubit<LocationsState> {
             ErrorStateModel(
               message: result.message ?? "Error loading countries",
             ),
-            () => loadCountries(),
+            () {},
           ),
         ),
       );
@@ -140,7 +140,7 @@ class LocationsBloc extends Cubit<LocationsState> {
             ErrorStateModel(
               message: result.message ?? "Error loading governorates",
             ),
-            () => loadGovernorates(countryId),
+            () {},
           ),
         ),
       );
@@ -168,7 +168,7 @@ class LocationsBloc extends Cubit<LocationsState> {
         state.copyWith(
           citiesState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading cities"),
-            () => loadCities(governorateId),
+            () {},
           ),
         ),
       );
@@ -189,7 +189,7 @@ class LocationsBloc extends Cubit<LocationsState> {
             ErrorStateModel(
               message: result.message ?? "Error loading languages",
             ),
-            () => loadLanguages(),
+            () {},
           ),
         ),
       );
@@ -209,7 +209,7 @@ class LocationsBloc extends Cubit<LocationsState> {
         state.copyWith(
           operationState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error adding language"),
-            () => addLanguage(language),
+            () {},
           ),
         ),
       );
@@ -231,7 +231,7 @@ class LocationsBloc extends Cubit<LocationsState> {
             ErrorStateModel(
               message: result.message ?? "Error adding governorate",
             ),
-            () => addGovernorate(governorate),
+            () {},
           ),
         ),
       );
@@ -251,7 +251,7 @@ class LocationsBloc extends Cubit<LocationsState> {
         state.copyWith(
           operationState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error adding city"),
-            () => addCity(city),
+            () {},
           ),
         ),
       );

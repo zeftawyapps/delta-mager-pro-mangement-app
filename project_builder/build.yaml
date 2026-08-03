@@ -4,8 +4,8 @@
 # يتم قراءة هذا الملف بواسطة سكربت التهيئة لتوليد كافة ملفات Firebase و Flutter Configs تلقائياً.
 
 global:
-  appVersion: "1.0.0"
-  appBuildIndex: 1
+  appVersion: "1.2.4"
+  appBuildIndex: 4
 
 clients:
   domansy:

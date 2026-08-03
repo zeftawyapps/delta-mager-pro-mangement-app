@@ -1,10 +1,12 @@
 import 'package:JoDija_tamplites/util/view_data_model/base_data_model.dart';
 import 'package:matger_pro_core_logic/core/auth/data/user_profile_model.dart';
 
-class UserViewProfileModel extends UserProfileModel implements BaseViewDataModel {
+class UserViewProfileModel extends UserProfileModel
+    implements BaseViewDataModel {
   UserViewProfileModel({
     required super.userId,
     required super.username,
+    super.name,
     required super.email,
     required super.phone,
     super.roles,
@@ -28,6 +30,7 @@ class UserViewProfileModel extends UserProfileModel implements BaseViewDataModel
     return UserViewProfileModel(
       userId: data.userId,
       username: data.username,
+      name: data.name,
       email: data.email,
       phone: data.phone,
       roles: data.roles,

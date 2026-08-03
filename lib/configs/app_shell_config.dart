@@ -41,6 +41,6 @@ class AppShellConfigs {
 }
 
 class AppShellLocalConfigs {
-  static String appVersion = '1.0.0';
-  static int appBuildIndex = 100;
+  static String appVersion = '1.2.7';
+  static int appBuildIndex = 7;
 }

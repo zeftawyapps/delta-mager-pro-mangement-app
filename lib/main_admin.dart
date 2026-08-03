@@ -17,6 +17,7 @@ void main() async {
   await configService.init();
 
   // 👑 تفعيل وضع المسؤول الكامل (Admin Mode)
+  configService.setIsAdminMode(true);
   AppShellConfigs.isAdminMode = true;
   AppShellConfigs.titleApp = '${configService.appTitle} Admin';
   AppShellConfigs.defaultOrgName = configService.defaultOrgName;

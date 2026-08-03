@@ -34,14 +34,14 @@ class _B2BSectionCardState extends State<B2BSectionCard> {
     B2bHomeConfig.typeBestSellerProducts: "الأكثر مبيعاً",
     B2bHomeConfig.typeJokerProducts: "منتجات الجوكر",
     B2bHomeConfig.typeSuperJokerProducts: "سوبر جوكر",
-    B2bHomeConfig.typeOnSaleProducts: "تخفيضات",
-    B2bHomeConfig.typeCustomBanner: "بانر إعلاني مخصص",
+    // 🔒 مخفيان مؤقتاً — سيُعادان لاحقاً عند الحاجة
+    // B2bHomeConfig.typeOnSaleProducts: "تخفيضات",
+    // B2bHomeConfig.typeCustomBanner: "بانر إعلاني مخصص",
   };
 
   final Map<String, String> _modeOptions = {
     B2bHomeConfig.modeHorizontalList: "قائمة عرضية (Scroll)",
     B2bHomeConfig.modeGrid: "شبكة (Grid)",
-    B2bHomeConfig.modeSlider: "بانر متحرك (Slider)",
   };
 
   IconData _getIconForType(String type) {

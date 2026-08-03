@@ -1,3 +1,4 @@
+import 'package:JoDija_tamplites/util/data_souce_bloc/feature_data_source_state.dart';
 import 'package:delta_mager_pro_mangement_app/screens/widgets/master_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,8 +33,10 @@ class _OrderPathsSectionTabState extends State<OrderPathsSectionTab> {
   void initState() {
     super.initState();
     // Load workflows and governorates to ensure they are available in memory
-    context.read<WorkflowManagementBloc>().loadSpecificConfig(widget.organizationId);
-    
+    context.read<WorkflowManagementBloc>().loadSpecificConfig(
+      widget.organizationId,
+    );
+
     final locationsBloc = context.read<LocationsBloc>();
     locationsBloc.loadGovernorates('EG').then((_) {
       locationsBloc.state.governoratesState.maybeWhen(
@@ -72,20 +75,21 @@ class _OrderPathsSectionTabState extends State<OrderPathsSectionTab> {
 
   void _togglePathStatus(OrderPathModel path) {
     context.read<OrderPathBloc>().updateOrderPath(
-          pathId: path.id,
-          organizationId: widget.organizationId,
-          isActive: !path.isActive,
-        );
+      pathId: path.id,
+      organizationId: widget.organizationId,
+      isActive: !path.isActive,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final appConfig = context.watch<AppChangesValues>();
     final user = appConfig.user;
-    
+
     // Check permissions
     final canAdd = user?.can(SystemFeatures.orderPath, SystemJobs.add) ?? true;
-    final canUpdate = user?.can(SystemFeatures.orderPath, SystemJobs.update) ?? true;
+    final canUpdate =
+        user?.can(SystemFeatures.orderPath, SystemJobs.update) ?? true;
 
     final configBloc = context.watch<OrganizationConfigBloc>();
     final featureConfig = configBloc.state.itemState.maybeWhen(
@@ -93,30 +97,61 @@ class _OrderPathsSectionTabState extends State<OrderPathsSectionTab> {
       orElse: () => null,
     );
 
-    return MasterGrid<OrderPathModel, OrderPathBloc>(
-      title: "خطوط السير",
-      viewMode: ViewMode.list,
-      childAspectRatio: 6,
-      onItemTap: (path) => _showEditDialog(path),
-      itemBuilder: (context, path, isSelected) => OrderPathCardItem(
-        path: path,
-        isDark: widget.isDark,
-        onEdit: () => _showEditDialog(path),
-        onToggleStatus: () => _togglePathStatus(path),
-        canUpdate: canUpdate,
+    return BlocListener<OrderPathBloc, FeaturDataSourceState<OrderPathModel>>(
+      listenWhen: (previous, current) =>
+          previous.itemState != current.itemState,
+      listener: (context, state) {
+        state.itemState.maybeWhen(
+          success: (path) {
+            if (path != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("تم حفظ وتحديث خط السير بنجاح"),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          failure: (error, _) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  error.message ?? "فشل تعديل خط السير، يرجى المحاولة مرة أخرى",
+                ),
+                backgroundColor: Colors.red.shade700,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          },
+          orElse: () {},
+        );
+      },
+      child: MasterGrid<OrderPathModel, OrderPathBloc>(
+        title: "خطوط السير",
+        viewMode: ViewMode.list,
+        childAspectRatio: 6,
+        onItemTap: (path) => _showEditDialog(path),
+        itemBuilder: (context, path, isSelected) => OrderPathCardItem(
+          path: path,
+          isDark: widget.isDark,
+          onEdit: () => _showEditDialog(path),
+          onToggleStatus: () => _togglePathStatus(path),
+          canUpdate: canUpdate,
+        ),
+        onAdd: _showCreateDialog,
+        onLoad: (bloc) => bloc.loadOrderPaths(widget.organizationId),
+        onSearch: (bloc, query) =>
+            bloc.searchOrderPaths(query, organizationId: widget.organizationId),
+        canAdd: canAdd,
+        showAddInGrid: featureConfig?.showAddInGrid ?? true,
+        crossAxisCountSmall: featureConfig?.crossAxisCountSmall ?? 1,
+        crossAxisCountMedium: featureConfig?.crossAxisCountMedium ?? 1,
+        crossAxisCountLarge: featureConfig?.crossAxisCountLarge ?? 2,
+        crossAxisSpacing: featureConfig?.crossAxisSpacing ?? 16.0,
+        mainAxisSpacing: featureConfig?.mainAxisSpacing ?? 16.0,
+        noDataMessage: 'لا يوجد خطوط سير',
       ),
-      onAdd: _showCreateDialog,
-      onLoad: (bloc) => bloc.loadOrderPaths(widget.organizationId),
-      onSearch: (bloc, query) =>
-          bloc.searchOrderPaths(query, organizationId: widget.organizationId),
-      canAdd: canAdd,
-      showAddInGrid: featureConfig?.showAddInGrid ?? true,
-      crossAxisCountSmall: featureConfig?.crossAxisCountSmall ?? 1,
-      crossAxisCountMedium: featureConfig?.crossAxisCountMedium ?? 1,
-      crossAxisCountLarge: featureConfig?.crossAxisCountLarge ?? 2,
-      crossAxisSpacing: featureConfig?.crossAxisSpacing ?? 16.0,
-      mainAxisSpacing: featureConfig?.mainAxisSpacing ?? 16.0,
-      noDataMessage: 'لا يوجد خطوط سير',
     );
   }
 }

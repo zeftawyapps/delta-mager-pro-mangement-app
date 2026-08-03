@@ -33,7 +33,7 @@ class AdminOrganizationsBloc
             ErrorStateModel(
               message: result.message ?? "Error loading organizations",
             ),
-            () => loadActiveOrganizations(),
+            () {},
           ),
         ),
       );
@@ -66,10 +66,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createOrganizationWithOwner(
-              userData: userData,
-              organizationData: organizationData,
-            ),
+            () {},
           ),
         ),
       );
@@ -103,11 +100,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createOrganizationForExistingUser(
-              userId: userId,
-              organizationData: organizationData,
-              templateOrgId: templateOrgId,
-            ),
+            () {},
           ),
         ),
       );
@@ -130,7 +123,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadCompleteOrganizations(),
+            () {},
           ),
         ),
       );
@@ -153,7 +146,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadIncompleteOrganizations(),
+            () {},
           ),
         ),
       );
@@ -178,7 +171,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => searchByLocation(lat, lng, radius),
+            () {},
           ),
         ),
       );
@@ -207,11 +200,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => cloneOrganization(
-              templateOrgId: templateOrgId,
-              targetOrgId: targetOrgId,
-              overwrite: overwrite,
-            ),
+            () {},
           ),
         ),
       );
@@ -271,7 +260,7 @@ class AdminOrganizationsBloc
         state.copyWith(
           feadState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadOrganizationStats(),
+            () {},
           ),
         ),
       );

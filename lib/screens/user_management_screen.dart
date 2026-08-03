@@ -1,10 +1,8 @@
-import 'package:delta_mager_pro_mangement_app/consts/constants/values/routes.dart';
 import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/general/users_tab.dart';
+import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/general/customers_tab.dart';
 import 'package:delta_mager_pro_mangement_app/screens/admin/tabs/general/wholesaler_requests_tab.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:JoDija_tamplites/tampletes/screens/routed_contral_panal/utiles/side_bar_navigation_router.dart';
-import 'package:delta_mager_pro_mangement_app/configs/ui_configs.dart';
 import 'package:delta_mager_pro_mangement_app/consts/constants/values/strings.dart';
 import 'package:delta_mager_pro_mangement_app/logic/mixins/system_manager.dart';
 import 'package:matger_pro_core_logic/core/auth/utils/permission_constants.dart';
@@ -66,15 +64,11 @@ class _UserManagementScreenState extends State<UserManagementScreen>
                   children: [
                     UsersTab(
                       isDark: isDark,
-                      // 🛡️ للموظفين: نستبعد من يحمل صفة زبون فقط
-                      where: (u) => !u.isCustomer,
                       searchHint: "بحث في المستخدمين الإداريين...",
                     ),
-                    UsersTab(
+                    CustomersTab(
                       isDark: isDark,
-                      // 🚀 للعملاء: لا نحتاج لفلترة (where) لأن الـ API يتكفل بذلك
                       searchHint: "بحث في العملاء...",
-                      isCustomer: true,
                     ),
                     WholesalerRequestsTab(isDark: isDark),
                   ],

@@ -52,8 +52,11 @@ class _UserInputFormState extends State<UserInputForm> {
   @override
   void initState() {
     super.initState();
+    final initialName = (widget.user?.name != null && widget.user!.name!.trim().isNotEmpty)
+        ? widget.user!.name!
+        : (widget.user?.username ?? '');
     usernameController = TextEditingController(
-      text: widget.user?.username ?? '',
+      text: initialName,
     );
     emailController = TextEditingController(text: widget.user?.email ?? '');
     passwordController = TextEditingController(text: '');
@@ -89,12 +92,17 @@ class _UserInputFormState extends State<UserInputForm> {
   void saveUser() {
     if (!form.form.currentState!.validate()) return;
 
+    final email = emailController.text.trim();
+    final username = email.contains('@') ? email.split('@').first : email;
+    final name = usernameController.text.trim();
+
     final usersBloc = context.read<UsersBloc>();
     if (widget.user != null) {
       usersBloc.updateUser(
         userId: widget.user!.userId,
-        username: usernameController.text.trim(),
-        email: emailController.text.trim(),
+        name: name,
+        username: username,
+        email: email,
         phone: phoneController.text.trim(),
         address: addressController.text.trim(),
         isActive: isActive,
@@ -106,13 +114,17 @@ class _UserInputFormState extends State<UserInputForm> {
       );
     } else {
       usersBloc.createUser(
-        username: usernameController.text.trim(),
-        email: emailController.text.trim(),
+        name: name,
+        username: username,
+        email: email,
         password: passwordController.text.trim(),
         phone: phoneController.text.trim(),
         roles: selectedRoles,
         address: addressController.text.trim(),
         organizationId: widget.organizationId,
+        countryId: _selectedCountry,
+        governorateId: _selectedGovernorate,
+        cityId: cityController.text.trim(),
       );
     }
   }
@@ -139,11 +151,9 @@ class _UserInputFormState extends State<UserInputForm> {
             }
           },
           failure: (error, reload) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: const Text('❌ خطأ في الإدخال راجع الدعم الفني'),
-              ),
+            _showErrorDialog(
+              context,
+              error.message ?? '❌ خطأ في الإدخال راجع الدعم الفني',
             );
           },
         );
@@ -183,13 +193,13 @@ class _UserInputFormState extends State<UserInputForm> {
                   TextFomrFildValidtion(
                     controller: usernameController,
                     form: form,
-                    baseValidation: [RequiredValidator()],
+                    baseValidation: [RequiredValidator(), _TwoWordsValidator()],
                     decoration: const InputDecoration(
-                      labelText: 'اسم المستخدم',
+                      labelText: 'الاسم (اسم ثنائي على الأقل)',
                       prefixIcon: Icon(Icons.person),
                     ),
-                    labalText: 'اسم المستخدم',
-                    keyData: "username",
+                    labalText: 'الاسم',
+                    keyData: "name",
                   ),
                   const SizedBox(height: 16),
                   TextFomrFildValidtion(
@@ -837,5 +847,89 @@ class _UserInputFormState extends State<UserInputForm> {
         );
       }
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Theme.of(context).cardColor,
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'تنبيه! خطأ في التنفيذ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            fontSize: 15,
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withOpacity(0.7),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'فهمت',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TwoWordsValidator extends RequiredValidator {
+  @override
+  String getMessage(BuildContext context, {String? msg}) {
+    return msg ?? 'يرجى كتابة اسم ثنائي على الأقل (مثال: محمد أحمد)';
+  }
+
+  @override
+  bool validate(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return true;
+    }
+    final words =
+        value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    return words.length >= 2;
   }
 }

@@ -69,6 +69,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
   bool isSuperJoker = false;
   bool isInsideOffer = false;
   bool isAvailable = true; // متاح
+  late String sharingLevel;
   bool isMultiSize = false;
   ProductUnit singlePriceUnit = ProductUnit.piece;
   late TextEditingController singlePriceQuantityController;
@@ -181,6 +182,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
         widget.product!.additionalData['isInsideOffer'],
       );
       isAvailable = widget.product!.isAvailable;
+      sharingLevel = widget.product!.sharingLevel;
 
       priceOptions = widget.product!.priceOptions
           .map(
@@ -208,8 +210,11 @@ class _ProductInputFormState extends State<ProductInputForm> {
           additionalImages = List.from(widget.product!.images.sublist(1));
         }
       }
-    } else if (widget.initialCategoryId != null) {
-      selectedCategoryId = widget.initialCategoryId;
+    } else {
+      sharingLevel = 'private';
+      if (widget.initialCategoryId != null) {
+        selectedCategoryId = widget.initialCategoryId;
+      }
     }
   }
 
@@ -610,6 +615,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
         'isJoker': isJoker,
         'isSuperJoker': isSuperJoker,
         'isAvailable': isAvailable,
+        'sharingLevel': sharingLevel,
         'additionalData': additionalData,
         'priceOptions': priceOptionsList.map((e) => e.toJson()).toList(),
         'variants': variants.map((e) => e.toJson()).toList(),
@@ -623,6 +629,11 @@ class _ProductInputFormState extends State<ProductInputForm> {
         images: newImages,
       );
     } else {
+      final createAdditionalData = Map<String, dynamic>.from(
+        additionalData ?? {},
+      );
+      createAdditionalData['sharingLevel'] = sharingLevel;
+
       bloc.createProduct(
         name: localizedName,
         categoryId: selectedCategoryId!,
@@ -636,7 +647,7 @@ class _ProductInputFormState extends State<ProductInputForm> {
         isJoker: isJoker,
         isSuperJoker: isSuperJoker,
         isAvailable: isAvailable,
-        additionalData: additionalData,
+        additionalData: createAdditionalData,
         priceOptions: priceOptionsList,
         images: newImages,
       );
@@ -1676,6 +1687,20 @@ class _ProductInputFormState extends State<ProductInputForm> {
                         value: isAvailable,
                         onChanged: (v) =>
                             setState(() => isAvailable = v ?? true),
+                      ),
+                      SwitchListTile(
+                        title: const Text(
+                          'نشر للعام 🌐',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: const Text(
+                          'نشر المنتج للجمهور بالكتالوج العام',
+                        ),
+                        value: sharingLevel == 'public',
+                        activeColor: DarkColors.primary,
+                        onChanged: (v) => setState(() {
+                          sharingLevel = (v ?? false) ? 'public' : 'private';
+                        }),
                       ),
 
                       // ============ الأزرار الخاصة بالخصائص المتقدمة ============

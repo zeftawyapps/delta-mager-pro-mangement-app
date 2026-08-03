@@ -1,0 +1,53 @@
+{
+    "name": "{{APP_TITLE}}",
+    "short_name": "{{APP_TITLE}}",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "{{THEME_COLOR}}",
+    "theme_color": "{{THEME_COLOR}}",
+    "description": "{{APP_DESCRIPTION}}",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "{{LOGO_PATH_192}}",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "{{LOGO_PATH_512}}",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "{{LOGO_PATH_192}}",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "{{LOGO_PATH_512}}",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "{{LOGO_PATH_512}}",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "{{APP_TITLE}} - Desktop"
+        },
+        {
+            "src": "{{LOGO_PATH_512}}",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "{{APP_TITLE}} - Mobile"
+        }
+    ]
+}

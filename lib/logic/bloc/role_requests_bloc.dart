@@ -27,7 +27,7 @@ class RoleRequestsBloc extends Cubit<FeaturDataSourceState<RoleUpgradeRequest>> 
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadRequests(organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -50,8 +50,8 @@ class RoleRequestsBloc extends Cubit<FeaturDataSourceState<RoleUpgradeRequest>> 
       final msg = result.message ?? 'Failed to approve';
       emit(state.copyWith(itemState: DataSourceBaseState.failure(
         ErrorStateModel(message: msg),
-        () {},
-      )));
+            () {},
+          )));
       return (success: false, message: msg, otpCode: null);
     }
   }
@@ -70,8 +70,8 @@ class RoleRequestsBloc extends Cubit<FeaturDataSourceState<RoleUpgradeRequest>> 
       final msg = result.message ?? 'Failed to reject';
       emit(state.copyWith(itemState: DataSourceBaseState.failure(
         ErrorStateModel(message: msg),
-        () {},
-      )));
+            () {},
+          )));
       return (success: false, message: msg);
     }
   }

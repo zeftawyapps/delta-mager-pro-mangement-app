@@ -1,3 +1,5 @@
+import 'package:delta_mager_pro_mangement_app/configs/app_shell_config.dart';
+import 'package:delta_mager_pro_mangement_app/logic/services/json_config_service.dart';
 import 'package:flutter/material.dart';
 import '../configs/home_footer_config.dart';
 
@@ -20,8 +22,7 @@ class HomeFooterWidget extends StatelessWidget {
 
     final currentYear = DateTime.now().year;
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final footerBg =
-        isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+    final footerBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
     final footerText = isDark ? Colors.grey[400]! : Colors.grey[600]!;
     final headingColor = isDark ? Colors.white : Colors.black87;
 
@@ -65,14 +66,16 @@ class HomeFooterWidget extends StatelessWidget {
                       const SizedBox(height: 16),
                       Row(
                         children: config.socialLinks
-                            .map((s) => Padding(
-                                  padding: const EdgeInsets.only(left: 10),
-                                  child: _SocialIcon(
-                                    iconName: s.iconName,
-                                    color: primaryColor,
-                                    onTap: s.onTap,
-                                  ),
-                                ))
+                            .map(
+                              (s) => Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: _SocialIcon(
+                                  iconName: s.iconName,
+                                  color: primaryColor,
+                                  onTap: s.onTap,
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ],
@@ -90,9 +93,10 @@ class HomeFooterWidget extends StatelessWidget {
                       Text(
                         'روابط سريعة',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: headingColor),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: headingColor,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       ...config.quickLinks.map(
@@ -119,9 +123,10 @@ class HomeFooterWidget extends StatelessWidget {
                       Text(
                         'اتصل بنا',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: headingColor),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: headingColor,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       if (config.contact!.email != null)
@@ -157,24 +162,32 @@ class HomeFooterWidget extends StatelessWidget {
                       Text(
                         config.paymentSectionTitle ?? 'الدفع والتوصيل',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: headingColor),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: headingColor,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       if (config.paymentSectionBody != null)
                         Text(
                           config.paymentSectionBody!,
                           style: TextStyle(
-                              color: footerText, height: 1.4, fontSize: 12),
+                            color: footerText,
+                            height: 1.4,
+                            fontSize: 12,
+                          ),
                         ),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
                         children: config.paymentBadges
-                            .map((b) => _PaymentBadge(
-                                label: b.label, color: primaryColor))
+                            .map(
+                              (b) => _PaymentBadge(
+                                label: b.label,
+                                color: primaryColor,
+                              ),
+                            )
                             .toList(),
                       ),
                     ],
@@ -185,16 +198,15 @@ class HomeFooterWidget extends StatelessWidget {
 
           const SizedBox(height: 32),
           Divider(
-              color: (isDark ? Colors.white : Colors.black)
-                  .withOpacity(0.06)),
+            color: (isDark ? Colors.white : Colors.black).withOpacity(0.06),
+          ),
           const SizedBox(height: 16),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                config.copyrightText ??
-                    '© $currentYear جميع الحقوق محفوظة لـ $storeTitle.',
+                '${config.copyrightText ?? '© $currentYear جميع الحقوق محفوظة لـ $storeTitle.'}  •  v${AppShellLocalConfigs.appVersion} (Build ${AppShellLocalConfigs.appBuildIndex})',
                 style: TextStyle(color: footerText, fontSize: 11),
               ),
               Text(
@@ -216,8 +228,7 @@ class _SocialIcon extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
 
-  const _SocialIcon(
-      {required this.iconName, required this.color, this.onTap});
+  const _SocialIcon({required this.iconName, required this.color, this.onTap});
 
   IconData get _icon {
     switch (iconName) {
@@ -293,8 +304,11 @@ class _ContactItem extends StatelessWidget {
   final String text;
   final Color textColor;
 
-  const _ContactItem(
-      {required this.icon, required this.text, required this.textColor});
+  const _ContactItem({
+    required this.icon,
+    required this.text,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -305,8 +319,8 @@ class _ContactItem extends StatelessWidget {
           Icon(icon, size: 14, color: textColor),
           const SizedBox(width: 6),
           Expanded(
-              child: Text(text,
-                  style: TextStyle(color: textColor, fontSize: 12))),
+            child: Text(text, style: TextStyle(color: textColor, fontSize: 12)),
+          ),
         ],
       ),
     );
@@ -328,9 +342,14 @@ class _PaymentBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withOpacity(0.15)),
       ),
-      child: Text(label,
-          style: TextStyle(
-              color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

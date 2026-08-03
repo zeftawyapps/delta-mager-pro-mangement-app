@@ -34,8 +34,8 @@ class BlogCategoriesBloc extends Cubit<FeaturDataSourceState<BlogCategoryModel>>
           state.copyWith(
             listState: DataSourceBaseState.failure(
               ErrorStateModel(message: result.message ?? "Error loading categories"),
-              () => loadCategories(organizationId: organizationId, activeOnly: activeOnly, lang: lang),
-            ),
+            () {},
+          ),
           ),
         );
       }
@@ -45,7 +45,7 @@ class BlogCategoriesBloc extends Cubit<FeaturDataSourceState<BlogCategoryModel>>
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: e.toString()),
-            () => loadCategories(organizationId: organizationId, activeOnly: activeOnly, lang: lang),
+            () {},
           ),
         ),
       );
@@ -110,11 +110,7 @@ class BlogCategoriesBloc extends Cubit<FeaturDataSourceState<BlogCategoryModel>>
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error updating category"),
-            () => updateCategory(
-              blogCategoryId: blogCategoryId,
-              data: data,
-              organizationId: organizationId,
-            ),
+            () {},
           ),
         ),
       );
@@ -133,7 +129,7 @@ class BlogCategoriesBloc extends Cubit<FeaturDataSourceState<BlogCategoryModel>>
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error deleting category"),
-            () => deleteCategory(blogCategoryId, organizationId: organizationId),
+            () {},
           ),
         ),
       );

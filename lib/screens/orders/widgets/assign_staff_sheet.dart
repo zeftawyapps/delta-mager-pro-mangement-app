@@ -76,7 +76,11 @@ class AssignStaffSheet extends StatelessWidget {
                           leading: const CircleAvatar(
                             child: Icon(Icons.person),
                           ),
-                          title: Text(user.username ?? ''),
+                          title: Text(
+                            (user.name != null && user.name!.trim().isNotEmpty)
+                                ? user.name!
+                                : (user.username ?? ''),
+                          ),
                           subtitle: Text(user.email ?? ''),
                           trailing: const Icon(Icons.chevron_left),
                           onTap: () {

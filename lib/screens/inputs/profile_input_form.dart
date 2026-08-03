@@ -1,5 +1,4 @@
 import 'package:delta_mager_pro_mangement_app/logic/bloc/users_bloc.dart';
-import 'package:delta_mager_pro_mangement_app/logic/model/user.dart';
 import 'package:delta_mager_pro_mangement_app/logic/model/user_profile.dart';
 import 'package:delta_mager_pro_mangement_app/logic/providers/app_changes_values.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +35,11 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
   @override
   void initState() {
     super.initState();
-    usernameController = TextEditingController(text: widget.user.username);
+    final initialName =
+        (widget.user.name != null && widget.user.name!.trim().isNotEmpty)
+        ? widget.user.name!
+        : widget.user.username;
+    usernameController = TextEditingController(text: initialName);
     emailController = TextEditingController(text: widget.user.email);
     phoneController = TextEditingController(text: widget.user.phone);
     addressController = TextEditingController(text: widget.user.address ?? '');
@@ -63,9 +66,14 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
   void saveProfile() {
     if (!form.form.currentState!.validate()) return;
 
+    final email = emailController.text.trim();
+    final username = email.contains('@') ? email.split('@').first : email;
+    final name = usernameController.text.trim();
+
     context.read<UsersBloc>().updateMyProfile(
-      username: usernameController.text.trim(),
-      email: emailController.text.trim(),
+      name: name,
+      username: username,
+      email: email,
       phone: phoneController.text.trim(),
       address: addressController.text.trim(),
       organizationId: widget.organizationId,
@@ -116,13 +124,13 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
                 TextFomrFildValidtion(
                   controller: usernameController,
                   form: form,
-                  baseValidation: [RequiredValidator()],
+                  baseValidation: [RequiredValidator(), _TwoWordsValidator()],
                   decoration: const InputDecoration(
-                    labelText: 'اسم المستخدم',
+                    labelText: 'الاسم (اسم ثنائي على الأقل)',
                     prefixIcon: Icon(Icons.person),
                   ),
-                  labalText: 'اسم المستخدم',
-                  keyData: "username",
+                  labalText: 'الاسم',
+                  keyData: "name",
                 ),
                 const SizedBox(height: 16),
                 TextFomrFildValidtion(
@@ -297,5 +305,25 @@ class _ProfileInputFormState extends State<ProfileInputForm> {
         );
       },
     );
+  }
+}
+
+class _TwoWordsValidator extends RequiredValidator {
+  @override
+  String getMessage(BuildContext context, {String? msg}) {
+    return msg ?? 'يرجى كتابة اسم ثنائي على الأقل (مثال: محمد أحمد)';
+  }
+
+  @override
+  bool validate(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return true;
+    }
+    final words = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    return words.length >= 2;
   }
 }

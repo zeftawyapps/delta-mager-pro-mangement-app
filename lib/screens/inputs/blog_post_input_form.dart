@@ -64,6 +64,7 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
   ImageFileModel? _selectedIntroImage;
   bool _showSeoPanel = false;
   bool _showIntroPanel = false;
+  bool _isDialogShowing = false;
 
   @override
   void initState() {
@@ -76,10 +77,18 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
     _slugController = TextEditingController(text: p?.slug ?? '');
     _coreKeyController = TextEditingController(text: p?.coreKey ?? '');
 
-    _introTitleArController = TextEditingController(text: p?.introTitleAr ?? '');
-    _introTitleEnController = TextEditingController(text: p?.introTitleEn ?? '');
-    _introDescriptionArController = TextEditingController(text: p?.introDescriptionAr ?? '');
-    _introDescriptionEnController = TextEditingController(text: p?.introDescriptionEn ?? '');
+    _introTitleArController = TextEditingController(
+      text: p?.introTitleAr ?? '',
+    );
+    _introTitleEnController = TextEditingController(
+      text: p?.introTitleEn ?? '',
+    );
+    _introDescriptionArController = TextEditingController(
+      text: p?.introDescriptionAr ?? '',
+    );
+    _introDescriptionEnController = TextEditingController(
+      text: p?.introDescriptionEn ?? '',
+    );
 
     _seoTitleArController = TextEditingController(text: p?.seoTitleAr ?? '');
     _seoTitleEnController = TextEditingController(text: p?.seoTitleEn ?? '');
@@ -232,13 +241,25 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
     final showInFooter = _postType == 'page' ? _showInFooter : false;
     final showInNavigation = _postType == 'page' ? _showInNavigation : false;
 
+    final imageBytes = _selectedImage?.bytes;
+    final imageName = imageBytes != null
+        ? (_selectedImage?.xFile?.name ?? 'blog_image.png')
+        : null;
+
+    final introImageBytes = _selectedIntroImage?.bytes;
+    final introImageName = introImageBytes != null
+        ? (_selectedIntroImage?.xFile?.name ?? 'intro_image.png')
+        : null;
+
     if (isEditing) {
       final Map<String, dynamic> updateData = {
         'title': title,
         'slug': _slugController.text.trim(),
         'content': content,
         'postType': _postType,
-        'blogCategoryId': (_postType == 'page' || _postType == 'intro') ? null : _blogCategoryId,
+        'blogCategoryId': (_postType == 'page' || _postType == 'intro')
+            ? null
+            : _blogCategoryId,
         'isActive': _isActive,
         'isJoker': _isJoker,
         'isFeatured': _isFeatured,
@@ -259,10 +280,10 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
         blogPostId: widget.post!.id,
         data: updateData,
         organizationId: widget.organizationId,
-        imageBytes: _selectedImage?.bytes,
-        imageName: _selectedImage?.file?.path.split('/').last,
-        introImageBytes: _selectedIntroImage?.bytes,
-        introImageName: _selectedIntroImage?.file?.path.split('/').last,
+        imageBytes: imageBytes,
+        imageName: imageName,
+        introImageBytes: introImageBytes,
+        introImageName: introImageName,
       );
     } else {
       context.read<BlogPostsBloc>().createPost(
@@ -270,10 +291,12 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
         slug: _slugController.text.trim(),
         content: content,
         postType: _postType,
-        blogCategoryId: (_postType == 'page' || _postType == 'intro') ? null : _blogCategoryId,
+        blogCategoryId: (_postType == 'page' || _postType == 'intro')
+            ? null
+            : _blogCategoryId,
         organizationId: widget.organizationId,
-        imageBytes: _selectedImage?.bytes,
-        imageName: _selectedImage?.file?.path.split('/').last,
+        imageBytes: imageBytes,
+        imageName: imageName,
         isActive: _isActive,
         isJoker: _isJoker,
         isFeatured: _isFeatured,
@@ -286,8 +309,8 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
         coreKey: _postType == 'page' ? _coreKeyController.text.trim() : null,
         introTitle: _postType == 'intro' ? introTitle : null,
         introDescription: _postType == 'intro' ? introDescription : null,
-        introImageBytes: _postType == 'intro' ? _selectedIntroImage?.bytes : null,
-        introImageName: _postType == 'intro' ? _selectedIntroImage?.file?.path.split('/').last : null,
+        introImageBytes: _postType == 'intro' ? introImageBytes : null,
+        introImageName: _postType == 'intro' ? introImageName : null,
       );
     }
   }
@@ -298,166 +321,288 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
     final primaryColor = isDark ? DarkColors.primary : LightColors.primary;
     final isEditing = widget.post != null;
 
-    return BlocListener<BlogPostsBloc, FeaturDataSourceState<BlogPostModel>>(
+    return BlocConsumer<BlogPostsBloc, FeaturDataSourceState<BlogPostModel>>(
       listener: (context, state) {
+        if (!mounted) return;
         state.itemState.maybeWhen(
           success: (data) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isEditing
-                      ? 'تم تعديل المنشور بنجاح'
-                      : 'تم إضافة المنشور بنجاح',
-                ),
-              ),
-            );
-            if (Navigator.of(context, rootNavigator: true).canPop()) {
-              Navigator.of(context, rootNavigator: true).pop(data);
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(data);
             }
           },
           failure: (error, reload) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text('❌ ${error.message ?? 'حدث خطأ ما'}'),
-              ),
+            if (_isDialogShowing) return;
+            _isDialogShowing = true;
+            _showErrorDialog(
+              context,
+              error.message ?? '❌ حدث خطأ ما أثناء حفظ المقال',
             );
+            _isDialogShowing = false;
           },
           orElse: () {},
         );
       },
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Dialog Header
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? DarkColors.surface : Colors.white,
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
+      builder: (context, state) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Dialog Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? DarkColors.surface : Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isEditing ? 'تعديل المنشور' : 'إضافة منشور جديد',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          if (Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).canPop()) {
+                            Navigator.of(context, rootNavigator: true).pop();
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isEditing ? 'تعديل المنشور' : 'إضافة منشور جديد',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        if (Navigator.of(context, rootNavigator: true).canPop()) {
-                          Navigator.of(context, rootNavigator: true).pop();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
 
-              // Form Contents
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Column 1: Main details (Left/Center area - 65% width)
-                      Expanded(
-                        flex: 6,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Arabic & English Title Row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _titleArController,
-                                    decoration: const InputDecoration(
-                                      labelText: "عنوان المقال (بالعربية)",
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.title),
-                                    ),
-                                    validator: (val) =>
-                                        val == null || val.trim().isEmpty
-                                        ? "العنوان بالعربية مطلوب"
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _titleEnController,
-                                    decoration: const InputDecoration(
-                                      labelText: "عنوان المقال (بالإنجليزية)",
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.title),
-                                    ),
-                                    validator: (val) =>
-                                        val == null || val.trim().isEmpty
-                                        ? "العنوان بالإنجليزية مطلوب"
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Post content editor tabs
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.2),
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
+                // Form Contents
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Column 1: Main details (Left/Center area - 65% width)
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Arabic & English Title Row
+                              Row(
                                 children: [
-                                  TabBar(
-                                    controller: _editorTabController,
-                                    labelColor: primaryColor,
-                                    unselectedLabelColor: Colors.grey,
-                                    indicatorColor: primaryColor,
-                                    tabs: const [
-                                      Tab(text: "المحتوى بالعربية (HTML)"),
-                                      Tab(text: "المحتوى بالإنجليزية (HTML)"),
-                                    ],
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _titleArController,
+                                      decoration: const InputDecoration(
+                                        labelText: "عنوان المقال (بالعربية)",
+                                        border: OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.title),
+                                      ),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? "العنوان بالعربية مطلوب"
+                                          : null,
+                                    ),
                                   ),
-                                  SizedBox(
-                                    height: 350,
-                                    child: TabBarView(
-                                      controller: _editorTabController,
-                                      children: [
-                                        _buildRichEditor(
-                                          _quillControllerAr,
-                                          isDark,
-                                        ),
-                                        _buildRichEditor(
-                                          _quillControllerEn,
-                                          isDark,
-                                        ),
-                                      ],
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _titleEnController,
+                                      decoration: const InputDecoration(
+                                        labelText: "عنوان المقال (بالإنجليزية)",
+                                        border: OutlineInputBorder(),
+                                        prefixIcon: Icon(Icons.title),
+                                      ),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? "العنوان بالإنجليزية مطلوب"
+                                          : null,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 24),
+                              const SizedBox(height: 20),
 
-                            // Intro Slide Panel (Only shown if type is intro)
-                            if (_postType == 'intro') ...[
+                              // Post content editor tabs
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.2),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    TabBar(
+                                      controller: _editorTabController,
+                                      labelColor: primaryColor,
+                                      unselectedLabelColor: Colors.grey,
+                                      indicatorColor: primaryColor,
+                                      tabs: const [
+                                        Tab(text: "المحتوى بالعربية (HTML)"),
+                                        Tab(text: "المحتوى بالإنجليزية (HTML)"),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 350,
+                                      child: TabBarView(
+                                        controller: _editorTabController,
+                                        children: [
+                                          _buildRichEditor(
+                                            _quillControllerAr,
+                                            isDark,
+                                          ),
+                                          _buildRichEditor(
+                                            _quillControllerEn,
+                                            isDark,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Intro Slide Panel (Only shown if type is intro)
+                              if (_postType == 'intro') ...[
+                                Card(
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: primaryColor.withOpacity(0.15),
+                                    ),
+                                  ),
+                                  color: primaryColor.withOpacity(0.02),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.slideshow,
+                                              color: primaryColor,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            const Text(
+                                              "إعدادات الشريحة التعريفية (Intro Slide)",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller:
+                                                    _introTitleArController,
+                                                decoration: const InputDecoration(
+                                                  labelText:
+                                                      "عنوان الشريحة بالعربية",
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller:
+                                                    _introTitleEnController,
+                                                decoration: const InputDecoration(
+                                                  labelText:
+                                                      "عنوان الشريحة بالإنجليزية",
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller:
+                                                    _introDescriptionArController,
+                                                maxLines: 2,
+                                                decoration:
+                                                    const InputDecoration(
+                                                      labelText:
+                                                          "وصف الشريحة بالعربية",
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: TextFormField(
+                                                controller:
+                                                    _introDescriptionEnController,
+                                                maxLines: 2,
+                                                decoration: const InputDecoration(
+                                                  labelText:
+                                                      "وصف الشريحة بالإنجليزية",
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        const Text(
+                                          "صورة الشريحة التعريفية:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        SizedBox(
+                                          height: 180,
+                                          width: 320,
+                                          child: ImagePecker(
+                                            networkImage: _getCleanImageUrl(
+                                              widget.post?.introImageUrl,
+                                            ),
+                                            onImageSelected: (imageModel) {
+                                              setState(() {
+                                                _selectedIntroImage =
+                                                    imageModel;
+                                              });
+                                            },
+                                            placeholderAsset:
+                                                AppAsset.imgplaceholder,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+
+                              // SEO & Metadata Panel (Premium collapsible Card)
                               Card(
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -467,17 +612,18 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
                                   ),
                                 ),
                                 color: primaryColor.withOpacity(0.02),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      title: Row(
                                         children: [
-                                          Icon(Icons.slideshow, color: primaryColor),
+                                          Icon(
+                                            Icons.search,
+                                            color: primaryColor,
+                                          ),
                                           const SizedBox(width: 10),
                                           const Text(
-                                            "إعدادات الشريحة التعريفية (Intro Slide)",
+                                            "إعدادات أرشفة محركات البحث والـ SEO (اختياري)",
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 13,
@@ -485,629 +631,541 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 16),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextFormField(
-                                              controller: _introTitleArController,
-                                              decoration: const InputDecoration(
-                                                labelText: "عنوان الشريحة بالعربية",
-                                                border: OutlineInputBorder(),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: TextFormField(
-                                              controller: _introTitleEnController,
-                                              decoration: const InputDecoration(
-                                                labelText: "عنوان الشريحة بالإنجليزية",
-                                                border: OutlineInputBorder(),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      trailing: Icon(
+                                        _showSeoPanel
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        color: primaryColor,
                                       ),
-                                      const SizedBox(height: 16),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextFormField(
-                                              controller: _introDescriptionArController,
-                                              maxLines: 2,
-                                              decoration: const InputDecoration(
-                                                labelText: "وصف الشريحة بالعربية",
-                                                border: OutlineInputBorder(),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: TextFormField(
-                                              controller: _introDescriptionEnController,
-                                              maxLines: 2,
-                                              decoration: const InputDecoration(
-                                                labelText: "وصف الشريحة بالإنجليزية",
-                                                border: OutlineInputBorder(),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        "صورة الشريحة التعريفية:",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      SizedBox(
-                                        height: 180,
-                                        width: 320,
-                                        child: ImagePecker(
-                                          networkImage: _getCleanImageUrl(widget.post?.introImageUrl),
-                                          onImageSelected: (imageModel) {
-                                            setState(() {
-                                              _selectedIntroImage = imageModel;
-                                            });
-                                          },
-                                          placeholderAsset: AppAsset.imgplaceholder,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                            ],
-
-                            // SEO & Metadata Panel (Premium collapsible Card)
-                            Card(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: primaryColor.withOpacity(0.15),
-                                ),
-                              ),
-                              color: primaryColor.withOpacity(0.02),
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    title: Row(
-                                      children: [
-                                        Icon(Icons.search, color: primaryColor),
-                                        const SizedBox(width: 10),
-                                        const Text(
-                                          "إعدادات أرشفة محركات البحث والـ SEO (اختياري)",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: Icon(
-                                      _showSeoPanel
-                                          ? Icons.keyboard_arrow_up
-                                          : Icons.keyboard_arrow_down,
-                                      color: primaryColor,
-                                    ),
-                                    onTap: () => setState(
-                                      () => _showSeoPanel = !_showSeoPanel,
-                                    ),
-                                  ),
-                                  if (_showSeoPanel)
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller:
-                                                      _seoTitleArController,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            "عنوان SEO بالعربية",
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                      ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller:
-                                                      _seoTitleEnController,
-                                                  decoration: const InputDecoration(
-                                                    labelText:
-                                                        "عنوان SEO بالإنجليزية",
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller:
-                                                      _seoDescriptionArController,
-                                                  maxLines: 2,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            "وصف SEO بالعربية",
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                      ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller:
-                                                      _seoDescriptionEnController,
-                                                  maxLines: 2,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            "وصف SEO بالإنجليزية",
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                      ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 16),
-                                          TextFormField(
-                                            controller: _seoKeywordsController,
-                                            decoration: const InputDecoration(
-                                              labelText:
-                                                  "الكلمات الدلالية للـ SEO (افصل بينها بفاصلة ,)",
-                                              hintText:
-                                                  "مثال: تسوق, متجر, ملابس, موضة",
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ],
+                                      onTap: () => setState(
+                                        () => _showSeoPanel = !_showSeoPanel,
                                       ),
                                     ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-
-                      // Column 2: Configurations & Image (Right area - 35% width)
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. Post image cover
-                            const Text(
-                              "الصورة البصرية للمنشور:",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ImagePecker(
-                              networkImage: _getCleanImageUrl(widget.post?.imageUrl),
-                              onImageSelected: (imageModel) {
-                                setState(() {
-                                  _selectedImage = imageModel;
-                                });
-                              },
-                              placeholderAsset: AppAsset.imgplaceholder,
-                            ),
-                            const SizedBox(height: 24),
-
-                            // 2. Publication Settings
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? DarkColors.surfaceVariant
-                                    : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.15),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Post type Dropdown
-                                  DropdownButtonFormField<String>(
-                                    value: _postType,
-                                    decoration: const InputDecoration(
-                                      labelText: "نوع المنشور",
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    items: const [
-                                      DropdownMenuItem(
-                                        value: 'post',
-                                        child: Text("مقال أو خبر (Post)"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'page',
-                                        child: Text("صفحة ثابتة (Page)"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'intro',
-                                        child: Text("شريحة تعريفية (Intro Slide)"),
-                                      ),
-                                    ],
-                                    onChanged: (val) {
-                                      if (val != null) {
-                                        setState(() => _postType = val);
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // CoreKey field (only shown if type is page)
-                                  if (_postType == 'page') ...[
-                                    TextFormField(
-                                      controller: _coreKeyController,
-                                      decoration: const InputDecoration(
-                                        labelText: "مفتاح الصفحة (Core Key)",
-                                        hintText: "مثال: privacy-policy",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      validator: (val) =>
-                                          _postType == 'page' &&
-                                              (val == null ||
-                                                  val.trim().isEmpty)
-                                          ? "مفتاح الصفحة مطلوب للصفحات التعريفية"
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 16),
-                                  ],
-
-                                  // Category Dropdown (only shown if type is post)
-                                  if (_postType == 'post') ...[
-                                    BlocBuilder<
-                                      BlogCategoriesBloc,
-                                      FeaturDataSourceState<BlogCategoryModel>
-                                    >(
-                                      builder: (context, state) {
-                                        final categories = state.listState
-                                            .maybeWhen(
-                                              success: (items) => items,
-                                              orElse: () =>
-                                                  <BlogCategoryModel>[],
-                                            );
-                                        final isLoading = state.listState
-                                            .maybeWhen(
-                                              loading: () => true,
-                                              orElse: () => false,
-                                            );
-                                        final isFailure = state.listState
-                                            .maybeWhen(
-                                              failure: (err, retry) => true,
-                                              orElse: () => false,
-                                            );
-                                        final errorMsg = state.listState
-                                            .maybeWhen(
-                                              failure: (err, retry) =>
-                                                  err.message,
-                                              orElse: () => null,
-                                            );
-
-                                        print(
-                                          "[BlogPostInputForm] BlocBuilder state: ${state.listState}, categories count: ${categories!.length}, error: $errorMsg",
-                                        );
-
-                                        // Safeguard: Ensure the selected value exists in the loaded items
-                                        final selectedValue =
-                                            categories.any(
-                                              (cat) =>
-                                                  cat.id == _blogCategoryId,
-                                            )
-                                            ? _blogCategoryId
-                                            : null;
-
-                                        if (isFailure) {
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "⚠️ فشل تحميل التصنيفات: ${errorMsg ?? ''}",
-                                                style: const TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 11,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              TextButton.icon(
-                                                onPressed: () {
-                                                  context
-                                                      .read<
-                                                        BlogCategoriesBloc
-                                                      >()
-                                                      .loadCategories(
-                                                        organizationId: widget
-                                                            .organizationId,
-                                                      );
-                                                },
-                                                icon: const Icon(
-                                                  Icons.refresh,
-                                                  size: 16,
-                                                ),
-                                                label: const Text(
-                                                  "إعادة المحاولة",
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        }
-
-                                        if (categories.isEmpty && !isLoading) {
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                "⚠️ لا توجد تصنيفات مدونة حالياً. يرجى إضافة تصنيف أولاً من علامة تبويب التصنيفات.",
-                                                style: TextStyle(
-                                                  color: Colors.amber,
-                                                  fontSize: 11,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              DropdownButtonFormField<String>(
-                                                value: null,
-                                                decoration:
-                                                    const InputDecoration(
+                                    if (_showSeoPanel)
+                                      Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _seoTitleArController,
+                                                    decoration: const InputDecoration(
                                                       labelText:
-                                                          "تصنيف المقال (فارغ)",
+                                                          "عنوان SEO بالعربية",
                                                       border:
                                                           OutlineInputBorder(),
                                                     ),
-                                                items: const [],
-                                                onChanged: null,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _seoTitleEnController,
+                                                    decoration: const InputDecoration(
+                                                      labelText:
+                                                          "عنوان SEO بالإنجليزية",
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _seoDescriptionArController,
+                                                    maxLines: 2,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                          labelText:
+                                                              "وصف SEO بالعربية",
+                                                          border:
+                                                              OutlineInputBorder(),
+                                                        ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _seoDescriptionEnController,
+                                                    maxLines: 2,
+                                                    decoration: const InputDecoration(
+                                                      labelText:
+                                                          "وصف SEO بالإنجليزية",
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 16),
+                                            TextFormField(
+                                              controller:
+                                                  _seoKeywordsController,
+                                              decoration: const InputDecoration(
+                                                labelText:
+                                                    "الكلمات الدلالية للـ SEO (افصل بينها بفاصلة ,)",
+                                                hintText:
+                                                    "مثال: تسوق, متجر, ملابس, موضة",
+                                                border: OutlineInputBorder(),
                                               ),
-                                            ],
-                                          );
-                                        }
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 24),
 
-                                        return DropdownButtonFormField<String>(
-                                          value: selectedValue,
-                                          decoration: InputDecoration(
-                                            labelText: "تصنيف المقال",
-                                            border: const OutlineInputBorder(),
-                                            suffixIcon: isLoading
-                                                ? const Padding(
-                                                    padding: EdgeInsets.all(
-                                                      12.0,
-                                                    ),
-                                                    child: SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    ),
-                                                  )
-                                                : null,
+                        // Column 2: Configurations & Image (Right area - 35% width)
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 1. Post image cover
+                              const Text(
+                                "الصورة البصرية للمنشور:",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ImagePecker(
+                                networkImage: _getCleanImageUrl(
+                                  widget.post?.imageUrl,
+                                ),
+                                onImageSelected: (imageModel) {
+                                  setState(() {
+                                    _selectedImage = imageModel;
+                                  });
+                                },
+                                placeholderAsset: AppAsset.imgplaceholder,
+                              ),
+                              const SizedBox(height: 24),
+
+                              // 2. Publication Settings
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? DarkColors.surfaceVariant
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.15),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Post type Dropdown
+                                    DropdownButtonFormField<String>(
+                                      value: _postType,
+                                      decoration: const InputDecoration(
+                                        labelText: "نوع المنشور",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'post',
+                                          child: Text("مقال أو خبر (Post)"),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'page',
+                                          child: Text("صفحة ثابتة (Page)"),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'intro',
+                                          child: Text(
+                                            "شريحة تعريفية (Intro Slide)",
                                           ),
-                                          items: categories.map((cat) {
-                                            return DropdownMenuItem<String>(
-                                              value: cat.id,
-                                              child: Text(cat.name.ar),
-                                            );
-                                          }).toList(),
-                                          onChanged: (val) {
-                                            setState(() {
-                                              _blogCategoryId = val;
-                                            });
-                                          },
-                                        );
+                                        ),
+                                      ],
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          setState(() => _postType = val);
+                                        }
                                       },
                                     ),
                                     const SizedBox(height: 16),
-                                  ],
 
-                                  // Friendly Slug
-                                  TextFormField(
-                                    controller: _slugController,
-                                    decoration: const InputDecoration(
-                                      labelText: "الرابط الفريد (Slug)",
-                                      hintText: "مثال: how-to-shop",
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    validator: (val) =>
-                                        val == null || val.trim().isEmpty
-                                        ? "الرابط الفرعي مطلوب"
-                                        : null,
-                                  ),
-                                  const SizedBox(height: 20),
+                                    // CoreKey field (only shown if type is page)
+                                    if (_postType == 'page') ...[
+                                      TextFormField(
+                                        controller: _coreKeyController,
+                                        decoration: const InputDecoration(
+                                          labelText: "مفتاح الصفحة (Core Key)",
+                                          hintText: "مثال: privacy-policy",
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        validator: (val) =>
+                                            _postType == 'page' &&
+                                                (val == null ||
+                                                    val.trim().isEmpty)
+                                            ? "مفتاح الصفحة مطلوب للصفحات التعريفية"
+                                            : null,
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
 
-                                  const Divider(),
+                                    // Category Dropdown (only shown if type is post)
+                                    if (_postType == 'post') ...[
+                                      BlocBuilder<
+                                        BlogCategoriesBloc,
+                                        FeaturDataSourceState<BlogCategoryModel>
+                                      >(
+                                        builder: (context, state) {
+                                          final categories = state.listState
+                                              .maybeWhen(
+                                                success: (items) => items,
+                                                orElse: () =>
+                                                    <BlogCategoryModel>[],
+                                              );
+                                          final isLoading = state.listState
+                                              .maybeWhen(
+                                                loading: () => true,
+                                                orElse: () => false,
+                                              );
+                                          final isFailure = state.listState
+                                              .maybeWhen(
+                                                failure: (err, retry) => true,
+                                                orElse: () => false,
+                                              );
+                                          final errorMsg = state.listState
+                                              .maybeWhen(
+                                                failure: (err, retry) =>
+                                                    err.message,
+                                                orElse: () => null,
+                                              );
 
-                                  // Switches for Joker, Featured, Active
-                                  SwitchListTile(
-                                    title: const Text(
-                                      "نشر فوري (نشط)",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    value: _isActive,
-                                    onChanged: (val) =>
-                                        setState(() => _isActive = val),
-                                    activeColor: primaryColor,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
+                                          print(
+                                            "[BlogPostInputForm] BlocBuilder state: ${state.listState}, categories count: ${categories!.length}, error: $errorMsg",
+                                          );
 
-                                  SwitchListTile(
-                                    title: const Text(
-                                      "تثبيت كالجوكر الرئيسي",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    subtitle: const Text(
-                                      "مقال رئيسي كبير أعلى الصفحة الهبوط",
-                                      style: TextStyle(fontSize: 10),
-                                    ),
-                                    value: _isJoker,
-                                    onChanged: (val) =>
-                                        setState(() => _isJoker = val),
-                                    activeColor: Colors.amber,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
+                                          // Safeguard: Ensure the selected value exists in the loaded items
+                                          final selectedValue =
+                                              categories.any(
+                                                (cat) =>
+                                                    cat.id == _blogCategoryId,
+                                              )
+                                              ? _blogCategoryId
+                                              : null;
 
-                                  SwitchListTile(
-                                    title: const Text(
-                                      "تثبيت كمقال مميز",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    subtitle: const Text(
-                                      "يعرض في قسم المميز بالصفحة الهبوط",
-                                      style: TextStyle(fontSize: 10),
-                                    ),
-                                    value: _isFeatured,
-                                    onChanged: (val) =>
-                                        setState(() => _isFeatured = val),
-                                    activeColor: primaryColor,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
+                                          if (isFailure) {
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "⚠️ فشل تحميل التصنيفات: ${errorMsg ?? ''}",
+                                                  style: const TextStyle(
+                                                    color: Colors.red,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                TextButton.icon(
+                                                  onPressed: () {
+                                                    context
+                                                        .read<
+                                                          BlogCategoriesBloc
+                                                        >()
+                                                        .loadCategories(
+                                                          organizationId: widget
+                                                              .organizationId,
+                                                        );
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.refresh,
+                                                    size: 16,
+                                                  ),
+                                                  label: const Text(
+                                                    "إعادة المحاولة",
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          }
 
-                                  if (_postType == 'post') ...[
+                                          if (categories.isEmpty &&
+                                              !isLoading) {
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  "⚠️ لا توجد تصنيفات مدونة حالياً. يرجى إضافة تصنيف أولاً من علامة تبويب التصنيفات.",
+                                                  style: TextStyle(
+                                                    color: Colors.amber,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                DropdownButtonFormField<String>(
+                                                  value: null,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            "تصنيف المقال (فارغ)",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                  items: const [],
+                                                  onChanged: null,
+                                                ),
+                                              ],
+                                            );
+                                          }
+
+                                          return DropdownButtonFormField<
+                                            String
+                                          >(
+                                            value: selectedValue,
+                                            decoration: InputDecoration(
+                                              labelText: "تصنيف المقال",
+                                              border:
+                                                  const OutlineInputBorder(),
+                                              suffixIcon: isLoading
+                                                  ? const Padding(
+                                                      padding: EdgeInsets.all(
+                                                        12.0,
+                                                      ),
+                                                      child: SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                            ),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                            items: categories.map((cat) {
+                                              return DropdownMenuItem<String>(
+                                                value: cat.id,
+                                                child: Text(cat.name.ar),
+                                              );
+                                            }).toList(),
+                                            onChanged: (val) {
+                                              setState(() {
+                                                _blogCategoryId = val;
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+
+                                    // Friendly Slug
+                                    TextFormField(
+                                      controller: _slugController,
+                                      decoration: const InputDecoration(
+                                        labelText: "الرابط الفريد (Slug)",
+                                        hintText: "مثال: how-to-shop",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      validator: (val) =>
+                                          val == null || val.trim().isEmpty
+                                          ? "الرابط الفرعي مطلوب"
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    const Divider(),
+
+                                    // Switches for Joker, Featured, Active
                                     SwitchListTile(
                                       title: const Text(
-                                        "تثبيت كالأكثر رواجاً/قراءة (isMost)",
+                                        "نشر فوري (نشط)",
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                      value: _isActive,
+                                      onChanged: (val) =>
+                                          setState(() => _isActive = val),
+                                      activeColor: primaryColor,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+
+                                    SwitchListTile(
+                                      title: const Text(
+                                        "تثبيت كالجوكر الرئيسي",
                                         style: TextStyle(fontSize: 12),
                                       ),
                                       subtitle: const Text(
-                                        "يعرض في قسم المقالات الأكثر رواجاً بالصفحة الهبوط",
+                                        "مقال رئيسي كبير أعلى الصفحة الهبوط",
                                         style: TextStyle(fontSize: 10),
                                       ),
-                                      value: _isMost,
+                                      value: _isJoker,
                                       onChanged: (val) =>
-                                          setState(() => _isMost = val),
-                                      activeColor: primaryColor,
+                                          setState(() => _isJoker = val),
+                                      activeColor: Colors.amber,
                                       contentPadding: EdgeInsets.zero,
                                     ),
-                                  ],
 
-                                  if (_postType == 'page') ...[
                                     SwitchListTile(
                                       title: const Text(
-                                        "إظهار في التذييل (Footer)",
+                                        "تثبيت كمقال مميز",
                                         style: TextStyle(fontSize: 12),
                                       ),
-                                      value: _showInFooter,
+                                      subtitle: const Text(
+                                        "يعرض في قسم المميز بالصفحة الهبوط",
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                      value: _isFeatured,
                                       onChanged: (val) =>
-                                          setState(() => _showInFooter = val),
+                                          setState(() => _isFeatured = val),
                                       activeColor: primaryColor,
                                       contentPadding: EdgeInsets.zero,
                                     ),
-                                    SwitchListTile(
-                                      title: const Text(
-                                        "إظهار في القائمة العلوية (Navigation)",
-                                        style: TextStyle(fontSize: 12),
+
+                                    if (_postType == 'post') ...[
+                                      SwitchListTile(
+                                        title: const Text(
+                                          "تثبيت كالأكثر رواجاً/قراءة (isMost)",
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        subtitle: const Text(
+                                          "يعرض في قسم المقالات الأكثر رواجاً بالصفحة الهبوط",
+                                          style: TextStyle(fontSize: 10),
+                                        ),
+                                        value: _isMost,
+                                        onChanged: (val) =>
+                                            setState(() => _isMost = val),
+                                        activeColor: primaryColor,
+                                        contentPadding: EdgeInsets.zero,
                                       ),
-                                      value: _showInNavigation,
-                                      onChanged: (val) =>
-                                          setState(() => _showInNavigation = val),
-                                      activeColor: primaryColor,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
+                                    ],
+
+                                    if (_postType == 'page') ...[
+                                      SwitchListTile(
+                                        title: const Text(
+                                          "إظهار في التذييل (Footer)",
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        value: _showInFooter,
+                                        onChanged: (val) =>
+                                            setState(() => _showInFooter = val),
+                                        activeColor: primaryColor,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      SwitchListTile(
+                                        title: const Text(
+                                          "إظهار في القائمة العلوية (Navigation)",
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        value: _showInNavigation,
+                                        onChanged: (val) => setState(
+                                          () => _showInNavigation = val,
+                                        ),
+                                        activeColor: primaryColor,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ],
                                   ],
-                                ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Bottom Actions (Save / Cancel)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? DarkColors.surface : Colors.white,
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.withOpacity(0.1)),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            onPressed: _savePost,
+                            icon: const Icon(Icons.save),
+                            label: Text(
+                              isEditing ? 'حفظ التعديلات' : 'نشر المنشور',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              if (Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).canPop()) {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              "إلغاء",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              // Bottom Actions (Save / Cancel)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? DarkColors.surface : Colors.white,
-                  border: Border(
-                    top: BorderSide(color: Colors.grey.withOpacity(0.1)),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: SizedBox(
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          onPressed: _savePost,
-                          icon: const Icon(Icons.save),
-                          label: Text(
-                            isEditing ? 'حفظ التعديلات' : 'نشر المنشور',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            if (Navigator.of(context, rootNavigator: true).canPop()) {
-                              Navigator.of(context, rootNavigator: true).pop();
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            "إلغاء",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1156,5 +1214,70 @@ class _BlogPostInputFormState extends State<BlogPostInputForm>
     }
     final cleanPath = rawUrl.startsWith('/') ? rawUrl.substring(1) : rawUrl;
     return '${AppBackendEnv().imageUrl}/$cleanPath';
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Theme.of(context).cardColor,
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'تنبيه! خطأ في التنفيذ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            fontSize: 15,
+            color: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'فهمت',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

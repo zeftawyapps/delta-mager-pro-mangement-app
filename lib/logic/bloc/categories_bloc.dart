@@ -34,7 +34,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => searchCategories(query, shopId: shopId),
+            () {},
           ),
         ),
       );
@@ -54,7 +54,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadCategories(shopId: shopId),
+            () {},
           ),
         ),
       );
@@ -74,7 +74,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => deleteCategory(id, shopId: shopId),
+            () {},
           ),
         ),
       );
@@ -115,15 +115,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createCategory(
-              name: name,
-              shopId: shopId,
-              description: description,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              isMasterProduct: isMasterProduct,
-              sharingLevel: sharingLevel,
-            ),
+            () {},
           ),
         ),
       );
@@ -165,16 +157,7 @@ class CategoriesBloc extends Cubit<FeaturDataSourceState<CategoryModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => updateCategory(
-              categoryId: categoryId,
-              shopId: shopId,
-              name: name,
-              isActive: isActive,
-              imageBytes: imageBytes,
-              imageName: imageName,
-              isMasterProduct: isMasterProduct,
-              sharingLevel: sharingLevel,
-            ),
+            () {},
           ),
         ),
       );

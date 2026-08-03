@@ -55,7 +55,7 @@ class WorkflowManagementBloc
               message:
                   result.message ?? "لم يتم العثور على مسارات عمل لهذا الكيان",
             ),
-            () => loadSpecificConfig(organizationId, entityType: entityType),
+            () {},
           ),
           itemState: const DataSourceBaseState.init(),
         ),
@@ -84,10 +84,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء حفظ المسار",
             ),
-            () => createOrUpdateConfig(
-              organizationId: organizationId,
-              request: request,
-            ),
+            () {},
           ),
         ),
       );
@@ -122,11 +119,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء استلام المهمة",
             ),
-            () => claimTask(
-              entityType: entityType,
-              entryId: entryId,
-              expectedStepNumber: expectedStepNumber,
-            ),
+            () {},
           ),
         ),
       );
@@ -165,12 +158,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تنفيذ الإجراء",
             ),
-            () => performAction(
-              entityType: entityType,
-              entryId: entryId,
-              actionName: actionName,
-              expectedStepNumber: expectedStepNumber,
-            ),
+            () {},
           ),
         ),
       );
@@ -209,12 +197,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تعيين المهمة",
             ),
-            () => assignTask(
-              entityType: entityType,
-              entryId: entryId,
-              targetUserId: targetUserId,
-              expectedStepNumber: expectedStepNumber,
-            ),
+            () {},
           ),
         ),
       );
@@ -242,7 +225,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء إنشاء المسار الافتراضي",
             ),
-            () => seedDefault(organizationId, entityType: entityType),
+            () {},
           ),
         ),
       );
@@ -276,13 +259,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء إضافة الخطوة",
             ),
-            () => addStep(
-              organizationId: organizationId,
-              entityType: entityType,
-              step: step,
-              reorder: reorder,
-              slug: slug,
-            ),
+            () {},
           ),
         ),
       );
@@ -316,13 +293,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تعديل الخطوة",
             ),
-            () => updateStep(
-              organizationId: organizationId,
-              stepNumber: stepNumber,
-              entityType: entityType,
-              step: step,
-              slug: slug,
-            ),
+            () {},
           ),
         ),
       );
@@ -354,12 +325,7 @@ class WorkflowManagementBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء حذف الخطوة",
             ),
-            () => deleteStep(
-              organizationId: organizationId,
-              stepNumber: stepNumber,
-              entityType: entityType,
-              slug: slug,
-            ),
+            () {},
           ),
         ),
       );

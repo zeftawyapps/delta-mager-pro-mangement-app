@@ -17,6 +17,7 @@ void main() async {
   await configService.init();
 
   // 🏢 تفعيل وضع المنظمة (Dashboard Mode)
+  configService.setIsAdminMode(false);
   AppShellConfigs.isAdminMode = false;
   AppShellConfigs.titleApp = '${configService.appTitle} Dashboard';
   AppShellConfigs.defaultOrgName = configService.defaultOrgName;

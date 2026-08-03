@@ -28,7 +28,7 @@ class TestBloc extends Cubit<FeaturDataSourceState<TestData>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => getTestData(),
+            () {},
           ),
         ),
       );

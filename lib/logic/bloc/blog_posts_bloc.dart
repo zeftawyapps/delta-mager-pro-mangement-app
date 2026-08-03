@@ -11,7 +11,7 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
   final BlogRepo repo;
 
   BlogPostsBloc({required this.repo})
-      : super(FeaturDataSourceState<BlogPostModel>.defaultState());
+    : super(FeaturDataSourceState<BlogPostModel>.defaultState());
 
   Future<void> loadPosts({required String organizationId, String? lang}) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
@@ -21,21 +21,26 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
     );
 
     if (result.status == StatusModel.success) {
-      final posts = result.data?.map((e) => BlogPostModel.fromData(e)).toList() ?? [];
+      final posts =
+          result.data?.map((e) => BlogPostModel.fromData(e)).toList() ?? [];
       emit(state.copyWith(listState: DataSourceBaseState.success(posts)));
     } else {
       emit(
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading posts"),
-            () => loadPosts(organizationId: organizationId, lang: lang),
+            () {},
           ),
         ),
       );
     }
   }
 
-  Future<void> loadPostsByType({required String postType, required String organizationId, String? lang}) async {
+  Future<void> loadPostsByType({
+    required String postType,
+    required String organizationId,
+    String? lang,
+  }) async {
     emit(state.copyWith(listState: const DataSourceBaseState.loading()));
     final result = await repo.getPostsByType(
       postType: postType,
@@ -44,14 +49,17 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
     );
 
     if (result.status == StatusModel.success) {
-      final posts = result.data?.map((e) => BlogPostModel.fromData(e)).toList() ?? [];
+      final posts =
+          result.data?.map((e) => BlogPostModel.fromData(e)).toList() ?? [];
       emit(state.copyWith(listState: DataSourceBaseState.success(posts)));
     } else {
       emit(
         state.copyWith(
           listState: DataSourceBaseState.failure(
-            ErrorStateModel(message: result.message ?? "Error loading posts by type"),
-            () => loadPostsByType(postType: postType, organizationId: organizationId, lang: lang),
+            ErrorStateModel(
+              message: result.message ?? "Error loading posts by type",
+            ),
+            () {},
           ),
         ),
       );
@@ -83,47 +91,58 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
     Uint8List? introImageBytes,
     String? introImageName,
   }) async {
-    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
-    final result = await repo.createBlogPost(
-      title: title,
-      slug: slug,
-      content: content,
-      postType: postType,
-      blogCategoryId: blogCategoryId,
-      organizationId: organizationId,
-      relatedProducts: relatedProducts,
-      imageBytes: imageBytes,
-      imageName: imageName,
-      isActive: isActive,
-      coreKey: coreKey,
-      seoTitle: seoTitle,
-      seoDescription: seoDescription,
-      seoKeywords: seoKeywords,
-      isJoker: isJoker,
-      isFeatured: isFeatured,
-      isMost: isMost,
-      showInFooter: showInFooter,
-      showInNavigation: showInNavigation,
-      introTitle: introTitle,
-      introDescription: introDescription,
-      introImageBytes: introImageBytes,
-      introImageName: introImageName,
-    );
-
-    if (result.status == StatusModel.success && result.data != null) {
-      emit(
-        state.copyWith(
-          itemState: DataSourceBaseState.success(
-            BlogPostModel.fromData(result.data!),
-          ),
-        ),
+    try {
+      emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+      final result = await repo.createBlogPost(
+        title: title,
+        slug: slug,
+        content: content,
+        postType: postType,
+        blogCategoryId: blogCategoryId,
+        organizationId: organizationId,
+        relatedProducts: relatedProducts,
+        imageBytes: imageBytes,
+        imageName: imageName,
+        isActive: isActive,
+        coreKey: coreKey,
+        seoTitle: seoTitle,
+        seoDescription: seoDescription,
+        seoKeywords: seoKeywords,
+        isJoker: isJoker,
+        isFeatured: isFeatured,
+        isMost: isMost,
+        showInFooter: showInFooter,
+        showInNavigation: showInNavigation,
+        introTitle: introTitle,
+        introDescription: introDescription,
+        introImageBytes: introImageBytes,
+        introImageName: introImageName,
       );
-      loadPosts(organizationId: organizationId);
-    } else {
+
+      if (result.status == StatusModel.success) {
+        BlogPostModel? postModel;
+        if (result.data != null) {
+          try {
+            postModel = BlogPostModel.fromData(result.data!);
+          } catch (_) {}
+        }
+        emit(state.copyWith(itemState: DataSourceBaseState.success(postModel)));
+        //  loadPosts(organizationId: organizationId);
+      } else {
+        emit(
+          state.copyWith(
+            itemState: DataSourceBaseState.failure(
+              ErrorStateModel(message: result.message ?? "Error creating post"),
+              () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
-            ErrorStateModel(message: result.message ?? "Error creating post"),
+            ErrorStateModel(message: "حدث خطأ غير متوقع: ${e.toString()}"),
             () {},
           ),
         ),
@@ -140,44 +159,52 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
     Uint8List? introImageBytes,
     String? introImageName,
   }) async {
-    emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
-    final result = await repo.updateBlogPost(
-      blogPostId: blogPostId,
-      data: data,
-      imageBytes: imageBytes,
-      imageName: imageName,
-      introImageBytes: introImageBytes,
-      introImageName: introImageName,
-    );
-
-    if (result.status == StatusModel.success && result.data != null) {
-      emit(
-        state.copyWith(
-          itemState: DataSourceBaseState.success(
-            BlogPostModel.fromData(result.data!),
-          ),
-        ),
+    try {
+      emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
+      final result = await repo.updateBlogPost(
+        blogPostId: blogPostId,
+        data: data,
+        imageBytes: imageBytes,
+        imageName: imageName,
+        introImageBytes: introImageBytes,
+        introImageName: introImageName,
       );
-      loadPosts(organizationId: organizationId);
-    } else {
+
+      if (result.status == StatusModel.success) {
+        BlogPostModel? postModel;
+        if (result.data != null) {
+          try {
+            postModel = BlogPostModel.fromData(result.data!);
+          } catch (_) {}
+        }
+        emit(state.copyWith(itemState: DataSourceBaseState.success(postModel)));
+        // loadPosts(organizationId: organizationId);
+      } else {
+        emit(
+          state.copyWith(
+            itemState: DataSourceBaseState.failure(
+              ErrorStateModel(message: result.message ?? "Error updating post"),
+              () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
-            ErrorStateModel(message: result.message ?? "Error updating post"),
-            () => updatePost(
-              blogPostId: blogPostId,
-              data: data,
-              organizationId: organizationId,
-              imageBytes: imageBytes,
-              imageName: imageName,
-            ),
+            ErrorStateModel(message: "حدث خطأ غير متوقع: ${e.toString()}"),
+            () {},
           ),
         ),
       );
     }
   }
 
-  Future<void> deletePost(String blogPostId, {required String organizationId}) async {
+  Future<void> deletePost(
+    String blogPostId, {
+    required String organizationId,
+  }) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
     final result = await repo.deleteBlogPost(blogPostId);
 
@@ -189,7 +216,7 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error deleting post"),
-            () => deletePost(blogPostId, organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -198,7 +225,9 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
 
   Future<void> seedLegalPages({required String organizationId}) async {
     emit(state.copyWith(itemState: const DataSourceBaseState.loading()));
-    final result = await repo.seedDefaultLegalPages(organizationId: organizationId);
+    final result = await repo.seedDefaultLegalPages(
+      organizationId: organizationId,
+    );
 
     if (result.status == StatusModel.success) {
       emit(state.copyWith(itemState: const DataSourceBaseState.init()));
@@ -207,8 +236,10 @@ class BlogPostsBloc extends Cubit<FeaturDataSourceState<BlogPostModel>> {
       emit(
         state.copyWith(
           itemState: DataSourceBaseState.failure(
-            ErrorStateModel(message: result.message ?? "Error seeding legal pages"),
-            () => seedLegalPages(organizationId: organizationId),
+            ErrorStateModel(
+              message: result.message ?? "Error seeding legal pages",
+            ),
+            () {},
           ),
         ),
       );

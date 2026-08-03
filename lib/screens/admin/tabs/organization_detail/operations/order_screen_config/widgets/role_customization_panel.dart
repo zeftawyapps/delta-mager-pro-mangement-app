@@ -327,8 +327,22 @@ class RoleCustomizationPanel extends StatelessWidget {
           const SizedBox(height: 8),
 
           ToggleOption(
-            title: "تصفية حسب خطوط السير",
-            subtitle: "السماح لهذا الدور برؤية الطلبات في خطوط سير محددة فقط",
+            title: "تصفية حسب خط سير محدد",
+            subtitle: "توجيه وتصفية الطلبات تلقائياً لخط سير واحد محدد فقط لهذا الدور (بدون إظهار أي بانر للمستخدم)",
+            value: config.filterBySpecificPath,
+            isDark: isDark,
+            onChanged: isEditing
+                ? (val) => onConfigUpdated(config.copyWith(
+                      filterBySpecificPath: val,
+                      specificPathId: val ? config.specificPathId : null,
+                    ))
+                : null,
+          ),
+          const SizedBox(height: 8),
+
+          ToggleOption(
+            title: "تصفية حسب خطوط السير (متعددة)",
+            subtitle: "السماح لهذا الدور برؤية الطلبات في خطوط سير متعددة",
             value: config.filterByPath,
             isDark: isDark,
             onChanged: isEditing
@@ -339,24 +353,100 @@ class RoleCustomizationPanel extends StatelessWidget {
                 : null,
           ),
 
-          if (config.filterByPath) ...[
+          if (config.filterBySpecificPath || config.filterByPath) ...[
             const SizedBox(height: 8),
             ToggleOption(
-              title: "ترتيب الطلبات حسب الموقع الأقرب",
-              subtitle: "ترتيب الطلبات المصفاة تلقائيًا بناءً على المسافة الجغرافية من موقع المستخدم الحالي",
-              value: config.sortByClosestLocation,
-              isDark: isDark,
-              onChanged: isEditing
-                  ? (val) => onConfigUpdated(config.copyWith(
-                        sortByClosestLocation: val,
-                      ))
-                  : null,
+            title: "ترتيب الطلبات حسب الموقع الأقرب",
+            subtitle: "فرز الطلبات تلقائياً بناءً على المسافة الجغرافية من موقع المستخدم",
+            value: config.sortByClosestLocation,
+            isDark: isDark,
+            onChanged: isEditing
+                ? (val) => onConfigUpdated(config.copyWith(sortByClosestLocation: val))
+                : null,
+          ),
+          const SizedBox(height: 8),
+
+          ToggleOption(
+            title: "السماح بتجميع الطلبات للمخزن",
+            subtitle: "توليد قائمة تجميع المنتجات والطباعة لموظفي المخازن والسائقين",
+            value: config.allowOrderAggregation,
+            isDark: isDark,
+            onChanged: isEditing
+                ? (val) => onConfigUpdated(config.copyWith(
+                      allowOrderAggregation: val,
+                      aggregationSteps: val ? config.aggregationSteps : [],
+                    ))
+                : null,
+          ),
+          if (config.allowOrderAggregation) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "حدد خطوات سير العمل التي يظهر فيها زر التجميع:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "ملاحظة: سيظهر زر تجميع طلبات المخزن فقط عند تصفح الخطوات المحددة هنا.",
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white38 : Colors.black45,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: availableWorkflowSteps.map((stepKey) {
+                      final displayName = stepDisplayNames[stepKey] ?? stepKey;
+                      final isSelected = config.aggregationSteps.contains(stepKey);
+                      return FilterChip(
+                        label: Text(displayName),
+                        selected: isSelected,
+                        selectedColor: primaryColor.withOpacity(0.2),
+                        checkmarkColor: primaryColor,
+                        labelStyle: TextStyle(
+                          color: isSelected ? primaryColor : (isDark ? Colors.white70 : Colors.black87),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 12,
+                        ),
+                        onSelected: isEditing
+                            ? (val) {
+                                final newSteps = List<String>.from(config.aggregationSteps);
+                                if (val) {
+                                  newSteps.add(stepKey);
+                                } else {
+                                  newSteps.remove(stepKey);
+                                }
+                                onConfigUpdated(config.copyWith(aggregationSteps: newSteps));
+                              }
+                            : null,
+                        backgroundColor: primaryColor.withOpacity(0.05),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: isSelected ? primaryColor : primaryColor.withOpacity(0.2),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
+          ],
             const SizedBox(height: 12),
             Builder(
               builder: (context) {
                 // استخدام context.read بدلاً من context.watch لتجنب إعادة البناء اللانهائية
-                // البيانات كافية لأنها محملة بالفعل من BlocListener في الـ parent
                 final workflowState = context.read<WorkflowManagementBloc>().state;
                 final configs = workflowState.listState.maybeWhen(
                   success: (list) => list ?? [],
@@ -404,6 +494,101 @@ class RoleCustomizationPanel extends StatelessWidget {
                           child: Text(
                             "لا توجد خطوط سير مرتبطة بسير العمل الحالي (${activeWorkflow.workflow.workflowName.ar}).",
                             style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (config.filterBySpecificPath) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "تحديد خطوط السير المخصصة لهذا الدور (بدون تداخل في الأيام):",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "ملاحظة: يجب أن يختص كل خط سير بيوم عمل منفصل دون تداخل في الأيام بين الخطوط.",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white38 : Colors.black45,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: filteredPaths.map((path) {
+                            final isSelected = config.allowedPaths.contains(path.id);
+                            return FilterChip(
+                              label: Text(path.name),
+                              selected: isSelected,
+                              selectedColor: primaryColor.withOpacity(0.2),
+                              checkmarkColor: primaryColor,
+                              labelStyle: TextStyle(
+                                color: isSelected ? primaryColor : (isDark ? Colors.white70 : Colors.black87),
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontSize: 12,
+                              ),
+                              onSelected: isEditing
+                                  ? (val) {
+                                      final newAllowed = List<String>.from(config.allowedPaths);
+                                      if (val) {
+                                        if (path.id != null) {
+                                          final candidateDays = path.schedule?.values ?? [];
+                                          bool hasOverlap = false;
+                                          for (final allowedId in newAllowed) {
+                                            final existing = filteredPaths.where((p) => p.id == allowedId).firstOrNull;
+                                            if (existing != null) {
+                                              final existingDays = existing.schedule?.values ?? [];
+                                              if (candidateDays.toSet().intersection(existingDays.toSet()).isNotEmpty) {
+                                                hasOverlap = true;
+                                                break;
+                                              }
+                                            }
+                                          }
+                                          if (hasOverlap) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text("لا يمكن اختيار (${path.name}) لوجود تعارض في أيام العمل مع خط سير آخر مخصص للدور"),
+                                                backgroundColor: Colors.orange.shade800,
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          newAllowed.add(path.id!);
+                                        }
+                                      } else {
+                                        newAllowed.remove(path.id);
+                                      }
+                                      onConfigUpdated(config.copyWith(allowedPaths: newAllowed));
+                                    }
+                                  : null,
+                              backgroundColor: primaryColor.withOpacity(0.05),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: isSelected ? primaryColor : primaryColor.withOpacity(0.2),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "المحدد: ${config.allowedPaths.length} من ${filteredPaths.length}",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white38 : Colors.black45,
                           ),
                         ),
                       ],

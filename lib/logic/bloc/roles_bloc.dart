@@ -24,7 +24,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
         state.copyWith(
           listState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => loadRoles(organizationId: organizationId),
+            () {},
           ),
         ),
       );
@@ -65,15 +65,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => createRole(
-              name: name,
-              displayName: displayName,
-              description: description,
-              permissions: permissions,
-              allowAuthLogin: allowAuthLogin,
-              organizationId: organizationId,
-              isCustomerRole: isCustomerRole,
-            ),
+            () {},
           ),
         ),
       );
@@ -117,16 +109,7 @@ class RolesBloc extends Cubit<FeaturDataSourceState<RoleModel>> {
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error"),
-            () => updateRole(
-              roleId: roleId,
-              name: name,
-              displayName: displayName,
-              description: description,
-              permissions: permissions,
-              allowAuthLogin: allowAuthLogin,
-              organizationId: organizationId,
-              isCustomerRole: isCustomerRole,
-            ),
+            () {},
           ),
         ),
       );

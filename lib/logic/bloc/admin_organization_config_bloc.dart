@@ -34,7 +34,7 @@ class AdminOrganizationConfigBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تحميل الإعدادات",
             ),
-            () => loadConfig(organizationId),
+            () {},
           ),
         ),
       );
@@ -60,7 +60,7 @@ class AdminOrganizationConfigBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تحميل الإعدادات",
             ),
-            () => getOrganizationConfigByName(orgName),
+            () {},
           ),
         ),
       );
@@ -97,7 +97,7 @@ class AdminOrganizationConfigBloc
             ErrorStateModel(
               message: result.message ?? "حدث خطأ أثناء تحميل الإعدادات",
             ),
-            () => loadConfig(organizationId),
+            () {},
           ),
         ),
       );

@@ -29,7 +29,7 @@ class OrganizationPolicyBloc extends Cubit<FeaturDataSourceState<OrganizationPol
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "حدث خطأ أثناء تحميل السياسات"),
-            () => loadPolicy(organizationId),
+            () {},
           ),
         ),
       );
@@ -55,7 +55,7 @@ class OrganizationPolicyBloc extends Cubit<FeaturDataSourceState<OrganizationPol
         state.copyWith(
           itemState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "حدث خطأ أثناء تحديث السياسات"),
-            () => updatePolicy(organizationId, policy),
+            () {},
           ),
         ),
       );

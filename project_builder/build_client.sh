@@ -3,7 +3,7 @@
 # 🎨 Modern high-intensity colors for maximum readability on all terminals
 RED='\033[0;91m'      # High-intensity Red
 GREEN='\033[0;92m'    # High-intensity Green
-BLUE='\033[0;94m'     # High-intensity Blue (extremely readable)
+BLUE='\033[0;94m'     # High-intensity Blue
 CYAN='\033[0;96m'     # High-intensity Cyan
 YELLOW='\033[0;93m'   # High-intensity Yellow
 PURPLE='\033[0;95m'   # High-intensity Purple
@@ -14,11 +14,20 @@ echo -e "${CYAN}${BOLD}======================================================${N
 echo -e "${BLUE}${BOLD}   🚀 Delta Matger Pro - Project Builder Setup        ${NC}"
 echo -e "${CYAN}${BOLD}======================================================${NC}"
 
-CLIENT_APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILDER_DIR="$CLIENT_APP_DIR/project_builder"
-BUILD_ROOT_DIR="$CLIENT_APP_DIR/build"
+MGMT_APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILDER_DIR="$MGMT_APP_DIR/project_builder"
+BUILD_ROOT_DIR="$MGMT_APP_DIR/build"
 DASHBOARD_BUILD_DIR="$BUILD_ROOT_DIR/web_dashboard"
 ADMIN_BUILD_DIR="$BUILD_ROOT_DIR/web_admin"
+
+CLIENTS=()
+for file in "$BUILDER_DIR"/clients/*.yaml; do
+    if [ -f "$file" ]; then
+        client_filename=$(basename "$file")
+        client_name="${client_filename%.yaml}"
+        CLIENTS+=("$client_name")
+    fi
+done
 
 CLIENT=""
 ACTION=""
@@ -66,9 +75,34 @@ else
     fi
 fi
 
+DEFAULT_CLIENT=""
+if [ -f "$BUILDER_DIR/config.yaml" ]; then
+    DEFAULT_CLIENT=$(grep -E "^activeClient:" "$BUILDER_DIR/config.yaml" | head -n 1 | sed -E "s/activeClient:[[:space:]]*['\"]?([^'\"]+)['\"]?/\1/" | tr -d '\r')
+fi
+
 if [ -z "$CLIENT" ]; then
-    if [ -f "$BUILDER_DIR/config.yaml" ]; then
-        CLIENT=$(grep -E "^activeClient:" "$BUILDER_DIR/config.yaml" | sed -E "s/activeClient:[[:space:]]*['\"]?([^'\"]+)['\"]?/\1/")
+    if [ ${#CLIENTS[@]} -gt 0 ]; then
+        echo -e "\n${CYAN}📋 Select Active Client(s) to Configure:${NC}"
+        echo -e "  [${PURPLE}all${NC}] 🌐 Select ALL Clients"
+        for i in "${!CLIENTS[@]}"; do
+            client_key="${CLIENTS[$i]}"
+            client_display_name="$(tr '[:lower:]' '[:upper:]' <<< ${client_key:0:1})${client_key:1}"
+            if [ "$client_key" == "$DEFAULT_CLIENT" ]; then
+                echo -e "  [${GREEN}$((i+1))${NC}] 🌟 ${GREEN}$client_display_name (Active)${NC}"
+            else
+                echo -e "  [${CYAN}$((i+1))${NC}] 📁 $client_display_name"
+            fi
+        done
+
+        read -p "👉 Your Selection (Press Enter for active default: ${DEFAULT_CLIENT:-1}): " CLIENT_CHOICE
+
+        if [ -z "$CLIENT_CHOICE" ]; then
+            CLIENT="$DEFAULT_CLIENT"
+        elif [[ "$CLIENT_CHOICE" =~ ^[0-9]+$ ]] && [ $CLIENT_CHOICE -ge 1 ] && [ $CLIENT_CHOICE -le ${#CLIENTS[@]} ]; then
+            CLIENT="${CLIENTS[$((CLIENT_CHOICE-1))]}"
+        else
+            CLIENT="$CLIENT_CHOICE"
+        fi
     fi
 fi
 
@@ -143,27 +177,16 @@ DASHBOARD_TARGET="$(yaml_read "apps.dashboard.buildTarget")"
 ADMIN_TARGET="$(yaml_read "apps.admin.buildTarget")"
 DASHBOARD_SITE="$(yaml_read "apps.dashboard.hostingSite")"
 ADMIN_SITE="$(yaml_read "apps.admin.hostingSite")"
-TARGET_VERSION="$(yaml_read "appVersion")"
-TARGET_BUILD="$(yaml_read "appBuildIndex")"
 FIREBASE_PROJECT="$(yaml_read "firebase.project")"
 
 if [ -z "$DASHBOARD_TARGET" ]; then DASHBOARD_TARGET="lib/main_dashboard.dart"; fi
 if [ -z "$ADMIN_TARGET" ]; then ADMIN_TARGET="lib/main_admin.dart"; fi
 
 if [ -z "$DASHBOARD_SITE" ]; then
-    DASHBOARD_SITE="$(yaml_read "firebase.hosting.client")"
-fi
-if [ -z "$DASHBOARD_SITE" ]; then
-    DASHBOARD_SITE="$(yaml_read "firebase.hosting.cleint")"
-fi
-if [ -z "$DASHBOARD_SITE" ]; then
-    DASHBOARD_SITE="$(yaml_read "firebase.hosting.clientApp")"
-fi
-if [ -z "$DASHBOARD_SITE" ]; then
-    DASHBOARD_SITE="$(yaml_read "firebase.hosting.cleintApp")"
-fi
-if [ -z "$DASHBOARD_SITE" ]; then
     DASHBOARD_SITE="$(yaml_read "firebase.hosting.dashboard")"
+fi
+if [ -z "$DASHBOARD_SITE" ]; then
+    DASHBOARD_SITE="$(yaml_read "firebase.hosting.client")"
 fi
 if [ -z "$ADMIN_SITE" ]; then
     ADMIN_SITE="$(yaml_read "firebase.hosting.admin")"
@@ -230,17 +253,6 @@ if [ "$ACTION" == "run" ]; then
         exit 1
     fi
 else
-    if [ -f "$CLIENT_APP_DIR/pubspec.yaml" ] && [ -f "$BUILDER_DIR/clients/$CLIENT.yaml" ]; then
-        CURRENT_VERSION=$(grep -E "^version:" "$CLIENT_APP_DIR/pubspec.yaml" | sed -E "s/version:[[:space:]]*//")
-        TARGET_FULL="${TARGET_VERSION}+${TARGET_BUILD}"
-
-        if [ "$CURRENT_VERSION" != "$TARGET_FULL" ]; then
-            echo -e "\n${YELLOW}⚠️  Warning: Current version in pubspec.yaml ($CURRENT_VERSION) differs from client version ($TARGET_FULL)!${NC}"
-            echo -e "${YELLOW}Synchronizing versions automatically and proceeding...${NC}\n"
-            sleep 2
-        fi
-    fi
-
     python3 "$BUILDER_DIR/configure.py" "$CLIENT" "$ACTION"
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Configuration failed!${NC}"
@@ -255,7 +267,7 @@ fi
 
 if [ "$ACTION" == "clean" ]; then
     echo -e "\n${BLUE}🧹 Cleaning project and clearing Flutter cache...${NC}"
-    cd "$CLIENT_APP_DIR"
+    cd "$MGMT_APP_DIR"
     flutter clean
     echo -e "\n${GREEN}${BOLD}✅ Project successfully cleaned!${NC}\n"
     exit 0
@@ -267,7 +279,7 @@ build_app() {
     local output_dir="$3"
 
     echo -e "\n${BLUE}📦 Building ${app_name} using target [${target_path}]...${NC}"
-    cd "$CLIENT_APP_DIR" || exit 1
+    cd "$MGMT_APP_DIR" || exit 1
     
     # ⚙️ Update config.yaml with correct isAdminMode for target app
     if [ "$app_name" == "admin" ]; then
@@ -291,8 +303,8 @@ with open('project_builder/config.yaml', 'w') as f:
     fi
 
     # 🧹 Clear build output and compiler cache to prevent cross-target caching issues
-    rm -rf "$CLIENT_APP_DIR/build/web"
-    rm -rf "$CLIENT_APP_DIR/.dart_tool/flutter_build"
+    rm -rf "$MGMT_APP_DIR/build/web"
+    rm -rf "$MGMT_APP_DIR/.dart_tool/flutter_build"
     
     flutter build web --release --target "$target_path"
     if [ $? -ne 0 ]; then
@@ -300,7 +312,8 @@ with open('project_builder/config.yaml', 'w') as f:
         exit 1
     fi
     rm -rf "$output_dir"
-    cp -R "$CLIENT_APP_DIR/build/web" "$output_dir"
+    mkdir -p "$output_dir"
+    cp -R "$MGMT_APP_DIR/build/web/"* "$output_dir/"
     echo -e "${GREEN}✅ ${app_name} build saved at: ${output_dir}${NC}"
 }
 
@@ -308,7 +321,6 @@ deploy_app() {
     local app_name="$1"
     local hosting_site="$2"
     local output_dir="$3"
-    local tmp_firebase_json
 
     if [ -z "$hosting_site" ]; then
         echo -e "${RED}❌ Hosting site missing for ${app_name} in client yaml.${NC}"
@@ -320,12 +332,13 @@ deploy_app() {
         exit 1
     fi
 
-    tmp_firebase_json="$(mktemp)"
-    cat > "$tmp_firebase_json" <<EOF
+    local rel_public="build/web_${app_name}"
+
+    cat > "$MGMT_APP_DIR/firebase.json" <<EOF
 {
   "hosting": {
     "site": "${hosting_site}",
-    "public": "${output_dir}",
+    "public": "${rel_public}",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       { "source": "**", "destination": "/index.html" }
@@ -335,16 +348,15 @@ deploy_app() {
 EOF
 
     echo -e "\n${YELLOW}🚀 Deploying ${app_name} to Firebase site [${hosting_site}]...${NC}"
-    cd "$CLIENT_APP_DIR" || exit 1
+    cd "$MGMT_APP_DIR" || exit 1
     if [ -n "$FIREBASE_PROJECT" ]; then
         echo -e "${CYAN}📌 Setting active Firebase project context to [${FIREBASE_PROJECT}]...${NC}"
         firebase use "$FIREBASE_PROJECT" 2>/dev/null || npx -y firebase-tools use "$FIREBASE_PROJECT" 2>/dev/null || true
-        firebase deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT" || npx -y firebase-tools deploy --only hosting --config "$tmp_firebase_json" --project "$FIREBASE_PROJECT"
+        firebase deploy --only hosting --project "$FIREBASE_PROJECT" || npx -y firebase-tools deploy --only hosting --project "$FIREBASE_PROJECT"
     else
-        firebase deploy --only hosting --config "$tmp_firebase_json" || npx -y firebase-tools deploy --only hosting --config "$tmp_firebase_json"
+        firebase deploy --only hosting || npx -y firebase-tools deploy --only hosting
     fi
     local deploy_exit_code=$?
-    rm -f "$tmp_firebase_json"
     if [ $deploy_exit_code -ne 0 ]; then
         echo -e "${RED}❌ Deploy failed for ${app_name}.${NC}"
         exit 1
@@ -391,7 +403,3 @@ elif [ "$ACTION" == "deploy" ]; then
 
     echo -e "\n${GREEN}${BOLD}🎉 Deploy completed successfully for client [${CLIENT}] in mode [${APP_MODE}]!${NC}\n"
 fi
-
-
-
-

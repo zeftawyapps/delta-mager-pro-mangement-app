@@ -55,10 +55,7 @@ class SystemMonitoringBloc extends Cubit<SystemMonitoringState> {
         state.copyWith(
           apiUsageState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading API usage statistics"),
-            () => loadApiUsage(
-              organizationId: organizationId,
-              limit: limit,
-            ),
+            () {},
           ),
         ),
       );
@@ -84,11 +81,7 @@ class SystemMonitoringBloc extends Cubit<SystemMonitoringState> {
         state.copyWith(
           blackboxLogsState: DataSourceBaseState.failure(
             ErrorStateModel(message: result.message ?? "Error loading Blackbox logs"),
-            () => loadBlackboxLogs(
-              organizationId: organizationId,
-              statusCode: statusCode,
-              limit: limit,
-            ),
+            () {},
           ),
         ),
       );

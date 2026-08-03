@@ -62,10 +62,20 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     WebsiteConfig.typeContactUs: "تواصل معنا",
   };
 
+  Map<String, String> get _filteredTypeOptions {
+    if (widget.appMode == WebsiteConfig.appModeBlog) {
+      final map = Map<String, String>.from(_typeOptions);
+      map.remove(WebsiteConfig.typeOffers);
+      map.remove(WebsiteConfig.typeNewProducts);
+      map.remove(WebsiteConfig.typeBestSellerProducts);
+      return map;
+    }
+    return _typeOptions;
+  }
+
   final Map<String, String> _modeOptions = {
     WebsiteConfig.modeHorizontalList: "قائمة عرضية (Scroll)",
     WebsiteConfig.modeGrid: "شبكة (Grid)",
-    WebsiteConfig.modeSlider: "بانر متحرك (Slider)",
   };
 
   IconData _getIconForType(String type) {
@@ -1551,6 +1561,7 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
   Widget _buildIntroClassicHeroFields({
     required Map<String, dynamic> subConfig,
     required String introKey,
+    required IntroThemePalette palette,
     required void Function(String field, dynamic val) updateSub,
   }) {
     final isStore = introKey == WebsiteConfig.keyIntroStore;
@@ -1572,8 +1583,7 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
             border: Border.all(color: Colors.blue.withOpacity(0.25)),
           ),
           child: const Text(
-            "إعدادات Classic (مطابقة الهيرو الافتراضي): Badge، Glow، زر CTA، "
-            "عنوان gradient. المحتوى (العنوان/الوصف) من مقالات intro.",
+            "إعدادات عناصر التفاعل (CTA Button، Badge، Glow). المحتوى (العنوان/الوصف) يدار من مقالات intro.",
             style: TextStyle(fontSize: 11, height: 1.4),
           ),
         ),
@@ -1607,21 +1617,41 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
         SwitchListTile(
           dense: true,
           contentPadding: EdgeInsets.zero,
-          title: const Text("زر CTA", style: TextStyle(fontSize: 13)),
+          title: const Text("إظهار زر التفاعل CTA (مثل ابدأ القراءة / اشتري الآن)", style: TextStyle(fontSize: 13)),
           value: showButton,
           onChanged: widget.isEditing ? (v) => updateSub('showButton', v) : null,
         ),
         if (showButton) ...[
           _buildTextField(
-            "نص الزر",
+            "نص الزر (فارغ = افتراضي)",
             subConfig['buttonText']?.toString() ?? '',
             (val) => updateSub('buttonText', val),
           ),
           _buildTextField(
-            "رابط الزر (href)",
+            "رابط الزر (href / URL)",
             subConfig['buttonLink']?.toString() ?? '',
             (val) => updateSub('buttonLink', val),
           ),
+          const SizedBox(height: 8),
+          const Text("خلفية الزر (Button Background)", style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const SizedBox(height: 4),
+          IntroBackgroundColorPicker(
+            backgroundType: 'solid',
+            customBg: subConfig['buttonBg']?.toString() ?? '',
+            isEditing: widget.isEditing,
+            palette: palette,
+            onChanged: (v) => updateSub('buttonBg', v),
+          ),
+          const SizedBox(height: 8),
+          const Text("لون نص الزر (Button Text Color)", style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const SizedBox(height: 4),
+          IntroTextColorPicker(
+            textColor: subConfig['buttonTextColor']?.toString() ?? '',
+            isEditing: widget.isEditing,
+            palette: palette,
+            onChanged: (v) => updateSub('buttonTextColor', v),
+          ),
+          const SizedBox(height: 12),
         ],
         if (isStore) ...[
           const SizedBox(height: 8),
@@ -1677,15 +1707,15 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     if (section['config'] == null) section['config'] = {};
 
     const tabs = [
-      {'key': WebsiteConfig.keyIntroHybrid, 'label': '🔀 الهجين', 'icon': Icons.join_full},
       {'key': WebsiteConfig.keyIntroBlog,   'label': '🗞️ مدونة',   'icon': Icons.article_outlined},
       {'key': WebsiteConfig.keyIntroStore,  'label': '🛍️ متجر',   'icon': Icons.storefront_outlined},
+      {'key': WebsiteConfig.keyIntroHybrid, 'label': '🔀 الهجين', 'icon': Icons.join_full},
     ];
 
     final activeIntroKey = switch (widget.appMode) {
       WebsiteConfig.appModeBlog => WebsiteConfig.keyIntroBlog,
       WebsiteConfig.appModeStore => WebsiteConfig.keyIntroStore,
-      _ => WebsiteConfig.keyIntroHybrid,
+      _ => WebsiteConfig.keyIntroBlog,
     };
     final activeTabIndex = tabs.indexWhere((t) => t['key'] == activeIntroKey);
     final activeTab = tabs[activeTabIndex < 0 ? 0 : activeTabIndex];
@@ -1701,6 +1731,7 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
     };
 
     return DefaultTabController(
+      key: ValueKey('intro_tabs_${section['id']}_$activeTabIndex'),
       length: 3,
       initialIndex: activeTabIndex < 0 ? 0 : activeTabIndex,
       child: Column(
@@ -1889,12 +1920,12 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                       ),
                       const SizedBox(height: 12),
 
-                      if (currentStyle == WebsiteConfig.introDisplayClassicCentered)
-                        _buildIntroClassicHeroFields(
-                          subConfig: subConfig,
-                          introKey: key,
-                          updateSub: updateSub,
-                        ),
+                      _buildIntroClassicHeroFields(
+                        subConfig: subConfig,
+                        introKey: key,
+                        palette: themePalette,
+                        updateSub: updateSub,
+                      ),
 
                       // backgroundType
                       const Text("نوع الخلفية", style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -1955,6 +1986,25 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                           onChanged: widget.isEditing ? (v) => updateSub('duration', v.round()) : null,
                         ),
                       ],
+
+                      // slideAnimation
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: subConfig['slideAnimation'] ?? 'fade',
+                        items: WebsiteConfig.slideAnimationLabels.entries.map((e) =>
+                          DropdownMenuItem(
+                            value: e.key,
+                            child: Text(e.value, style: const TextStyle(fontSize: 13)),
+                          ),
+                        ).toList(),
+                        onChanged: widget.isEditing ? (v) => updateSub('slideAnimation', v) : null,
+                        decoration: const InputDecoration(
+                          labelText: "تأثير أنيميشن الانتقال بين الشرائح (Slide Animation)",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
                       // indicatorType
                       const Text("مؤشر الشرائح (Indicator)", style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -2103,7 +2153,7 @@ class _WebsiteSectionCardState extends State<WebsiteSectionCard> {
                 _buildDropdown(
                   "نوع المحتوى",
                   section['type'],
-                  _typeOptions,
+                  _filteredTypeOptions,
                   (val) {
                     if (val == null) return;
                     widget.onSectionChanged(
